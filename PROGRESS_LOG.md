@@ -16,14 +16,19 @@
   - Initialized the Git repository and pushed the clean base setup to GitHub.
 
 ### Day 2
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Tasks Done:**
-  - *(Will be updated after Day 2)*
+  - Configured global styles with Tailwind v4 custom theme and color palettes.
+  - Created reusable base UI components: `Button`, `Input`, and `Card` components.
+  - Established initial component structure in `src/components/common`.
 
 ### Day 3
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Tasks Done:**
-  - *(Will be updated after Day 3)*
+  - Setup React Router DOM for client-side routing.
+  - Created application layout structure with `MainLayout`, `Sidebar`, and `Header`.
+  - Added placeholder pages for Dashboard, Tasks, and Projects.
+  - Integrated routing and layouts in `App.tsx` and `src/routes/index.tsx`.
 
 ### Day 4
 - **Status:** ⏳ Pending

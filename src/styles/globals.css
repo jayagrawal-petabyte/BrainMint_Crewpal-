@@ -1,1 +1,71 @@
 @import "tailwindcss";
+
+@theme {
+  /* CREWPAL Brand Colors - extracted from design mockups */
+  
+  /* Warm cream background */
+  --color-cream-50: #fdf8e8;
+  --color-cream-100: #faf5e4;
+  --color-cream-200: #f5edcf;
+  --color-cream-300: #ede4b8;
+
+  /* Primary Dark Green (nav, buttons, headings) */
+  --color-forest-50: #e8f0ec;
+  --color-forest-100: #c5d8cd;
+  --color-forest-200: #9ebfad;
+  --color-forest-300: #6d9e82;
+  --color-forest-400: #4a8466;
+  --color-forest-500: #2d6b4a;
+  --color-forest-600: #1f4d35;
+  --color-forest-700: #1a3a2a;
+  --color-forest-800: #142d21;
+  --color-forest-900: #0e2018;
+
+  /* Olive / Sage Green (cards, table headers) */
+  --color-olive-50: #f4f5ed;
+  --color-olive-100: #e5e8d5;
+  --color-olive-200: #d4d9b8;
+  --color-olive-300: #b8c094;
+  --color-olive-400: #a0ab78;
+  --color-olive-500: #8b9a6d;
+  --color-olive-600: #6e7a55;
+  --color-olive-700: #556042;
+  --color-olive-800: #3c4430;
+  --color-olive-900: #252a1e;
+
+  /* Dusty Rose / Pink (accent cards, avatars, calendar) */
+  --color-rose-50: #faf0f0;
+  --color-rose-100: #f2dcdc;
+  --color-rose-200: #e8c5c5;
+  --color-rose-300: #d4a0a0;
+  --color-rose-400: #c48888;
+  --color-rose-500: #b07070;
+  --color-rose-600: #995c5c;
+  --color-rose-700: #7a4949;
+  --color-rose-800: #5c3636;
+  --color-rose-900: #3d2424;
+
+  /* Teal / Dark Blue-Green (stat cards) */
+  --color-teal-50: #e6f2f2;
+  --color-teal-100: #c0dfdf;
+  --color-teal-200: #8fc4c3;
+  --color-teal-300: #5da8a7;
+  --color-teal-400: #388f8e;
+  --color-teal-500: #1a6b6a;
+  --color-teal-600: #155756;
+  --color-teal-700: #104342;
+  --color-teal-800: #0b2f2f;
+  --color-teal-900: #061c1c;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  html, body {
+    @apply bg-cream-100 text-forest-900 antialiased font-sans h-full w-full m-0 p-0;
+  }
+  
+  #root {
+    @apply h-full w-full flex;
+  }
+}
