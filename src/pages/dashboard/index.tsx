@@ -3,6 +3,7 @@ import { Button } from '../../components/common/Button';
 import { MessageSquare, CalendarPlus, LogOut, Play } from 'lucide-react';
 
 export const Dashboard = () => {
+
   return (
     <div className="space-y-8">
       {/* User Profile Card */}

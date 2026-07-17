@@ -31,14 +31,17 @@
   - Integrated routing and layouts in `App.tsx` and `src/routes/index.tsx`.
 
 ### Day 4
-- **Status:** ⏳ Pending
-- **Tasks Done:**
-  - *(Will be updated after Day 4)*
+- **Status:** 🔄 Reverted (Out of Scope)
+- **Notes:** Auth/Login implementation was built but reverted — authentication is handled by other team members. Harsh's scope is Task Management only.
 
 ### Day 5
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Tasks Done:**
-  - *(Will be updated after Day 5)*
+  - Defined `Task` TypeScript interface with all required fields (`id`, `title`, `description`, `techTag`, `status`, `priority`, `dueDate`, `assignees[]`, timestamps) in `src/types/task.ts`.
+  - Created Zustand task store (`src/store/tasks/index.ts`) with full CRUD actions: `addTask`, `updateTask`, `deleteTask`, `assignTask`, `updateStatus`, `updatePriority`.
+  - Added filter logic (`setSearch`, `setStatusFilter`, `setPriorityFilter`) and selector `getFilteredTasks()`.
+  - Seeded store with 7 mock tasks matching the CREWPAL design data (School ERP, Mobile App, Management Project, etc.).
+  - Wired store to Tasks page for build verification — `npm run build` passes ✅.
 
 ### Day 6
 - **Status:** ⏳ Pending
