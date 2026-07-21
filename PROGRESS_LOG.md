@@ -44,9 +44,15 @@
   - Wired store to Tasks page for build verification — `npm run build` passes ✅.
 
 ### Day 6
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Tasks Done:**
-  - *(Will be updated after Day 6)*
+  - Built the full Task List UI in `src/pages/tasks/index.tsx` matching the `Project → Task.jpg` CREWPAL mockup exactly.
+  - Tasks are grouped into 3 status sections: **ON TRACK** (olive background), **DELAYED** (rose background), **COMPLETED** (sage/cream background).
+  - Each task card displays: tech tag label, task title, assignee avatar stack (overlapping circles), and a row of action icons (Add, Calendar, Pin, Flag, More).
+  - Implemented live search bar (rose pill input with magnifier icon and dropdown chevron) that filters tasks by name in real-time using the Zustand store.
+  - Added **New Task** forest-green pill button (hooks up to modal in Day 10).
+  - Added empty state when no tasks match the search query.
+  - `npm run build` passes ✅ — zero TypeScript errors.
 
 ### Day 7
 - **Status:** ⏳ Pending
