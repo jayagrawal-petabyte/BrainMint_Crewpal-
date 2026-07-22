@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -57,7 +58,16 @@
   --color-teal-800: #0b2f2f;
   --color-teal-900: #061c1c;
 
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  /* Mockup specific color aliases mapped to CREWPAL design tokens */
+  --color-Beige: var(--color-cream-100);
+  --color-Dark-Green: var(--color-forest-700);
+  --color-MossGreen: var(--color-olive-500);
+  --color-Moss-Green: var(--color-olive-200);
+  --color-Rosy-brown: var(--color-rose-300);
+  --color-Pink-Beige: var(--color-cream-50);
+  --color-Midnight-Green: var(--color-forest-900);
+
+  --font-sans: "Inter", "Roboto", system-ui, -apple-system, sans-serif;
 }
 
 @layer base {
@@ -69,3 +79,48 @@
     @apply h-full w-full flex;
   }
 }
+
+/* Custom scrollbar for the dynamic task list container */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-forest-300);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-forest-400);
+}
+
+/* Kanban Drag-and-Drop Utilities */
+[draggable="true"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Kanban column drop zone pulse animation */
+@keyframes kanban-drop-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(26, 58, 42, 0.2); }
+  50% { box-shadow: 0 0 0 8px rgba(26, 58, 42, 0); }
+}
+
+.kanban-drop-active {
+  animation: kanban-drop-pulse 1.2s ease-in-out infinite;
+}
+
+/* Smooth card lift effect on hover */
+.kanban-card {
+  transition: box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.kanban-card:hover {
+  box-shadow: 0 4px 12px rgba(14, 32, 24, 0.12);
+}
+
+/* Priority badge styles */
+.priority-high { background-color: var(--color-rose-200); color: var(--color-rose-800); }
+.priority-medium { background-color: var(--color-olive-200); color: var(--color-olive-800); }
+.priority-low { background-color: var(--color-cream-200); color: var(--color-forest-700); }
