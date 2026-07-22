@@ -55,9 +55,14 @@
   - `npm run build` passes ✅ — zero TypeScript errors.
 
 ### Day 7
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Tasks Done:**
-  - *(Will be updated after Day 7)*
+  - Extracted `TaskCard` into its own reusable component (`src/components/cards/TaskCard.tsx`) with hover scale/shadow effects and smooth transitions.
+  - Added priority dot indicator (red for high, olive for medium, grey for low) on each card.
+  - Added formatted due date display on cards with red highlight for overdue tasks.
+  - Built click-to-open Task Detail view matching the `Project → Task-1.jpg` mockup — shows expanded card with title, tech tag, assignees, description area, and Back button.
+  - Action icon buttons use `stopPropagation` so they don't trigger card click.
+  - `npm run build` passes ✅ — zero TypeScript errors.
 
 ---
 
