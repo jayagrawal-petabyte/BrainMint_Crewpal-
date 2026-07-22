@@ -28,11 +28,10 @@ export const Projects = () => {
         ].map((tab) => (
           <button
             key={tab.name}
-            className={`pb-3 text-sm font-medium transition-colors relative ${
-              tab.active
+            className={`pb-3 text-sm font-medium transition-colors relative ${tab.active
                 ? 'text-forest-900 border-b-2 border-forest-700'
                 : 'text-forest-400 hover:text-forest-600'
-            }`}
+              }`}
           >
             {tab.name}
             {tab.count && (

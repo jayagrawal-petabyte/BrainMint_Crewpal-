@@ -4,10 +4,10 @@ import type { Task, TaskFilter, TaskStatus, TaskPriority, Assignee } from '../..
 // ─── Mock seed data ─────────────────────────────────────────────────────────
 
 const MOCK_ASSIGNEES: Assignee[] = [
-  { id: 'u1', name: 'Shanti Biswas',  initials: 'SB', avatarColor: 'bg-rose-300' },
-  { id: 'u2', name: 'Raj Kumar',      initials: 'RK', avatarColor: 'bg-olive-300' },
-  { id: 'u3', name: 'Priya Nair',     initials: 'PN', avatarColor: 'bg-teal-300' },
-  { id: 'u4', name: 'Aryan Mehta',    initials: 'AM', avatarColor: 'bg-forest-400' },
+  { id: 'u1', name: 'Shanti Biswas', initials: 'SB', avatarColor: 'bg-rose-300' },
+  { id: 'u2', name: 'Raj Kumar', initials: 'RK', avatarColor: 'bg-olive-300' },
+  { id: 'u3', name: 'Priya Nair', initials: 'PN', avatarColor: 'bg-teal-300' },
+  { id: 'u4', name: 'Aryan Mehta', initials: 'AM', avatarColor: 'bg-forest-400' },
 ];
 
 const SEED_TASKS: Task[] = [
