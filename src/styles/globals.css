@@ -76,8 +76,8 @@
   }
   
   #root {
-    @apply h-full w-full flex;
-  }
+  @apply min-h-screen w-full;
+}
 }
 
 /* Custom scrollbar for the dynamic task list container */
