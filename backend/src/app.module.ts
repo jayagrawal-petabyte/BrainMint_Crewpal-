@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     OrganizationsModule,
     ProjectsModule,
     DashboardModule,
+    SearchModule,
   ],
   controllers: [],
   providers: [],
