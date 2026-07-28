@@ -1,8 +1,9 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Tasks } from '../pages/tasks';
+import { Projects } from '../pages/projects';
 
-// Placeholder view for secondary routes to keep Task Management in focus
+// Placeholder view for secondary routes not yet in scope for our module
 const UnderConstruction = ({ title }: { title: string }) => (
   <div className="p-8 text-center space-y-3 bg-cream-50 rounded-2xl border border-cream-200">
     <h2 className="text-xl font-bold text-forest-800">{title}</h2>
@@ -25,7 +26,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'projects',
-        element: <UnderConstruction title="Projects Module" />,
+        element: <Projects />,
       },
       {
         path: 'users',
