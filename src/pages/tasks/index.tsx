@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Plus, Calendar, Pin, Flag, MoreHorizontal, Search, ChevronDown, Filter,
-  Home, FolderKanban, Tag, Users, Image as ImageIcon, Send
+  LayoutGrid, MessageSquare, CheckSquare, Trash2, LayoutList, Send
 } from 'lucide-react';
 import { useTaskStore } from '../../store/tasks';
 import { CreateTaskModal } from '../../components/modals/CreateTaskModal';
@@ -9,6 +9,12 @@ import { EditTaskModal } from '../../components/modals/EditTaskModal';
 import { DeleteConfirmModal } from '../../components/modals/DeleteConfirmModal';
 import { AssignTaskModal } from '../../components/modals/AssignTaskModal';
 import { TaskActionsMenu } from '../../components/ui/TaskActionsMenu';
+import { SortDropdown } from '../../components/ui/SortDropdown';
+import { KanbanBoard } from '../../components/views/KanbanBoard';
+import { CalendarView } from '../../components/views/CalendarView';
+import { BottomNav } from '../../components/layout/BottomNav';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { useToast } from '../../hooks/useToast';
 import type { Task, TaskStatus, TaskPriority } from '../../types/task';
 
 // ─── Filter Dropdown Component ─────────────────────────────────────────────
@@ -132,9 +138,17 @@ export const Tasks = () => {
   const [actionsTaskId, setActionsTaskId] = useState<string | null>(null);
   const [actionTarget, setActionTarget] = useState<Task | null>(null);
 
+  const [newComment, setNewComment] = useState('');
+  const [newSubtask, setNewSubtask] = useState('');
+  
+  // Day 27: Search Debounce
+  const [localSearch, setLocalSearch] = useState('');
+
   // Store bindings
   const search = useTaskStore((state) => state.filter.search);
   const filter = useTaskStore((state) => state.filter);
+  const viewMode = useTaskStore((state) => state.viewMode);
+  const setViewMode = useTaskStore((state) => state.setViewMode);
   const setSearch = useTaskStore((state) => state.setSearch);
   const setStatusFilter = useTaskStore((state) => state.setStatusFilter);
   const setPriorityFilter = useTaskStore((state) => state.setPriorityFilter);
@@ -146,9 +160,26 @@ export const Tasks = () => {
   const updatePriority = useTaskStore((state) => state.updatePriority);
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const assignTask = useTaskStore((state) => state.assignTask);
+  const addComment = useTaskStore((state) => state.addComment);
+  const addSubtask = useTaskStore((state) => state.addSubtask);
+  const toggleSubtask = useTaskStore((state) => state.toggleSubtask);
+  const deleteSubtask = useTaskStore((state) => state.deleteSubtask);
+  const toast = useToast();
 
   const filteredTasks = getFilteredTasks();
   const selectedTask = selectedTaskId ? getTaskById(selectedTaskId) : null;
+
+  // Day 27: Initialize local search and debounce
+  useEffect(() => {
+    setLocalSearch(search);
+  }, []); // Only on mount
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(localSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localSearch, setSearch]);
 
   // Group tasks by status
   const onTrackTasks = filteredTasks.filter((t) => t.status === 'on_track');
@@ -230,37 +261,70 @@ export const Tasks = () => {
       </div>
 
       {/* ─── SEARCH & CONTROLS ROW ─── */}
-      <div className="flex items-center justify-between gap-3 mb-4">
-        {/* Search Bar */}
-        <div className="flex-1 flex items-center gap-2 bg-[#f2cece]/60 border border-[#e7a8a8] rounded-full px-3.5 py-2">
-          <Search className="w-4 h-4 text-[#426348] shrink-0" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Enter task name"
-            className="w-full bg-transparent text-xs text-[#0b170e] placeholder:text-[#426348]/70 outline-none font-medium"
-          />
-          <ChevronDown className="w-4 h-4 text-[#426348] shrink-0" />
+      <div className="flex flex-col gap-3 mb-4">
+        <div className="flex items-center justify-between gap-3">
+          {/* Search Bar */}
+          <div className="flex-1 flex items-center gap-2 bg-[#f2cece]/60 border border-[#e7a8a8] rounded-full px-3.5 py-2">
+            <Search className="w-4 h-4 text-[#426348] shrink-0" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder="Search task"
+              className="w-full bg-transparent text-xs text-[#0b170e] placeholder:text-[#426348]/70 outline-none font-medium"
+              aria-label="Search tasks"
+            />
+            <ChevronDown className="w-4 h-4 text-[#426348] shrink-0" />
+          </div>
+
+          {/* New Task Button */}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-1.5 bg-[#1e3624] hover:bg-[#142619] text-[#f5f0e1] px-4 py-2 rounded-full text-xs font-bold shrink-0 shadow-md transition-all active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New Task
+          </button>
         </div>
 
-        {/* Filter Dropdown */}
-        <FilterDropdown
-          statusFilter={filter.status}
-          priorityFilter={filter.priority}
-          onStatusChange={setStatusFilter}
-          onPriorityChange={setPriorityFilter}
-          onReset={resetFilter}
-        />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            {/* Filter Dropdown */}
+            <FilterDropdown
+              statusFilter={filter.status}
+              priorityFilter={filter.priority}
+              onStatusChange={setStatusFilter}
+              onPriorityChange={setPriorityFilter}
+              onReset={resetFilter}
+            />
+            {/* Sort Dropdown */}
+            <SortDropdown />
+          </div>
 
-        {/* New Task Button */}
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 bg-[#1e3624] hover:bg-[#142619] text-[#f5f0e1] px-4 py-2 rounded-full text-xs font-bold shrink-0 shadow-md transition-all active:scale-95"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          New Task
-        </button>
+          <div className="flex items-center gap-1 bg-cream-200 p-1 rounded-full border border-cream-300">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-full transition-colors ${viewMode === 'list' ? 'bg-forest-800 text-white shadow-sm' : 'text-forest-700 hover:bg-cream-300'}`}
+              title="List View"
+            >
+              <LayoutList className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`p-1.5 rounded-full transition-colors ${viewMode === 'kanban' ? 'bg-forest-800 text-white shadow-sm' : 'text-forest-700 hover:bg-cream-300'}`}
+              title="Kanban Board"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`p-1.5 rounded-full transition-colors ${viewMode === 'calendar' ? 'bg-forest-800 text-white shadow-sm' : 'text-forest-700 hover:bg-cream-300'}`}
+              title="Calendar View"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ─── CONDITIONAL RENDER: LIST VIEW OR DETAIL VIEW ─── */}
@@ -320,8 +384,154 @@ export const Tasks = () => {
                 />
                 <div className="border-b border-[#0b170e]/80 w-full"></div>
               </div>
+
+              {/* ─── SUBTASKS (Day 21) ─── */}
+              <div className="pt-2 space-y-3">
+                <div className="flex items-center gap-1.5 text-[#0b170e]">
+                  <CheckSquare className="w-4 h-4" />
+                  <h4 className="text-xs font-bold">Subtasks</h4>
+                </div>
+                
+                <div className="space-y-2">
+                  {selectedTask.subtasks.map((st) => (
+                    <div key={st.id} className="flex items-center justify-between group">
+                      <label className="flex items-center gap-2 cursor-pointer flex-1">
+                        <div
+                          className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                            st.completed ? 'bg-forest-700 border-forest-700' : 'border-forest-900/40 bg-white'
+                          }`}
+                        >
+                          {st.completed && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={st.completed}
+                          onChange={() => toggleSubtask(selectedTask.id, st.id)}
+                          className="hidden"
+                        />
+                        <span className={`text-xs ${st.completed ? 'text-forest-900/50 line-through' : 'text-forest-900'} transition-all`}>
+                          {st.title}
+                        </span>
+                      </label>
+                      <button
+                        onClick={() => deleteSubtask(selectedTask.id, st.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-rose-500 hover:bg-rose-100 rounded transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={newSubtask}
+                      onChange={(e) => setNewSubtask(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newSubtask.trim()) {
+                          addSubtask(selectedTask.id, newSubtask.trim());
+                          setNewSubtask('');
+                        }
+                      }}
+                      placeholder="Add new subtask..."
+                      className="flex-1 bg-transparent border-b border-forest-900/20 text-xs text-forest-900 placeholder:text-forest-900/50 outline-none pb-1"
+                    />
+                    <button
+                      onClick={() => {
+                        if (newSubtask.trim()) {
+                          addSubtask(selectedTask.id, newSubtask.trim());
+                          setNewSubtask('');
+                        }
+                      }}
+                      className="p-1 bg-forest-200 text-forest-800 rounded hover:bg-forest-300"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* ─── COMMENTS (Day 20) ─── */}
+              <div className="pt-4 space-y-3">
+                <div className="flex items-center gap-1.5 text-[#0b170e]">
+                  <MessageSquare className="w-4 h-4" />
+                  <h4 className="text-xs font-bold">Comments</h4>
+                </div>
+                
+                <div className="space-y-3 max-h-40 overflow-y-auto pr-1 no-scrollbar">
+                  {selectedTask.comments.map((c) => (
+                    <div key={c.id} className="flex gap-2">
+                      <div className="w-6 h-6 shrink-0 rounded-full bg-olive-200 text-forest-800 flex items-center justify-center text-[10px] font-bold">
+                        {c.authorInitials}
+                      </div>
+                      <div className="flex-1 bg-white/50 rounded-xl rounded-tl-none p-2.5 text-xs text-forest-900 space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold">{c.authorName}</span>
+                          <span className="text-[9px] opacity-60">
+                            {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="leading-snug">{c.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {selectedTask.comments.length === 0 && (
+                    <p className="text-[11px] text-forest-900/50 italic py-2">No comments yet. Be the first!</p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="w-6 h-6 shrink-0 rounded-full bg-rose-200 text-forest-800 flex items-center justify-center text-[10px] font-bold">
+                    HG
+                  </div>
+                  <div className="flex-1 flex bg-white border border-forest-900/20 rounded-full pl-3 pr-1 py-1">
+                    <input
+                      type="text"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newComment.trim()) {
+                          addComment(selectedTask.id, 'u2', 'Harsh Gupta', 'HG', newComment.trim());
+                          setNewComment('');
+                        }
+                      }}
+                      placeholder="Write a comment..."
+                      className="flex-1 bg-transparent text-xs text-forest-900 outline-none"
+                    />
+                    <button
+                      onClick={() => {
+                        if (newComment.trim()) {
+                          addComment(selectedTask.id, 'u2', 'Harsh Gupta', 'HG', newComment.trim());
+                          setNewComment('');
+                        }
+                      }}
+                      className="w-6 h-6 rounded-full bg-forest-800 text-white flex items-center justify-center hover:bg-forest-700 transition-colors"
+                    >
+                      <Send className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+      ) : filteredTasks.length === 0 ? (
+        /* ─── EMPTY STATE (Day 27) ─── */
+        <div className="pt-20">
+          <EmptyState 
+            type={search ? "search" : "empty"} 
+            title={search ? "No tasks found" : "Your task list is empty"} 
+            description={search ? `We couldn't find anything matching "${search}"` : "Create a new task to get started on your projects."}
+          />
+        </div>
+      ) : viewMode === 'kanban' ? (
+        /* ─── KANBAN BOARD VIEW ─── */
+        <div className="animate-in fade-in duration-200">
+          <KanbanBoard onSelectTask={setSelectedTaskId} onClickMore={handleClickMore} />
+        </div>
+      ) : viewMode === 'calendar' ? (
+        /* ─── CALENDAR VIEW ─── */
+        <div className="animate-in fade-in duration-200 pb-10">
+          <CalendarView onSelectTask={setSelectedTaskId} />
         </div>
       ) : (
         /* ─── VERTICAL TASK LIST VIEW (Project -_ Task.jpg) ─── */
@@ -334,35 +544,50 @@ export const Tasks = () => {
             </div>
 
             <div className="space-y-3">
-              {onTrackTasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => setSelectedTaskId(task.id)}
-                  className="bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 space-y-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
-                >
-                  <p className="text-[11px] text-[#426348] font-medium">{task.techTag}</p>
-                  <h4 className="text-sm font-bold text-[#0b170e] leading-snug">{task.title}</h4>
-                  
-                  <AssigneeAvatars assignees={task.assignees} />
+              {onTrackTasks.length === 0 ? (
+                <EmptyState type="status" title="No tasks on track" description="Everything here is clear!" />
+              ) : (
+                onTrackTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={() => setSelectedTaskId(task.id)}
+                    className="bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 space-y-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.99] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-900"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View details for ${task.title}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedTaskId(task.id);
+                      }
+                    }}
+                  >
+                    <p className="text-[11px] text-[#426348] font-medium">{task.techTag}</p>
+                    <h4 className="text-sm font-bold text-[#0b170e] leading-snug">{task.title}</h4>
+                    
+                    <AssigneeAvatars assignees={task.assignees} />
 
-                  <div className="flex items-center justify-between pt-1 text-[#0b170e]">
-                    <div className="flex items-center gap-3">
-                      <button onClick={(e) => { e.stopPropagation(); }}><Plus className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Calendar className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Pin className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Flag className="w-4 h-4" /></button>
+                    <div className="flex items-center justify-between pt-1 text-[#0b170e]">
+                      <div className="flex items-center gap-3">
+                        <button aria-label="Add subtask" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Plus className="w-4 h-4" /></button>
+                        <button aria-label="Schedule" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Calendar className="w-4 h-4" /></button>
+                        <button aria-label="Pin" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Pin className="w-4 h-4" /></button>
+                        <button aria-label="Flag priority" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Flag className="w-4 h-4" /></button>
+                      </div>
+                      <button
+                        aria-label="More actions"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClickMore(task.id);
+                        }}
+                        className="hover:bg-cream-200 p-1 rounded-full transition-colors"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClickMore(task.id);
-                      }}
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -376,35 +601,50 @@ export const Tasks = () => {
             </div>
 
             <div className="space-y-3">
-              {delayedTasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => setSelectedTaskId(task.id)}
-                  className="bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 space-y-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
-                >
-                  <p className="text-[11px] text-[#426348] font-medium">{task.techTag}</p>
-                  <h4 className="text-sm font-bold text-[#0b170e] leading-snug">{task.title}</h4>
-                  
-                  <AssigneeAvatars assignees={task.assignees} />
+              {delayedTasks.length === 0 ? (
+                <EmptyState type="status" title="No delayed tasks" description="Great job keeping up!" />
+              ) : (
+                delayedTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={() => setSelectedTaskId(task.id)}
+                    className="bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 space-y-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.99] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-900"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View details for ${task.title}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedTaskId(task.id);
+                      }
+                    }}
+                  >
+                    <p className="text-[11px] text-[#426348] font-medium">{task.techTag}</p>
+                    <h4 className="text-sm font-bold text-[#0b170e] leading-snug">{task.title}</h4>
+                    
+                    <AssigneeAvatars assignees={task.assignees} />
 
-                  <div className="flex items-center justify-between pt-1 text-[#0b170e]">
-                    <div className="flex items-center gap-3">
-                      <button onClick={(e) => { e.stopPropagation(); }}><Plus className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Calendar className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Pin className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Flag className="w-4 h-4" /></button>
+                    <div className="flex items-center justify-between pt-1 text-[#0b170e]">
+                      <div className="flex items-center gap-3">
+                        <button aria-label="Add subtask" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Plus className="w-4 h-4" /></button>
+                        <button aria-label="Schedule" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Calendar className="w-4 h-4" /></button>
+                        <button aria-label="Pin" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Pin className="w-4 h-4" /></button>
+                        <button aria-label="Flag priority" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Flag className="w-4 h-4" /></button>
+                      </div>
+                      <button
+                        aria-label="More actions"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClickMore(task.id);
+                        }}
+                        className="hover:bg-cream-200 p-1 rounded-full transition-colors"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClickMore(task.id);
-                      }}
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -418,66 +658,57 @@ export const Tasks = () => {
             </div>
 
             <div className="space-y-3">
-              {completedTasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => setSelectedTaskId(task.id)}
-                  className="bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 space-y-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
-                >
-                  <p className="text-[11px] text-[#426348] font-medium">{task.techTag}</p>
-                  <h4 className="text-sm font-bold text-[#0b170e] leading-snug">{task.title}</h4>
-                  
-                  <AssigneeAvatars assignees={task.assignees} />
+              {completedTasks.length === 0 ? (
+                <EmptyState type="status" title="No completed tasks" description="Get to work!" />
+              ) : (
+                completedTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={() => setSelectedTaskId(task.id)}
+                    className="bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 space-y-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.99] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-900"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View details for ${task.title}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedTaskId(task.id);
+                      }
+                    }}
+                  >
+                    <p className="text-[11px] text-[#426348] font-medium">{task.techTag}</p>
+                    <h4 className="text-sm font-bold text-[#0b170e] leading-snug">{task.title}</h4>
+                    
+                    <AssigneeAvatars assignees={task.assignees} />
 
-                  <div className="flex items-center justify-between pt-1 text-[#0b170e]">
-                    <div className="flex items-center gap-3">
-                      <button onClick={(e) => { e.stopPropagation(); }}><Plus className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Calendar className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Pin className="w-4 h-4" /></button>
-                      <button onClick={(e) => { e.stopPropagation(); }}><Flag className="w-4 h-4" /></button>
+                    <div className="flex items-center justify-between pt-1 text-[#0b170e]">
+                      <div className="flex items-center gap-3">
+                        <button aria-label="Add subtask" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Plus className="w-4 h-4" /></button>
+                        <button aria-label="Schedule" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Calendar className="w-4 h-4" /></button>
+                        <button aria-label="Pin" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Pin className="w-4 h-4" /></button>
+                        <button aria-label="Flag priority" onClick={(e) => { e.stopPropagation(); }} className="hover:scale-110 transition-transform"><Flag className="w-4 h-4" /></button>
+                      </div>
+                      <button
+                        aria-label="More actions"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClickMore(task.id);
+                        }}
+                        className="hover:bg-cream-200 p-1 rounded-full transition-colors"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClickMore(task.id);
-                      }}
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* ─── FLOATING BOTTOM NAVIGATION BAR (Exact match for Figma design) ─── */}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#1e3624] text-[#f5f0e1] px-5 py-3 rounded-full flex items-center gap-5 shadow-2xl z-40 border border-[#0b170e]/40">
-        <button className="hover:opacity-80 transition-opacity p-1">
-          <Home className="w-5 h-5 text-[#f5f0e1]" />
-        </button>
-
-        <button className="w-9 h-9 rounded-full bg-[#d4a0a0] flex items-center justify-center shadow-inner">
-          <FolderKanban className="w-5 h-5 text-[#0b170e]" />
-        </button>
-
-        <button className="hover:opacity-80 transition-opacity p-1">
-          <Tag className="w-5 h-5 text-[#f5f0e1]" />
-        </button>
-
-        <button className="hover:opacity-80 transition-opacity p-1">
-          <Users className="w-5 h-5 text-[#f5f0e1]" />
-        </button>
-
-        <button className="hover:opacity-80 transition-opacity p-1">
-          <ImageIcon className="w-5 h-5 text-[#f5f0e1]" />
-        </button>
-
-        <button className="hover:opacity-80 transition-opacity p-1">
-          <Send className="w-5 h-5 text-[#f5f0e1]" />
-        </button>
-      </div>
+      {/* ─── FLOATING BOTTOM NAVIGATION BAR ─── */}
+      <BottomNav />
 
       {/* Modals */}
       <CreateTaskModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
@@ -489,8 +720,14 @@ export const Tasks = () => {
             onEdit={() => setShowEditModal(true)}
             onDelete={() => setShowDeleteModal(true)}
             onAssign={() => setShowAssignModal(true)}
-            onChangeStatus={(s) => updateStatus(actionTarget.id, s)}
-            onChangePriority={(p) => updatePriority(actionTarget.id, p)}
+            onChangeStatus={(s) => {
+              updateStatus(actionTarget.id, s);
+              toast.success(`Status changed to ${s.replace('_', ' ')}`);
+            }}
+            onChangePriority={(p) => {
+              updatePriority(actionTarget.id, p);
+              toast.success(`Priority changed to ${p}`);
+            }}
             currentStatus={actionTarget.status}
             currentPriority={actionTarget.priority}
           />
@@ -503,13 +740,19 @@ export const Tasks = () => {
             isOpen={showDeleteModal}
             onClose={() => { setShowDeleteModal(false); setActionTarget(null); }}
             taskTitle={actionTarget.title}
-            onConfirm={() => deleteTask(actionTarget.id)}
+            onConfirm={() => {
+              deleteTask(actionTarget.id);
+              toast.success('Task deleted successfully');
+            }}
           />
           <AssignTaskModal
             isOpen={showAssignModal}
             onClose={() => { setShowAssignModal(false); setActionTarget(null); }}
             currentAssignees={actionTarget.assignees}
-            onSave={(assignees) => assignTask(actionTarget.id, assignees)}
+            onSave={(assignees) => {
+              assignTask(actionTarget.id, assignees);
+              toast.success('Assignees updated');
+            }}
           />
         </>
       )}
@@ -528,13 +771,17 @@ export const Tasks = () => {
             onConfirm={() => {
               deleteTask(selectedTask.id);
               setSelectedTaskId(null);
+              toast.success('Task deleted successfully');
             }}
           />
           <AssignTaskModal
             isOpen={showAssignModal}
             onClose={() => setShowAssignModal(false)}
             currentAssignees={selectedTask.assignees}
-            onSave={(assignees) => assignTask(selectedTask.id, assignees)}
+            onSave={(assignees) => {
+              assignTask(selectedTask.id, assignees);
+              toast.success('Assignees updated');
+            }}
           />
         </>
       )}

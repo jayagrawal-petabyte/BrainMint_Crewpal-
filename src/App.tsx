@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './routes';
 import { GlobalSearch } from './components/modals/GlobalSearch';
 import { Search } from 'lucide-react';
+import { ToastContainer } from './components/ui/Toast';
 
 export const App = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -21,6 +22,7 @@ export const App = () => {
   return (
     <>
       <RouterProvider router={router} />
+      <ToastContainer />
       <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
       {/* Floating Search Trigger (Ctrl+K shortcut indicator) */}

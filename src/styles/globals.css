@@ -124,3 +124,75 @@
 .priority-high { background-color: var(--color-rose-200); color: var(--color-rose-800); }
 .priority-medium { background-color: var(--color-olive-200); color: var(--color-olive-800); }
 .priority-low { background-color: var(--color-cream-200); color: var(--color-forest-700); }
+
+/* ─── Toast Animations ───────────────────────────────────────────── */
+@keyframes toast-enter {
+  0% { opacity: 0; transform: translateX(100%) scale(0.95); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toast-exit {
+  0% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+
+.toast-enter {
+  animation: toast-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Modal Animations ───────────────────────────────────────────── */
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-scale-in {
+  0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-backdrop-animate {
+  animation: modal-backdrop-in 0.2s ease-out forwards;
+}
+
+.modal-content-animate {
+  animation: modal-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Card Stagger Animations ────────────────────────────────────── */
+@keyframes card-fade-up {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.card-animate {
+  animation: card-fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Slide Down (for dropdowns, menus) ──────────────────────────── */
+@keyframes slide-down {
+  0% { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.slide-down-animate {
+  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Shimmer Loading Skeleton ───────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-cream-200) 25%, var(--color-cream-100) 50%, var(--color-cream-200) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ─── No Scrollbar Utility ───────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+

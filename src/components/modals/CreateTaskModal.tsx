@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useTaskStore, MOCK_TEAM_MEMBERS } from '../../store/tasks';
+import { useToast } from '../../hooks/useToast';
 import type { TaskStatus, TaskPriority, Assignee } from '../../types/task';
 
 // ─── Create Task Modal ─────────────────────────────────────────────────────
@@ -12,6 +13,7 @@ interface CreateTaskModalProps {
 
 export const CreateTaskModal = ({ isOpen, onClose }: CreateTaskModalProps) => {
   const addTask = useTaskStore((state) => state.addTask);
+  const toast = useToast();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -51,25 +53,27 @@ export const CreateTaskModal = ({ isOpen, onClose }: CreateTaskModalProps) => {
     setDueDate(new Date().toISOString().split('T')[0]);
     setSelectedAssignees([]);
     onClose();
+    
+    toast.success('Task created successfully');
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-forest-900/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-forest-900/40 backdrop-blur-sm animate-in fade-in duration-200">
       {/* Modal */}
-      <div className="relative bg-cream-50 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto animate-in">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-task-title"
+        className="relative bg-cream-50 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-cream-200">
-          <h2 className="text-lg font-bold text-forest-900">New Task</h2>
+          <h2 id="create-task-title" className="text-lg font-bold text-forest-900">New Task</h2>
           <button
             onClick={onClose}
+            aria-label="Close modal"
             className="text-forest-400 hover:text-forest-700 transition-colors p-1"
           >
             <X className="w-5 h-5" />

@@ -8,6 +8,21 @@ export interface Assignee {
   initials: string;
 }
 
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorInitials: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -17,6 +32,8 @@ export interface Task {
   priority: TaskPriority;
   dueDate: string; // YYYY-MM-DD
   assignees: Assignee[];
+  comments: Comment[];
+  subtasks: Subtask[];
   createdAt: string;
   updatedAt: string;
 }
