@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Project, ProjectFilter, ProjectStatus, ProjectSortKey } from '../../types/project';
+import type { Project, ProjectFilter, ProjectSortKey } from '../../types/project';
 
 const SEED_PROJECTS: Project[] = [
   {
