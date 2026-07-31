@@ -1,11 +1,14 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "./Sidebar";
 
 export const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-Beige w-full overflow-auto">
-      <div className="max-w-[1440px] mx-auto w-full">
+    <div className="min-h-screen flex bg-Beige">
+      <Sidebar />
+
+      <main className="flex-1 overflow-auto">
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 };
