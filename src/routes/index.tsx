@@ -24,6 +24,12 @@ const Teams = lazy(() =>
   }))
 );
 
+const OrganizationManagement = lazy(() =>
+  import("../pages/organization").then((module) => ({
+    default: module.OrganizationManagement,
+  }))
+);
+
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-cream-100">
     <div className="w-8 h-8 border-4 border-forest-900 border-t-transparent rounded-full animate-spin"></div>
@@ -71,6 +77,14 @@ export const router = createBrowserRouter([
       {
         path: "projects",
         element: <Projects />,
+      },
+      {
+        path: "organization",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OrganizationManagement />
+          </Suspense>
+        ),
       },
       {
         path: "dashboard",

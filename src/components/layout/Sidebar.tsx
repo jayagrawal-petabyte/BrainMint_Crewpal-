@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   CheckSquare,
   FolderKanban,
+  Building2,
   BarChart3,
   Users,
   Bell,
@@ -34,8 +35,14 @@ export const Sidebar = () => {
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
     {
+      label: "Organization",
+      path: "/organization",
+      icon: Building2,
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+    },
+    {
       label: "Teams",
-      path: "/users",
+      path: "/teams",
       icon: Users,
       roles: [UserRole.ADMIN, UserRole.MANAGER],
     },
