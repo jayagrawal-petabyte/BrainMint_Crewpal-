@@ -4,8 +4,8 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
-  create(dto: CreateProjectDto) {
-    return { message: 'Create project', dto };
+  create(dto: CreateProjectDto, user?: { id?: number }) {
+    return { message: 'Create project', dto, createdBy: user?.id ?? null };
   }
 
   findAll() {
