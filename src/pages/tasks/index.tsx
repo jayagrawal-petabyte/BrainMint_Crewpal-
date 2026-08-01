@@ -490,7 +490,7 @@ export const Tasks = () => {
                           `${sizeMB} MB`,
                           url
                         );
-                        toast.show('File uploaded successfully', 'success');
+                        toast.success('File uploaded successfully');
                       }
                     }}
                     className="hidden"
@@ -534,7 +534,7 @@ export const Tasks = () => {
                           <button
                             onClick={() => {
                               deleteAttachment(selectedTask.id, att.id);
-                              toast.show('Attachment deleted', 'info');
+                              toast.info('Attachment deleted');
                             }}
                             className="p-1 text-rose-500 hover:bg-rose-100 rounded transition-colors"
                             title="Delete"
