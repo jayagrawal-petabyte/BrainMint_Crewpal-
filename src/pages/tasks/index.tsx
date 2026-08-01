@@ -15,6 +15,7 @@ import { CalendarView } from '../../components/views/CalendarView';
 import { BottomNav } from '../../components/layout/BottomNav';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useToast } from '../../hooks/useToast';
+import { ActivityTimeline } from '../../components/ui/ActivityTimeline';
 import type { Task, TaskStatus, TaskPriority } from '../../types/task';
 
 // ─── Filter Dropdown Component ─────────────────────────────────────────────
@@ -510,6 +511,18 @@ export const Tasks = () => {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* ─── ACTIVITY TIMELINE ─── */}
+              <div className="pt-4 space-y-3">
+                <div className="flex items-center gap-1.5 text-[#0b170e] border-t border-[#0b170e]/10 pt-3">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <h4 className="text-xs font-bold">Activity</h4>
+                </div>
+                <ActivityTimeline taskId={selectedTask.id} />
               </div>
             </div>
           </div>
