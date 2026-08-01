@@ -339,7 +339,8 @@ export const Tasks = () => {
 
       {/* ─── CONDITIONAL RENDER: LIST VIEW OR DETAIL VIEW ─── */}
       {selectedTask ? (
-        /* ─── EXPANDED TASK DETAIL VIEW (Project -_ Task-1.jpg) ─── */
+        <>
+        {/* ─── EXPANDED TASK DETAIL VIEW (Project -_ Task-1.jpg) ─── */}
         <div className="space-y-4 animate-in fade-in duration-200">
           {/* Back Button */}
           <button
@@ -652,6 +653,7 @@ export const Tasks = () => {
             </div>
           </div>
         )}
+        </>
       ) : filteredTasks.length === 0 ? (
         /* ─── EMPTY STATE (Day 27) ─── */
         <div className="pt-20">
