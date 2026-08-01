@@ -17,6 +17,7 @@ import { BottomNav } from '../../components/layout/BottomNav';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useToast } from '../../hooks/useToast';
 import { ActivityTimeline } from '../../components/ui/ActivityTimeline';
+import { useActivityStore } from '../../store/tasks/activityStore';
 import type { Task, TaskStatus, TaskPriority } from '../../types/task';
 
 // ─── Filter Dropdown Component ─────────────────────────────────────────────
@@ -168,6 +169,7 @@ export const Tasks = () => {
   const deleteSubtask = useTaskStore((state) => state.deleteSubtask);
   const addAttachment = useTaskStore((state) => state.addAttachment);
   const deleteAttachment = useTaskStore((state) => state.deleteAttachment);
+  const logEvent = useActivityStore((state) => state.logEvent);
   
   // Local state for attachment preview
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -417,7 +419,10 @@ export const Tasks = () => {
                         <input
                           type="checkbox"
                           checked={st.completed}
-                          onChange={() => toggleSubtask(selectedTask.id, st.id)}
+                          onChange={() => {
+                             toggleSubtask(selectedTask.id, st.id);
+                             logEvent(selectedTask.id, 'subtask_completed', 'You', 'ME', `${st.completed ? 'Reopened' : 'Completed'} subtask: "${st.title}"`);
+                           }}
                           className="hidden"
                         />
                         <span className={`text-xs ${st.completed ? 'text-forest-900/50 line-through' : 'text-forest-900'} transition-all`}>
@@ -440,6 +445,7 @@ export const Tasks = () => {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && newSubtask.trim()) {
                           addSubtask(selectedTask.id, newSubtask.trim());
+                          logEvent(selectedTask.id, 'subtask_added', 'You', 'ME', `Added subtask: "${newSubtask.trim()}"`);
                           setNewSubtask('');
                         }
                       }}
@@ -450,6 +456,7 @@ export const Tasks = () => {
                       onClick={() => {
                         if (newSubtask.trim()) {
                           addSubtask(selectedTask.id, newSubtask.trim());
+                          logEvent(selectedTask.id, 'subtask_added', 'You', 'ME', `Added subtask: "${newSubtask.trim()}"`);
                           setNewSubtask('');
                         }
                       }}
@@ -592,6 +599,7 @@ export const Tasks = () => {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && newComment.trim()) {
                           addComment(selectedTask.id, 'u2', 'Harsh Gupta', 'HG', newComment.trim());
+                          logEvent(selectedTask.id, 'comment_added', 'You', 'ME', `Added a comment: "${newComment.trim()}"`);
                           setNewComment('');
                         }
                       }}
@@ -602,6 +610,7 @@ export const Tasks = () => {
                       onClick={() => {
                         if (newComment.trim()) {
                           addComment(selectedTask.id, 'u2', 'Harsh Gupta', 'HG', newComment.trim());
+                          logEvent(selectedTask.id, 'comment_added', 'You', 'ME', `Added a comment: "${newComment.trim()}"`);
                           setNewComment('');
                         }
                       }}
@@ -862,10 +871,12 @@ export const Tasks = () => {
             onAssign={() => setShowAssignModal(true)}
             onChangeStatus={(s) => {
               updateStatus(actionTarget.id, s);
+              logEvent(actionTarget.id, 'status_changed', 'You', 'ME', `Changed status to ${s.replace('_', ' ')}`);
               toast.success(`Status changed to ${s.replace('_', ' ')}`);
             }}
             onChangePriority={(p) => {
               updatePriority(actionTarget.id, p);
+              logEvent(actionTarget.id, 'priority_changed', 'You', 'ME', `Changed priority to ${p}`);
               toast.success(`Priority changed to ${p}`);
             }}
             currentStatus={actionTarget.status}
