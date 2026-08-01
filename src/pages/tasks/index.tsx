@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Plus, Calendar, Pin, Flag, MoreHorizontal, Search, ChevronDown, Filter,
-  LayoutGrid, MessageSquare, CheckSquare, Trash2, LayoutList, Send
+  LayoutGrid, MessageSquare, CheckSquare, Trash2, LayoutList, Send,
+  Paperclip, FileText, X, Image, Eye
 } from 'lucide-react';
 import { useTaskStore } from '../../store/tasks';
 import { CreateTaskModal } from '../../components/modals/CreateTaskModal';
@@ -165,6 +166,14 @@ export const Tasks = () => {
   const addSubtask = useTaskStore((state) => state.addSubtask);
   const toggleSubtask = useTaskStore((state) => state.toggleSubtask);
   const deleteSubtask = useTaskStore((state) => state.deleteSubtask);
+  const addAttachment = useTaskStore((state) => state.addAttachment);
+  const deleteAttachment = useTaskStore((state) => state.deleteAttachment);
+  
+  // Local state for attachment preview
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewName, setPreviewName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const toast = useToast();
 
   const filteredTasks = getFilteredTasks();
@@ -451,6 +460,96 @@ export const Tasks = () => {
                 </div>
               </div>
 
+              {/* ─── ATTACHMENTS (Day 22: File Upload & Attachment Preview) ─── */}
+              <div className="pt-3 space-y-3 border-t border-[#0b170e]/10 pt-3">
+                <div className="flex items-center justify-between text-[#0b170e]">
+                  <div className="flex items-center gap-1.5">
+                    <Paperclip className="w-4 h-4" />
+                    <h4 className="text-xs font-bold">Attachments</h4>
+                  </div>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-[10px] font-bold text-forest-800 bg-forest-100 hover:bg-forest-200 transition-colors px-2 py-1 rounded-full cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-2.5 h-2.5" /> Add File
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Mock local object URL for preview
+                        const url = URL.createObjectURL(file);
+                        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                        addAttachment(
+                          selectedTask.id,
+                          file.name,
+                          file.type,
+                          `${sizeMB} MB`,
+                          url
+                        );
+                        toast.show('File uploaded successfully', 'success');
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Attachments List */}
+                <div className="grid grid-cols-1 gap-2">
+                  {selectedTask.attachments && selectedTask.attachments.map((att) => {
+                    const isImage = att.type.startsWith('image/');
+                    return (
+                      <div
+                        key={att.id}
+                        className="flex items-center justify-between p-2 bg-white/40 hover:bg-white/70 border border-forest-900/10 rounded-xl transition-all"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-cream-200 flex items-center justify-center text-forest-750 shrink-0 border border-cream-300">
+                            {isImage ? <Image className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-forest-900 truncate" title={att.name}>
+                              {att.name}
+                            </p>
+                            <p className="text-[10px] text-forest-500">{att.size}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          {isImage && (
+                            <button
+                              onClick={() => {
+                                setPreviewUrl(att.url);
+                                setPreviewName(att.name);
+                              }}
+                              className="p-1 text-forest-700 hover:bg-cream-200 rounded transition-colors"
+                              title="Preview"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              deleteAttachment(selectedTask.id, att.id);
+                              toast.show('Attachment deleted', 'info');
+                            }}
+                            className="p-1 text-rose-500 hover:bg-rose-100 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {(!selectedTask.attachments || selectedTask.attachments.length === 0) && (
+                    <p className="text-[10px] text-forest-950/40 italic py-1">No attachments uploaded.</p>
+                  )}
+                </div>
+              </div>
+
               {/* ─── COMMENTS (Day 20) ─── */}
               <div className="pt-4 space-y-3">
                 <div className="flex items-center gap-1.5 text-[#0b170e]">
@@ -527,6 +626,32 @@ export const Tasks = () => {
             </div>
           </div>
         </div>
+
+        {/* Attachment Image Preview Modal Overlay */}
+        {previewUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-forest-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="relative max-w-lg w-full bg-cream-50 rounded-2xl border border-cream-200 shadow-2xl p-4 overflow-hidden flex flex-col items-center">
+              <button
+                onClick={() => {
+                  setPreviewUrl(null);
+                  setPreviewName(null);
+                }}
+                className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 hover:bg-white text-forest-800 shadow-md hover:scale-105 transition-all"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <h4 className="text-xs font-bold text-forest-900 mb-3 truncate w-11/12 text-center">
+                {previewName}
+              </h4>
+              <img
+                src={previewUrl}
+                alt={previewName || 'Preview'}
+                className="max-h-[50vh] object-contain rounded-xl border border-forest-900/10 shadow"
+              />
+            </div>
+          </div>
+        )}
       ) : filteredTasks.length === 0 ? (
         /* ─── EMPTY STATE (Day 27) ─── */
         <div className="pt-20">
