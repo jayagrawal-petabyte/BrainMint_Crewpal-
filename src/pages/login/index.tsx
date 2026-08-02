@@ -85,8 +85,7 @@ const Login = () => {
       role,
     });
 
-    navigate("/tasks");
-  };
+navigate("/dashboard");  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F3F4E8] px-4">

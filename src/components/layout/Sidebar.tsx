@@ -18,7 +18,7 @@ export const Sidebar = () => {
   const navItems = [
     {
       label: "Dashboard",
-      path: "/",
+      path: "/dashboard",
       icon: LayoutDashboard,
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },

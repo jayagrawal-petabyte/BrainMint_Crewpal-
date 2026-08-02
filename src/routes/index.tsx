@@ -60,13 +60,17 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/tasks" replace />,
+        element: <Navigate to="/dashboard" replace />,
       },
       {
         path: "tasks",
         element: (
           <ProtectedRoute
-            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
+allowedRoles={[
+  UserRole.ADMIN,
+  UserRole.MANAGER,
+  UserRole.EMPLOYEE,
+]}
           >
             <Suspense fallback={<PageLoader />}>
               <Tasks />
@@ -112,7 +116,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "*",
-        element: <Navigate to="/tasks" replace />,
+        element: <Navigate to="/dashboard" replace />,
       },
     ],
   },
