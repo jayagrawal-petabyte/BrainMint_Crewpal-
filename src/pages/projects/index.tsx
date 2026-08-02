@@ -39,13 +39,13 @@ export const Projects = () => {
     if (!newProjName.trim()) return;
 
     addProject({
-      name: newProjName,
-      owner: 'Jay Agarwal', // Default to current owner context
-      description: newProjDesc,
-      category: newProjCategory,
-      status: 'on_track',
-    });
-
+  name: newProjName,
+  owner: 'Jay Agrawal',
+  description: newProjDesc,
+  category: newProjCategory,
+  status: 'on_track',
+  memberIds: [],
+});
     setNewProjName('');
     setNewProjDesc('');
     setNewProjCategory('Development');
