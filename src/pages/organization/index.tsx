@@ -10,12 +10,15 @@ import { OrganizationFilters } from '../../components/organization/OrganizationF
 import { OrganizationCard } from '../../components/organization/OrganizationCard';
 import { OrganizationDetailsModal } from '../../components/organization/OrganizationDetailsModal';
 import { CreateOrganizationModal } from '../../components/organization/CreateOrganizationModal';
+import { InviteMemberModal } from '../../components/modals/InviteMemberModal';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 export const OrganizationManagement: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>(MOCK_ORGANIZATIONS);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteOrgId, setInviteOrgId] = useState<string>('');
 
   const [filters, setFilters] = useState<OrganizationFilterState>({
     search: '',
@@ -35,6 +38,25 @@ export const OrganizationManagement: React.FC = () => {
       planTier: 'all',
       sortBy: 'name_asc',
     });
+  };
+
+  const handleOpenInviteModal = (orgId?: string) => {
+    setInviteOrgId(orgId || selectedOrg?.id || organizations[0]?.id || '');
+    setIsInviteModalOpen(true);
+  };
+
+  const handleInviteSuccess = (details: { email: string; role: string; organizationId?: string; orgName?: string }) => {
+    const targetId = details.organizationId || inviteOrgId;
+    if (targetId) {
+      setOrganizations((prev) =>
+        prev.map((org) =>
+          org.id === targetId ? { ...org, memberCount: org.memberCount + 1 } : org
+        )
+      );
+      if (selectedOrg && selectedOrg.id === targetId) {
+        setSelectedOrg((prev) => (prev ? { ...prev, memberCount: prev.memberCount + 1 } : null));
+      }
+    }
   };
 
   const handleToggleStatus = (id: string) => {
@@ -107,6 +129,7 @@ export const OrganizationManagement: React.FC = () => {
       {/* ─── HEADER ─── */}
       <OrganizationHeader
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onOpenInviteModal={() => handleOpenInviteModal()}
         activeCount={activeCount}
         totalCount={organizations.length}
       />
@@ -149,6 +172,7 @@ export const OrganizationManagement: React.FC = () => {
         organization={selectedOrg}
         onClose={() => setSelectedOrg(null)}
         onToggleStatus={handleToggleStatus}
+        onOpenInviteModal={(id) => handleOpenInviteModal(id)}
       />
 
       {/* ─── CREATE MODAL ─── */}
@@ -157,6 +181,16 @@ export const OrganizationManagement: React.FC = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateOrganization}
       />
+
+      {/* ─── INVITE MEMBER MODAL ─── */}
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        organizations={organizations}
+        defaultOrganizationId={inviteOrgId}
+        onSuccess={handleInviteSuccess}
+      />
     </div>
   );
 };
+
