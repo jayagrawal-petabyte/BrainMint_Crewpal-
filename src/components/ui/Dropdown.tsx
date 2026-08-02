@@ -1,12 +1,6 @@
 import { useState, useRef, useEffect, useId } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
-// ─── Generic Dropdown ───────────────────────────────────────────────────────
-// A reusable, store-agnostic custom dropdown for use across CREWPAL modules
-// (Status, Priority, Role, Project filters, Organization filters, etc.).
-// It only knows about the options/value/onChange it is given — no business
-// logic, no store connections.
-
 export interface DropdownOption<T extends string | number = string> {
   label: string;
   value: T;
