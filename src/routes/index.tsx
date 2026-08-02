@@ -8,7 +8,9 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
 
 const Tasks = lazy(() =>
-  import("../pages/tasks").then((module) => ({ default: module.Tasks }))
+  import("../pages/tasks").then((module) => ({
+    default: module.Tasks,
+  }))
 );
 
 const Projects = lazy(() =>
@@ -36,6 +38,8 @@ const OrganizationManagement = lazy(() =>
 const ProjectDetails = lazy(() =>
   import("../pages/projects/ProjectDetails").then((module) => ({
     default: module.ProjectDetails,
+const Reports = lazy(() => import("../pages/reports"));
+
 const Meetings = lazy(() =>
   import("../pages/meetings").then((module) => ({
     default: module.Meetings,
@@ -154,11 +158,17 @@ export const router = createBrowserRouter([
       },
       {
         path: "reports",
-        element: <UnderConstruction title="Analytics & Reports" />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Reports />
+          </Suspense>
+        ),
       },
       {
         path: "notifications",
-        element: <UnderConstruction title="Notifications Center" />,
+        element: (
+          <UnderConstruction title="Notifications Center" />
+        ),
       },
       {
         path: "settings",
