@@ -159,6 +159,7 @@ interface TaskState {
   assignTask: (id: string, assignees: Assignee[]) => void;
   updateStatus: (id: string, status: TaskStatus) => void;
   updatePriority: (id: string, priority: TaskPriority) => void;
+  updateProjectTasks: (projectId: string, taskIds: string[]) => void;
 
   // Comments
   addComment: (taskId: string, authorId: string, authorName: string, authorInitials: string, text: string) => void;
@@ -239,6 +240,22 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   updatePriority: (id, priority) => {
     get().updateTask(id, { priority });
+  },
+
+  updateProjectTasks: (projectId, taskIds) => {
+    set((state) => ({
+      tasks: state.tasks.map((task) => {
+        if (taskIds.includes(task.id)) {
+          return { ...task, projectId };
+        }
+
+        if (task.projectId === projectId) {
+          return { ...task, projectId: undefined };
+        }
+
+        return task;
+      }),
+    }));
   },
 
   // ─── Comments ──────────────────────────────────────────────────────────────
