@@ -9,7 +9,9 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
 
 const Tasks = lazy(() =>
-  import("../pages/tasks").then((module) => ({ default: module.Tasks }))
+  import("../pages/tasks").then((module) => ({
+    default: module.Tasks,
+  }))
 );
 
 const Dashboard = lazy(() =>
@@ -29,6 +31,8 @@ const OrganizationManagement = lazy(() =>
     default: module.OrganizationManagement,
   }))
 );
+
+const Reports = lazy(() => import("../pages/reports"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-cream-100">
@@ -103,9 +107,13 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "reports",
-        element: <UnderConstruction title="Analytics & Reports" />,
-      },
+  path: "reports",
+  element: (
+    <Suspense fallback={<PageLoader />}>
+      <Reports />
+    </Suspense>
+  ),
+},
       {
         path: "notifications",
         element: <UnderConstruction title="Notifications Center" />,
