@@ -34,6 +34,24 @@ const OrganizationManagement = lazy(() =>
 
 const Reports = lazy(() => import("../pages/reports"));
 
+const Meetings = lazy(() =>
+  import("../pages/meetings").then((module) => ({
+    default: module.Meetings,
+  }))
+);
+
+const Settings = lazy(() =>
+  import("../pages/settings").then((module) => ({
+    default: module.Settings,
+  }))
+);
+
+const Scrum = lazy(() =>
+  import("../pages/scrum").then((module) => ({
+    default: module.Scrum,
+  }))
+);
+
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-cream-100">
     <div className="w-8 h-8 border-4 border-forest-900 border-t-transparent rounded-full animate-spin"></div>
@@ -60,22 +78,44 @@ export const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.EMPLOYEE,
+        ]}
+      >
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
-        element: <Navigate to="/tasks" replace />,
+        element: <Navigate to="/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
+        ),
       },
       {
         path: "tasks",
         element: (
-          <ProtectedRoute
-            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
-          >
-            <Suspense fallback={<PageLoader />}>
-              <Tasks />
-            </Suspense>
-          </ProtectedRoute>
+          <Suspense fallback={<PageLoader />}>
+            <Tasks />
+          </Suspense>
+        ),
+      },
+      {
+        path: "meetings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Meetings />
+          </Suspense>
         ),
       },
       {
@@ -91,14 +131,6 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "dashboard",
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <Dashboard />
-          </Suspense>
-        ),
-      },
-      {
         path: "teams",
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -107,20 +139,38 @@ export const router = createBrowserRouter([
         ),
       },
       {
-  path: "reports",
-  element: (
-    <Suspense fallback={<PageLoader />}>
-      <Reports />
-    </Suspense>
-  ),
-},
+        path: "reports",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Reports />
+          </Suspense>
+        ),
+      },
       {
         path: "notifications",
-        element: <UnderConstruction title="Notifications Center" />,
+        element: (
+          <UnderConstruction title="Notifications Center" />
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Settings />
+          </Suspense>
+        ),
+      },
+      {
+        path: "scrum",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Scrum />
+          </Suspense>
+        ),
       },
       {
         path: "*",
-        element: <Navigate to="/tasks" replace />,
+        element: <Navigate to="/dashboard" replace />,
       },
     ],
   },
