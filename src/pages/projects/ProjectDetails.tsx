@@ -1,8 +1,33 @@
 import { ArrowLeft, FolderKanban, Plus, Users } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { useProjectStore } from '../../store/projects';
 
 export const ProjectDetails = () => {
+  const { projectId } = useParams();
+  const projects = useProjectStore((state) => state.projects);
+  const project = projects.find((item) => item.id === projectId);
+
+  if (!project) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center">
+          <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+            Back to Projects
+          </Button>
+        </div>
+
+        <Card className="border-cream-300">
+          <h1 className="text-xl font-bold text-forest-900">Project not found</h1>
+          <p className="mt-1 text-sm text-forest-500">
+            The requested project could not be found.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center">
@@ -18,10 +43,15 @@ export const ProjectDetails = () => {
           </div>
           <div className="min-w-0 space-y-1">
             <p className="text-xs font-bold uppercase tracking-wider text-forest-500">Project Header</p>
-            <h1 className="text-3xl font-extrabold text-forest-900">Project Name</h1>
-            <p className="text-sm text-forest-500">
-              Project description and ownership details will appear here.
-            </p>
+            <h1 className="text-3xl font-extrabold text-forest-900">{project.name}</h1>
+            {project.description && <p className="text-sm text-forest-500">{project.description}</p>}
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-forest-500">
+              <span>Owner: {project.owner}</span>
+              {project.category && <span>Category: {project.category}</span>}
+              <span className="rounded-full border border-olive-300 bg-olive-200 px-2.5 py-0.5 font-bold text-forest-800">
+                {project.status.replace('_', ' ').toUpperCase()}
+              </span>
+            </div>
           </div>
         </div>
       </Card>
