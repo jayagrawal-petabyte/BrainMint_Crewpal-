@@ -2,6 +2,7 @@ export type ProjectStatus = 'on_track' | 'delayed' | 'completed';
 
 export interface Project {
   id: string;
+  memberIds: string[];
   name: string;
   owner: string;
   status: ProjectStatus;

@@ -1,14 +1,19 @@
-import { ArrowLeft, FolderKanban, Plus, Users } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, FolderKanban, Plus } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { ManageProjectMembersModal } from '../../components/projects/ManageProjectMembersModal';
+import { ProjectMembersSection } from '../../components/projects/ProjectMembersSection';
 import { ProjectStatisticsCards } from '../../components/projects/ProjectStatisticsCards';
 import { useProjectStore } from '../../store/projects';
-import { useTaskStore } from '../../store/tasks';
+import { MOCK_TEAM_MEMBERS, useTaskStore } from '../../store/tasks';
 
 export const ProjectDetails = () => {
   const { projectId } = useParams();
+  const [isManageMembersOpen, setIsManageMembersOpen] = useState(false);
   const projects = useProjectStore((state) => state.projects);
+  const updateProjectMembers = useProjectStore((state) => state.updateProjectMembers);
   const tasks = useTaskStore((state) => state.tasks);
   const project = projects.find((item) => item.id === projectId);
   const projectTasks = tasks.filter((task) => task.projectId === projectId);
@@ -16,6 +21,9 @@ export const ProjectDetails = () => {
   const onTrack = projectTasks.filter((task) => task.status === 'on_track').length;
   const delayed = projectTasks.filter((task) => task.status === 'delayed').length;
   const completed = projectTasks.filter((task) => task.status === 'completed').length;
+  const projectMembers = project
+    ? MOCK_TEAM_MEMBERS.filter((member) => project.memberIds.includes(member.id))
+    : [];
 
   if (!project) {
     return (
@@ -79,22 +87,10 @@ export const ProjectDetails = () => {
         />
       </section>
 
-      <section className="space-y-3" aria-labelledby="project-members-heading">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-forest-500">Collaboration</p>
-            <h2 id="project-members-heading" className="text-xl font-bold text-forest-900">
-              Project Members
-            </h2>
-          </div>
-          <Button variant="secondary" size="sm" leftIcon={<Users className="w-4 h-4" />}>
-            Manage Members
-          </Button>
-        </div>
-        <Card className="border-cream-300">
-          <p className="text-sm text-forest-500">Project members will appear here.</p>
-        </Card>
-      </section>
+      <ProjectMembersSection
+        members={projectMembers}
+        onManage={() => setIsManageMembersOpen(true)}
+      />
 
       <section className="space-y-3" aria-labelledby="linked-tasks-heading">
         <div className="flex items-center justify-between gap-3">
@@ -112,6 +108,17 @@ export const ProjectDetails = () => {
           <p className="text-sm text-forest-500">Tasks linked to this project will appear here.</p>
         </Card>
       </section>
+
+      <ManageProjectMembersModal
+        open={isManageMembersOpen}
+        members={MOCK_TEAM_MEMBERS}
+        selectedMemberIds={project.memberIds}
+        onClose={() => setIsManageMembersOpen(false)}
+        onSave={(memberIds) => {
+          updateProjectMembers(project.id, memberIds);
+          setIsManageMembersOpen(false);
+        }}
+      />
     </div>
   );
 };
