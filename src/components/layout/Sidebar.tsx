@@ -8,6 +8,8 @@ import {
   Users,
   Bell,
   Video,
+  Zap,
+  Settings,
 } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -57,6 +59,18 @@ export const Sidebar = () => {
       label: "Notifications",
       path: "/notifications",
       icon: Bell,
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+    },
+    {
+      label: "Scrum Board",
+      path: "/scrum",
+      icon: Zap,
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+    },
+    {
+      label: "Settings",
+      path: "/settings",
+      icon: Settings,
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
   ];
