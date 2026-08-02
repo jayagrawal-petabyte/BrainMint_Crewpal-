@@ -36,6 +36,21 @@ const OrganizationManagement = lazy(() =>
 const ProjectDetails = lazy(() =>
   import("../pages/projects/ProjectDetails").then((module) => ({
     default: module.ProjectDetails,
+const Meetings = lazy(() =>
+  import("../pages/meetings").then((module) => ({
+    default: module.Meetings,
+  }))
+);
+
+const Settings = lazy(() =>
+  import("../pages/settings").then((module) => ({
+    default: module.Settings,
+  }))
+);
+
+const Scrum = lazy(() =>
+  import("../pages/scrum").then((module) => ({
+    default: module.Scrum,
   }))
 );
 
@@ -65,22 +80,28 @@ export const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.EMPLOYEE,
+        ]}
+      >
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
-        element: <Navigate to="/tasks" replace />,
+        element: <Navigate to="/dashboard" replace />,
       },
       {
-        path: "tasks",
+        path: "dashboard",
         element: (
-          <ProtectedRoute
-            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
-          >
-            <Suspense fallback={<PageLoader />}>
-              <Tasks />
-            </Suspense>
-          </ProtectedRoute>
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
         ),
       },
       {
@@ -96,22 +117,30 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <ProjectDetails />
+        path: "tasks",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Tasks />
           </Suspense>
         ),
+      },
+      {
+        path: "meetings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Meetings />
+          </Suspense>
+        ),
+      },
+      {
+        path: "projects",
+        element: <Projects />,
       },
       {
         path: "organization",
         element: (
           <Suspense fallback={<PageLoader />}>
             <OrganizationManagement />
-          </Suspense>
-        ),
-      },
-      {
-        path: "dashboard",
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <Dashboard />
           </Suspense>
         ),
       },
@@ -132,8 +161,24 @@ export const router = createBrowserRouter([
         element: <UnderConstruction title="Notifications Center" />,
       },
       {
+        path: "settings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Settings />
+          </Suspense>
+        ),
+      },
+      {
+        path: "scrum",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Scrum />
+          </Suspense>
+        ),
+      },
+      {
         path: "*",
-        element: <Navigate to="/tasks" replace />,
+        element: <Navigate to="/dashboard" replace />,
       },
     ],
   },

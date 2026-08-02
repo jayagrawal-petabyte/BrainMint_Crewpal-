@@ -1,10 +1,12 @@
 import { Clock, CheckCircle2, AlertCircle, BarChart2 } from 'lucide-react';
 import { useTaskStore } from '../../store/tasks';
 import { BottomNav } from '../../components/layout/BottomNav';
+import { useTranslation } from '../../hooks/useTranslation';
 import { useMemo } from 'react';
 
 export const Dashboard = () => {
   const tasks = useTaskStore((s) => s.tasks);
+  const { t } = useTranslation();
 
   // Derive stats
   const stats = useMemo(() => {
@@ -53,13 +55,13 @@ export const Dashboard = () => {
         </button>
       </div>
 
-      <h2 className="text-3xl font-extrabold text-[#0b170e] mb-4 tracking-tight">Overview</h2>
+      <h2 className="text-3xl font-extrabold text-[#0b170e] mb-4 tracking-tight">{t.overview}</h2>
 
       {/* ─── STATS GRID ─── */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-[#d4d9b8] p-4 rounded-2xl border border-[#b8c094] shadow-sm card-animate" style={{ animationDelay: '50ms' }}>
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-xs font-bold text-forest-900 opacity-70">Total Tasks</h3>
+            <h3 className="text-xs font-bold text-forest-900 opacity-70">{t.totalTasks}</h3>
             <BarChart2 className="w-4 h-4 text-forest-800" />
           </div>
           <p className="text-3xl font-extrabold text-forest-900">{stats.total}</p>
@@ -67,7 +69,7 @@ export const Dashboard = () => {
 
         <div className="bg-[#e2d3bc] p-4 rounded-2xl border border-cream-300 shadow-sm card-animate" style={{ animationDelay: '100ms' }}>
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-xs font-bold text-forest-900 opacity-70">Completed</h3>
+            <h3 className="text-xs font-bold text-forest-900 opacity-70">{t.completed}</h3>
             <CheckCircle2 className="w-4 h-4 text-forest-800" />
           </div>
           <p className="text-3xl font-extrabold text-forest-900">{stats.completed}</p>
@@ -75,7 +77,7 @@ export const Dashboard = () => {
 
         <div className="bg-[#f2cece] p-4 rounded-2xl border border-rose-300 shadow-sm card-animate" style={{ animationDelay: '150ms' }}>
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-xs font-bold text-rose-900 opacity-70">Delayed</h3>
+            <h3 className="text-xs font-bold text-rose-900 opacity-70">{t.delayed}</h3>
             <AlertCircle className="w-4 h-4 text-rose-800" />
           </div>
           <p className="text-3xl font-extrabold text-rose-900">{stats.delayed}</p>
@@ -83,7 +85,7 @@ export const Dashboard = () => {
 
         <div className="bg-[#fdf8e8] p-4 rounded-2xl border border-forest-900/10 shadow-sm card-animate" style={{ animationDelay: '200ms' }}>
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-xs font-bold text-forest-900 opacity-70">On Track</h3>
+            <h3 className="text-xs font-bold text-forest-900 opacity-70">{t.onTrack}</h3>
             <Clock className="w-4 h-4 text-forest-800" />
           </div>
           <p className="text-3xl font-extrabold text-forest-900">{stats.onTrack}</p>
@@ -92,7 +94,7 @@ export const Dashboard = () => {
 
       {/* ─── PRIORITY DISTRIBUTION ─── */}
       <div className="bg-white p-5 rounded-2xl border border-forest-900/10 shadow-sm mb-6 card-animate" style={{ animationDelay: '250ms' }}>
-        <h3 className="text-sm font-bold text-forest-900 mb-4">Task Priority</h3>
+        <h3 className="text-sm font-bold text-forest-900 mb-4">{t.taskPriority}</h3>
         
         <div className="flex h-3 rounded-full overflow-hidden mb-4">
           <div style={{ width: `${(stats.high / stats.total) * 100}%` }} className="bg-rose-500 transition-all duration-1000"></div>
@@ -101,15 +103,15 @@ export const Dashboard = () => {
         </div>
 
         <div className="flex justify-between text-xs font-medium text-forest-900">
-          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-rose-500"></div>High ({stats.high})</div>
-          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-olive-500"></div>Medium ({stats.medium})</div>
-          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-cream-400"></div>Low ({stats.low})</div>
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-rose-500"></div>{t.high} ({stats.high})</div>
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-olive-500"></div>{t.medium} ({stats.medium})</div>
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-cream-400"></div>{t.low} ({stats.low})</div>
         </div>
       </div>
 
       {/* ─── RECENT TASKS ─── */}
       <div className="space-y-3 card-animate" style={{ animationDelay: '300ms' }}>
-        <h3 className="text-sm font-bold text-forest-900">Recent Activity</h3>
+        <h3 className="text-sm font-bold text-forest-900">{t.recentActivity}</h3>
         
         {tasks.slice(0, 3).map((task) => (
           <div key={task.id} className="bg-[#fdf8e8] p-3.5 rounded-xl border border-forest-900/20 flex justify-between items-center">
@@ -122,7 +124,7 @@ export const Dashboard = () => {
               task.status === 'delayed' ? 'bg-[#f2cece] border-[#e7a8a8] text-rose-900' :
               'bg-[#e2d3bc] border-cream-300 text-forest-900'
             }`}>
-              {task.status.replace('_', ' ')}
+              {task.status === 'on_track' ? t.onTrack : task.status === 'delayed' ? t.delayed : t.completed}
             </span>
           </div>
         ))}
