@@ -2,6 +2,7 @@ import { ArrowLeft, FolderKanban, Plus, Users } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { ProjectStatisticsCards } from '../../components/projects/ProjectStatisticsCards';
 import { useProjectStore } from '../../store/projects';
 
 export const ProjectDetails = () => {
@@ -63,14 +64,7 @@ export const ProjectDetails = () => {
             Project Statistics
           </h2>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {['Total Tasks', 'On Track', 'Delayed', 'Completed'].map((label) => (
-            <Card key={label} className="border-cream-300">
-              <p className="text-xs font-semibold uppercase tracking-wide text-forest-500">{label}</p>
-              <p className="mt-3 text-3xl font-extrabold text-forest-900">--</p>
-            </Card>
-          ))}
-        </div>
+        <ProjectStatisticsCards totalTasks={0} onTrack={0} delayed={0} completed={0} />
       </section>
 
       <section className="space-y-3" aria-labelledby="project-members-heading">
