@@ -2,10 +2,13 @@ import { MOCK_TEAM_MEMBERS, useTaskStore } from '../../store/tasks';
 import { BottomNav } from '../../components/layout/BottomNav';
 import { Search, ChevronDown, UserPlus, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import { InviteMemberModal } from '../../components/modals/InviteMemberModal';
+import { MOCK_ORGANIZATIONS } from '../../data/mockOrganizations';
 
 export const Teams = () => {
   const tasks = useTaskStore((s) => s.tasks);
   const [search, setSearch] = useState('');
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
 
   // Calculate task counts per user
   const getUserTaskCount = (userId: string) => {
@@ -65,7 +68,10 @@ export const Teams = () => {
           <ChevronDown className="w-4 h-4 text-[#426348] shrink-0" />
         </div>
 
-        <button className="flex items-center gap-1.5 bg-[#1e3624] hover:bg-[#142619] text-[#f5f0e1] px-4 py-2 rounded-full text-xs font-bold shrink-0 shadow-md transition-all active:scale-95">
+        <button
+          onClick={() => setIsInviteOpen(true)}
+          className="flex items-center gap-1.5 bg-[#1e3624] hover:bg-[#142619] text-[#f5f0e1] px-4 py-2 rounded-full text-xs font-bold shrink-0 shadow-md transition-all active:scale-95 cursor-pointer"
+        >
           <UserPlus className="w-3.5 h-3.5" />
           Invite
         </button>
@@ -95,7 +101,14 @@ export const Teams = () => {
         ))}
       </div>
 
+      <InviteMemberModal
+        isOpen={isInviteOpen}
+        onClose={() => setIsInviteOpen(false)}
+        organizations={MOCK_ORGANIZATIONS}
+      />
+
       <BottomNav />
     </div>
   );
 };
+
