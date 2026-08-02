@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types/roles";
 
 const Login = () => {
-  const { login } = useAuth();
+const { login, user } = useAuth();
   const navigate = useNavigate();
+  
+  if (user) {
+  return <Navigate to="/dashboard" replace />;
+}
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

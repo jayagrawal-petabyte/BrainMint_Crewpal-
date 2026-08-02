@@ -56,26 +56,36 @@ export const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.EMPLOYEE,
+        ]}
+      >
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
         element: <Navigate to="/dashboard" replace />,
       },
       {
+        path: "dashboard",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
+        ),
+      },
+      {
         path: "tasks",
         element: (
-          <ProtectedRoute
-allowedRoles={[
-  UserRole.ADMIN,
-  UserRole.MANAGER,
-  UserRole.EMPLOYEE,
-]}
-          >
-            <Suspense fallback={<PageLoader />}>
-              <Tasks />
-            </Suspense>
-          </ProtectedRoute>
+          <Suspense fallback={<PageLoader />}>
+            <Tasks />
+          </Suspense>
         ),
       },
       {
@@ -87,14 +97,6 @@ allowedRoles={[
         element: (
           <Suspense fallback={<PageLoader />}>
             <OrganizationManagement />
-          </Suspense>
-        ),
-      },
-      {
-        path: "dashboard",
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <Dashboard />
           </Suspense>
         ),
       },
