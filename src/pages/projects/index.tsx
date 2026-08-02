@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Card } from '../../components/common/Card';
@@ -7,6 +8,7 @@ import { useProjectStore } from '../../store/projects';
 import type { ProjectStatus, ProjectSortKey } from '../../types/project';
 
 export const Projects = () => {
+  const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newProjName, setNewProjName] = useState('');
@@ -202,6 +204,7 @@ export const Projects = () => {
           return (
             <div
               key={project.id}
+              onClick={() => navigate(`/projects/${project.id}`)}
               className="flex items-center justify-between px-5 py-4 border-b border-olive-100 last:border-b-0 bg-olive-50/50 hover:bg-olive-100/50 transition-colors"
             >
               {/* Project main info */}
@@ -233,7 +236,10 @@ export const Projects = () => {
                 
                 {/* Star icon toggle */}
                 <button
-                  onClick={() => toggleStarProject(project.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleStarProject(project.id);
+                  }}
                   className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-rose-500 cursor-pointer"
                   title={project.isStarred ? 'Unstar Project' : 'Star Project'}
                 >

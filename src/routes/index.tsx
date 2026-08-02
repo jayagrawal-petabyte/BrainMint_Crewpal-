@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 
 import { MainLayout } from "../components/layout/MainLayout";
-import { Projects } from "../pages/projects";
 import Login from "../pages/login";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -10,6 +9,10 @@ import { UserRole } from "../types/roles";
 
 const Tasks = lazy(() =>
   import("../pages/tasks").then((module) => ({ default: module.Tasks }))
+);
+
+const Projects = lazy(() =>
+  import("../pages/projects").then((module) => ({ default: module.Projects }))
 );
 
 const Dashboard = lazy(() =>
@@ -27,6 +30,12 @@ const Teams = lazy(() =>
 const OrganizationManagement = lazy(() =>
   import("../pages/organization").then((module) => ({
     default: module.OrganizationManagement,
+  }))
+);
+
+const ProjectDetails = lazy(() =>
+  import("../pages/projects/ProjectDetails").then((module) => ({
+    default: module.ProjectDetails,
   }))
 );
 
@@ -76,7 +85,19 @@ export const router = createBrowserRouter([
       },
       {
         path: "projects",
-        element: <Projects />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Projects />
+          </Suspense>
+        ),
+      },
+      {
+        path: "projects/:projectId",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectDetails />
+          </Suspense>
+        ),
       },
       {
         path: "organization",
