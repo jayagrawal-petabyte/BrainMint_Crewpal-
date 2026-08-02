@@ -24,6 +24,12 @@ const Teams = lazy(() =>
   }))
 );
 
+const UserProfile = lazy(() =>
+  import("../pages/userProfile").then((module) => ({
+    default: module.UserProfile,
+  }))
+);
+
 const OrganizationManagement = lazy(() =>
   import("../pages/organization").then((module) => ({
     default: module.OrganizationManagement,
@@ -102,6 +108,16 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
+      {
+        path: "teams/:id",
+        element: (
+        <Suspense fallback={<PageLoader />}>
+          <UserProfile />
+        </Suspense>
+        ),
+      },
+
       {
         path: "reports",
         element: <UnderConstruction title="Analytics & Reports" />,
