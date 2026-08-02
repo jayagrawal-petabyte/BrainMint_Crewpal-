@@ -198,7 +198,7 @@ export const Settings = () => {
               </button>
 
               {langOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-cream-200 rounded-xl shadow-xl z-20 overflow-hidden">
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-cream-200 rounded-xl shadow-xl z-20 overflow-hidden max-h-60 overflow-y-auto">
                   {LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
