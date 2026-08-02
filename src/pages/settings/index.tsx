@@ -40,8 +40,8 @@ const Toggle = ({ enabled, onChange }: { enabled: boolean; onChange: () => void 
 // ─── Section Card ──────────────────────────────────────────────────────────
 
 const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="bg-white rounded-2xl border border-cream-200 shadow-sm overflow-hidden">
-    <div className="px-5 py-3.5 border-b border-cream-100 bg-cream-50">
+  <div className="bg-white rounded-2xl border border-cream-200 shadow-sm overflow-visible">
+    <div className="px-5 py-3.5 border-b border-cream-100 bg-cream-50 rounded-t-2xl">
       <h3 className="text-sm font-bold text-forest-900 tracking-wide uppercase">{title}</h3>
     </div>
     <div className="divide-y divide-cream-100">{children}</div>
