@@ -7,6 +7,7 @@ import {
   BarChart3,
   Users,
   Bell,
+  Video,
 } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";

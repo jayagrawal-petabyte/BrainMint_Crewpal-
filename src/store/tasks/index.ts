@@ -268,12 +268,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId
           ? {
-              ...task,
-              subtasks: task.subtasks.map((st) =>
-                st.id === subtaskId ? { ...st, completed: !st.completed } : st
-              ),
-              updatedAt: new Date().toISOString(),
-            }
+            ...task,
+            subtasks: task.subtasks.map((st) =>
+              st.id === subtaskId ? { ...st, completed: !st.completed } : st
+            ),
+            updatedAt: new Date().toISOString(),
+          }
           : task
       ),
     }));
