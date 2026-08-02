@@ -4,11 +4,18 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { ProjectStatisticsCards } from '../../components/projects/ProjectStatisticsCards';
 import { useProjectStore } from '../../store/projects';
+import { useTaskStore } from '../../store/tasks';
 
 export const ProjectDetails = () => {
   const { projectId } = useParams();
   const projects = useProjectStore((state) => state.projects);
+  const tasks = useTaskStore((state) => state.tasks);
   const project = projects.find((item) => item.id === projectId);
+  const projectTasks = tasks.filter((task) => task.projectId === projectId);
+  const totalTasks = projectTasks.length;
+  const onTrack = projectTasks.filter((task) => task.status === 'on_track').length;
+  const delayed = projectTasks.filter((task) => task.status === 'delayed').length;
+  const completed = projectTasks.filter((task) => task.status === 'completed').length;
 
   if (!project) {
     return (
@@ -64,7 +71,12 @@ export const ProjectDetails = () => {
             Project Statistics
           </h2>
         </div>
-        <ProjectStatisticsCards totalTasks={0} onTrack={0} delayed={0} completed={0} />
+        <ProjectStatisticsCards
+          totalTasks={totalTasks}
+          onTrack={onTrack}
+          delayed={delayed}
+          completed={completed}
+        />
       </section>
 
       <section className="space-y-3" aria-labelledby="project-members-heading">
