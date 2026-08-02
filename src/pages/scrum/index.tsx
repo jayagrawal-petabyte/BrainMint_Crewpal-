@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useSprintStore } from '../../store/sprints/sprintStore';
 import { useTaskStore } from '../../store/tasks';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Sprint } from '../../types/sprint';
 
 // ─── Status badge ──────────────────────────────────────────────────────────
@@ -245,10 +246,18 @@ const TABS = [
 type Tab = (typeof TABS)[number]['id'];
 
 // ─── Main Scrum Page ───────────────────────────────────────────────────────
-
+ 
 export const Scrum = () => {
   const { sprints, startSprint, completeSprint } = useSprintStore();
   const tasks = useTaskStore((s) => s.tasks);
+  const { t } = useTranslation();
+ 
+  // Tab Bar Definitions with Translations
+  const tabs = [
+    { id: 'board' as const,   label: t.sprints || 'Sprints',  icon: Layers },
+    { id: 'backlog' as const, label: t.backlog || 'Backlog',  icon: ListTodo },
+    { id: 'chart' as const,   label: t.burndown || 'Burndown', icon: BarChart2 },
+  ];
 
   const [activeTab, setActiveTab] = useState<Tab>('board');
   const [selectedSprintId, setSelectedSprintId] = useState<string>(sprints[0]?.id ?? '');
@@ -272,10 +281,10 @@ export const Scrum = () => {
       {/* ─── Header ─── */}
       <div className="px-4 pt-6 pb-4">
         <div className="flex items-center justify-between mb-1">
-          <h1 className="text-2xl font-extrabold text-forest-900 tracking-tight">Scrum Board</h1>
+          <h1 className="text-2xl font-extrabold text-forest-900 tracking-tight">{t.scrumBoard}</h1>
           {activeSprint && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full">
-              <Zap className="w-3 h-3" /> Sprint Active
+              <Zap className="w-3 h-3" /> {t.activeSprint}
             </span>
           )}
         </div>
@@ -284,9 +293,9 @@ export const Scrum = () => {
         {/* Quick stats */}
         <div className="grid grid-cols-3 gap-2.5 mt-4">
           {[
-            { label: 'Assigned',  val: assignedCount,   icon: Users,        color: 'text-violet-700 bg-violet-100' },
-            { label: 'Completed', val: completedCount,   icon: CheckCircle2, color: 'text-emerald-700 bg-emerald-100' },
-            { label: 'Story Pts', val: totalPoints,      icon: Target,       color: 'text-amber-700 bg-amber-100' },
+            { label: t.assigned,  val: assignedCount,   icon: Users,        color: 'text-violet-700 bg-violet-100' },
+            { label: t.completed, val: completedCount,   icon: CheckCircle2, color: 'text-emerald-700 bg-emerald-100' },
+            { label: t.storyPts,  val: totalPoints,      icon: Target,       color: 'text-amber-700 bg-amber-100' },
           ].map(({ label, val, icon: Icon, color }) => (
             <div key={label} className="bg-white rounded-2xl border border-cream-200 p-3 text-center shadow-sm">
               <div className={`w-7 h-7 rounded-xl mx-auto mb-1.5 flex items-center justify-center ${color}`}>
@@ -301,7 +310,7 @@ export const Scrum = () => {
 
       {/* ─── Tab bar ─── */}
       <div className="flex bg-cream-100 mx-4 rounded-2xl p-1 mb-4">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -343,12 +352,12 @@ export const Scrum = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs font-bold text-forest-700">
-                Sprint Backlog
+                {t.sprintBacklog}
                 <span className="ml-2 font-normal text-forest-400">
-                  {assignedItems.size}/{DEMO_BACKLOG.length} items assigned
+                  {assignedItems.size}/{DEMO_BACKLOG.length} {t.itemsAssigned}
                 </span>
               </p>
-              <span className="text-[11px] text-forest-500 font-semibold">{totalPoints} story pts</span>
+              <span className="text-[11px] text-forest-500 font-semibold">{totalPoints} {t.storyPts}</span>
             </div>
             {DEMO_BACKLOG.map((item) => (
               <BacklogItem

@@ -18,8 +18,8 @@ import { MeetingsView } from '../../components/views/MeetingsView';
 import { BottomNav } from '../../components/layout/BottomNav';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useToast } from '../../hooks/useToast';
-import { ActivityTimeline } from '../../components/ui/ActivityTimeline';
 import { useActivityStore } from '../../store/tasks/activityStore';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Task, TaskStatus, TaskPriority } from '../../types/task';
 
 // ─── Filter Dropdown Component ─────────────────────────────────────────────
@@ -180,6 +180,7 @@ export const Tasks = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toast = useToast();
+  const { t } = useTranslation();
 
   const filteredTasks = getFilteredTasks();
   const selectedTask = selectedTaskId ? getTaskById(selectedTaskId) : null;
@@ -246,12 +247,12 @@ export const Tasks = () => {
       </div>
 
       {/* ─── PAGE TITLE ─── */}
-      <h2 className="text-3xl font-extrabold text-[#0b170e] mb-3 tracking-tight">Project</h2>
-
+      <h2 className="text-3xl font-extrabold text-[#0b170e] mb-3 tracking-tight">{t.project}</h2>
+ 
       {/* ─── NAVIGATION TABS ─── */}
       <div className="flex items-center gap-4 overflow-x-auto pb-2 mb-4 border-b border-[#0b170e]/10 no-scrollbar">
-        <span className="text-sm font-semibold text-[#0b170e]/60 whitespace-nowrap cursor-pointer">Overview</span>
-
+        <span className="text-sm font-semibold text-[#0b170e]/60 whitespace-nowrap cursor-pointer">{t.overview}</span>
+ 
         <div
           onClick={() => {
             setActiveTab('tasks');
@@ -262,18 +263,18 @@ export const Tasks = () => {
           }`}
         >
           <span className={`text-sm ${activeTab === 'tasks' ? 'font-extrabold text-[#1e3624]' : 'font-semibold text-[#0b170e]/60'}`}>
-            Tasks
+            {t.tasks}
           </span>
           <span className="bg-[#e7a8a8] text-[#0b170e] text-[11px] font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center">
             {filteredTasks.length}
           </span>
         </div>
-
+ 
         <div className="flex items-center gap-1.5 pb-2 cursor-pointer whitespace-nowrap">
-          <span className="text-sm font-semibold text-[#0b170e]/60">Updates</span>
+          <span className="text-sm font-semibold text-[#0b170e]/60">{t.updates}</span>
           <span className="bg-[#e7a8a8] text-[#0b170e] text-[11px] font-bold rounded-full px-2 py-0.5">2</span>
         </div>
-
+ 
         <div
           onClick={() => setActiveTab('meetings')}
           className={`flex items-center gap-1.5 pb-2 cursor-pointer whitespace-nowrap ${
@@ -281,12 +282,12 @@ export const Tasks = () => {
           }`}
         >
           <span className={`text-sm ${activeTab === 'meetings' ? 'font-extrabold text-[#1e3624]' : 'font-semibold text-[#0b170e]/60'}`}>
-            Meetings
+            {t.meetings}
           </span>
           <span className="bg-[#e7a8a8] text-[#0b170e] text-[11px] font-bold rounded-full px-2 py-0.5">3</span>
         </div>
-
-        <span className="text-sm font-semibold text-[#0b170e]/60 whitespace-nowrap cursor-pointer">Documents</span>
+ 
+        <span className="text-sm font-semibold text-[#0b170e]/60 whitespace-nowrap cursor-pointer">{t.documents}</span>
       </div>
 
       {/* ─── SEARCH & CONTROLS ROW (TASKS ONLY) ─── */}
@@ -300,20 +301,20 @@ export const Tasks = () => {
                 type="text"
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                placeholder="Search task"
+                placeholder={t.searchTask}
                 className="w-full bg-transparent text-xs text-[#0b170e] placeholder:text-[#426348]/70 outline-none font-medium"
                 aria-label="Search tasks"
               />
               <ChevronDown className="w-4 h-4 text-[#426348] shrink-0" />
             </div>
-
+ 
             {/* New Task Button */}
             <button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-1.5 bg-[#1e3624] hover:bg-[#142619] text-[#f5f0e1] px-4 py-2 rounded-full text-xs font-bold shrink-0 shadow-md transition-all active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
-              New Task
+              {t.newTask}
             </button>
           </div>
 
@@ -708,7 +709,7 @@ export const Tasks = () => {
           {/* SECTION 1: ON TRACK */}
           <div className="bg-[#d4d9b8] rounded-xl p-3 border border-[#b8c094]/60 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-[#0b170e] uppercase tracking-wider">ON TRACK</span>
+              <span className="text-xs font-extrabold text-[#0b170e] uppercase tracking-wider">{t.onTrack}</span>
               <MoreHorizontal className="w-5 h-5 text-[#0b170e] opacity-70 cursor-pointer" />
             </div>
 
@@ -765,7 +766,7 @@ export const Tasks = () => {
           {/* SECTION 2: DELAYED */}
           <div className="bg-[#f2cece] rounded-xl p-3 border border-[#e7a8a8]/60 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-[#0b170e] uppercase tracking-wider">DELAYED</span>
+              <span className="text-xs font-extrabold text-[#0b170e] uppercase tracking-wider">{t.delayed}</span>
               <MoreHorizontal className="w-5 h-5 text-[#0b170e] opacity-70 cursor-pointer" />
             </div>
 
@@ -822,7 +823,7 @@ export const Tasks = () => {
           {/* SECTION 3: COMPLETED */}
           <div className="bg-[#e2d3bc] rounded-xl p-3 border border-[#ede4b8]/60 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-[#0b170e] uppercase tracking-wider">COMPLETED</span>
+              <span className="text-xs font-extrabold text-[#0b170e] uppercase tracking-wider">{t.completed}</span>
               <MoreHorizontal className="w-5 h-5 text-[#0b170e] opacity-70 cursor-pointer" />
             </div>
 
