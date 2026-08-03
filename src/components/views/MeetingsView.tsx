@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import {
-  Search, Plus, Play, CheckCircle2, Calendar, Clock, Sparkles, MoreHorizontal, X
+  Search, Plus, Play, CheckCircle2, Sparkles, MoreHorizontal, X
 } from 'lucide-react';
 import { useSprintStore } from '../../store/sprints/sprintStore';
-import type { Sprint } from '../../types/sprint';
 import { useToast } from '../../hooks/useToast';
 
 interface CustomMeetingItem {
@@ -52,7 +51,7 @@ const INITIAL_MEETINGS: CustomMeetingItem[] = [
 
 export const MeetingsView: React.FC = () => {
   const { sprints, createSprint, startSprint, completeSprint } = useSprintStore();
-  const { addToast } = useToast();
+  const toast = useToast();
 
   const [searchTitle, setSearchTitle] = useState('');
   const [meetingsList, setMeetingsList] = useState<CustomMeetingItem[]>(INITIAL_MEETINGS);
@@ -90,7 +89,7 @@ export const MeetingsView: React.FC = () => {
       endDate: endDate || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
     });
 
-    addToast(`Sprint "${sprintName}" created!`, 'success');
+    toast.success(`Sprint "${sprintName}" created!`);
     setSprintName('');
     setSprintGoal('');
     setStartDate('');
@@ -100,13 +99,13 @@ export const MeetingsView: React.FC = () => {
 
   const handleStartSprintSubmit = (sprintId: string) => {
     startSprint(sprintId);
-    addToast('Sprint started successfully!', 'success');
+    toast.success('Sprint started successfully!');
     setShowStartSprintModal(false);
   };
 
   const handleCompleteSprintSubmit = (sprintId: string) => {
     completeSprint(sprintId);
-    addToast('Sprint completed successfully!', 'success');
+    toast.success('Sprint completed successfully!');
     setShowCompleteSprintModal(false);
   };
 
@@ -131,7 +130,7 @@ export const MeetingsView: React.FC = () => {
     };
 
     setMeetingsList((prev) => [...prev, newItem]);
-    addToast('New meeting scheduled!', 'success');
+    toast.success('New meeting scheduled!');
     setNewMeetingTitle('');
     setNewMeetingTime('');
     setShowNewMeetingModal(false);
@@ -245,7 +244,7 @@ export const MeetingsView: React.FC = () => {
                       if (item.type === 'Sprint') {
                         setShowStartSprintModal(true);
                       } else {
-                        addToast(`Opening ${item.title}`, 'info');
+                        toast.info(`Opening ${item.title}`);
                       }
                     }}
                     className={`px-4 py-2 text-sm font-normal ${item.typeColor} hover:underline transition-all`}
@@ -289,7 +288,7 @@ export const MeetingsView: React.FC = () => {
                       if (item.type === 'Sprint') {
                         setShowStartSprintModal(true);
                       } else {
-                        addToast(`Opening ${item.title}`, 'info');
+                        toast.info(`Opening ${item.title}`);
                       }
                     }}
                     className={`px-4 py-2 text-sm font-normal ${item.typeColor} hover:underline transition-all`}

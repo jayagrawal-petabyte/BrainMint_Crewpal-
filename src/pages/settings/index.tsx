@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Bell, Globe, Moon, Sun, Volume2, VolumeX,
+  Bell, Moon, Sun, Volume2, VolumeX,
   Mail, MessageSquare, Smartphone, Check, ChevronDown
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';

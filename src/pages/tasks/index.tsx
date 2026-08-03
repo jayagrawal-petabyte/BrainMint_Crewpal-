@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Plus, Calendar, Pin, Flag, MoreHorizontal, Search, ChevronDown, Filter,
   LayoutGrid, MessageSquare, CheckSquare, Trash2, LayoutList, Send,
@@ -20,6 +19,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useToast } from '../../hooks/useToast';
 import { useActivityStore } from '../../store/tasks/activityStore';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ActivityTimeline } from '../../components/ui/ActivityTimeline';
 import type { Task, TaskStatus, TaskPriority } from '../../types/task';
 
 // ─── Filter Dropdown Component ─────────────────────────────────────────────
@@ -132,7 +132,6 @@ const AssigneeAvatars = ({ assignees }: { assignees: Task['assignees'] }) => (
 // ─── Main Tasks Page (Exact match for Project -_ Task.jpg & Task-1.jpg) ──
 
 export const Tasks = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'tasks' | 'meetings'>('tasks');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 

@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   Zap, Calendar, CheckCircle2, Clock, ChevronRight,
-  Plus, X, Target, TrendingDown, Users, Flag,
-  ArrowRight, BarChart2, ListTodo, Layers
+  Plus, X, Target, TrendingDown, Users,
+  BarChart2, ListTodo, Layers
 } from 'lucide-react';
 import { useSprintStore } from '../../store/sprints/sprintStore';
 import { useTaskStore } from '../../store/tasks';
@@ -263,15 +263,9 @@ export const Scrum = () => {
   const [selectedSprintId, setSelectedSprintId] = useState<string>(sprints[0]?.id ?? '');
   const [assignedItems, setAssignedItems] = useState<Set<string>>(new Set(['b2', 'b3', 'b4', 'b5', 'b9']));
 
-  const selectedSprint = useMemo(
-    () => sprints.find((s) => s.id === selectedSprintId),
-    [sprints, selectedSprintId]
-  );
-
   // Stats for selected sprint
   const activeSprint = sprints.find((s) => s.status === 'active');
   const completedCount = tasks.filter((t) => t.status === 'completed').length;
-  const totalCount     = tasks.length;
   const assignedCount  = assignedItems.size;
   const totalPoints    = DEMO_BACKLOG.filter((i) => assignedItems.has(i.id))
     .reduce((acc, i) => acc + i.points, 0);

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Sprint, SprintStatus, MeetingItem } from '../../types/sprint';
+import type { Sprint, MeetingItem } from '../../types/sprint';
 
 interface SprintState {
   sprints: Sprint[];

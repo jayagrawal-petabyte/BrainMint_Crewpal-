@@ -7,7 +7,6 @@ import {
   BarChart3,
   Users,
   Bell,
-  Video,
   Zap,
   Settings,
 } from "lucide-react";
