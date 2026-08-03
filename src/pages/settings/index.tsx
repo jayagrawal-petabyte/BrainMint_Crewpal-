@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
-  Bell, Globe, Moon, Sun, Volume2, VolumeX,
-  Mail, MessageSquare, Smartphone, Check, ChevronDown
+  Bell, Moon, Sun, Volume2, VolumeX,
+  Mail, MessageSquare, Smartphone, Check, ChevronDown, Building2, User
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { OrganizationSettings } from '../../components/organization/OrganizationSettings';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,6 +82,8 @@ const PrefRow = ({
 
 
 export const Settings = () => {
+  const [settingsCategory, setSettingsCategory] = useState<'user' | 'organization'>('user');
+
   // Notification Preferences
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [pushNotifs, setPushNotifs]   = useState(true);
@@ -107,7 +110,40 @@ export const Settings = () => {
   const currentLang = LANGUAGES.find((l) => l.code === selectedLang)!;
 
   return (
-    <div className="min-h-screen bg-[#f5f0e1] px-4 pt-6 pb-24 max-w-lg mx-auto">
+    <div className="space-y-6">
+      {/* Category Toggle Tabs (User Preferences vs Organization Settings) */}
+      <div className="flex items-center gap-2 p-1.5 bg-cream-200/70 rounded-2xl max-w-md border border-cream-300">
+        <button
+          type="button"
+          onClick={() => setSettingsCategory('user')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            settingsCategory === 'user'
+              ? 'bg-forest-800 text-cream-50 shadow-sm'
+              : 'text-forest-700 hover:text-forest-900'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          User Preferences
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSettingsCategory('organization')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            settingsCategory === 'organization'
+              ? 'bg-forest-800 text-cream-50 shadow-sm'
+              : 'text-forest-700 hover:text-forest-900'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          Organization Settings
+        </button>
+      </div>
+
+      {settingsCategory === 'organization' ? (
+        <OrganizationSettings />
+      ) : (
+        <div className="min-h-screen bg-[#f5f0e1] px-4 pt-4 pb-24 max-w-lg mx-auto rounded-2xl">
       {/* ─── Header ─── */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -247,6 +283,8 @@ export const Settings = () => {
           <p className="text-[11px] text-forest-400">CREWPAL v1.0.0 · BrainMint Internship · 2026</p>
         </div>
       </div>
+    </div>
+      )}
     </div>
   );
 };
