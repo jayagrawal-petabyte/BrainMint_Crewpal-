@@ -1,36 +1,33 @@
-import { useEffect, useState } from "react";
-import { dashboardService } from "../services/dashboardService";
-import { DashboardData } from "../types/dashboard";
+import { useDashboardStore } from '../store/dashboard';
 
 export const useDashboard = () => {
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-
-  const [loading, setLoading] = useState(true);
-
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-
-  const loadDashboard = async () => {
-    try {
-      setLoading(true);
-
-      const data = await dashboardService.getDashboard();
-
-      setDashboard(data);
-    } catch (err) {
-      setError("Failed to load dashboard");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const statistics = useDashboardStore((state) => state.statistics);
+  const projects = useDashboardStore((state) => state.projects);
+  const schedule = useDashboardStore((state) => state.schedule);
+  const assignedTasks = useDashboardStore((state) => state.assignedTasks);
+  const deadlines = useDashboardStore((state) => state.deadlines);
+  const activities = useDashboardStore((state) => state.activities);
+  const quickActions = useDashboardStore((state) => state.quickActions);
+  const loading = useDashboardStore((state) => state.loading);
+  const error = useDashboardStore((state) => state.error);
+  const loaded = useDashboardStore((state) => state.loaded);
+  const load = useDashboardStore((state) => state.load);
+  const refresh = useDashboardStore((state) => state.refresh);
+  const retry = useDashboardStore((state) => state.retry);
 
   return {
-    dashboard,
+    statistics,
+    projects,
+    schedule,
+    assignedTasks,
+    deadlines,
+    activities,
+    quickActions,
     loading,
     error,
+    loaded,
+    load,
+    refresh,
+    retry,
   };
 };

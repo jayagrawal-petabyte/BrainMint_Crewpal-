@@ -1,6 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, UserPlus, Building2, ShieldCheck, Settings as SettingsIcon } from 'lucide-react';
+import { Plus, UserPlus, Building2, ShieldCheck } from 'lucide-react';
 import { Button } from '../common/Button';
 
 interface OrganizationHeaderProps {
@@ -16,8 +15,6 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
   activeCount,
   totalCount,
 }) => {
-  const navigate = useNavigate();
-
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-cream-50 p-6 rounded-2xl border border-cream-200 shadow-sm">
       <div className="space-y-1.5">
@@ -46,15 +43,6 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
         <div className="hidden lg:flex items-center gap-2 px-3.5 py-2 bg-cream-100 rounded-xl border border-cream-200 text-xs text-forest-800">
           <span className="font-semibold">{activeCount} of {totalCount} Active</span>
         </div>
-
-        <Button
-          variant="ghost"
-          leftIcon={<SettingsIcon className="w-4 h-4" />}
-          onClick={() => navigate('/organization/settings')}
-          className="shadow-xs hover:shadow-sm transition-all cursor-pointer border border-cream-300"
-        >
-          Org Settings
-        </Button>
 
         {onOpenInviteModal && (
           <Button
