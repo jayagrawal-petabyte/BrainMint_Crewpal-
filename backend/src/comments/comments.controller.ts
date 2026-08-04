@@ -12,7 +12,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { CommentsService, AuthenticatedUser } from './comments.service';
+import { CommentsService } from './comments.service';
+import type { AuthenticatedUser } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';

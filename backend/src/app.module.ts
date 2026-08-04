@@ -9,6 +9,7 @@ import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CommentsModule } from './comments/comments.module';
+import { AttachmentsModule } from './attachments/attachments.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CommentsModule } from './comments/comments.module';
     ProjectsModule,
     DashboardModule,
     CommentsModule,
+    AttachmentsModule,
   ],
   controllers: [],
   providers: [
