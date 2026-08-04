@@ -117,24 +117,33 @@ export class AttachmentsService {
       throw new ForbiddenException('Viewer role is read-only and cannot upload attachments');
     }
 
-    // Multi-tenant IDOR check
-    await this.verifyTaskAccess(taskId, user);
-
+    // Fail-fast: validate file existence before any DB access
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
-    // File size check
+    // File size check (server-side, before IDOR check to avoid unnecessary DB queries)
     if (file.size > this.maxSizeBytes) {
       throw new BadRequestException('File size exceeds maximum limit of 10MB');
     }
 
-    // File MIME type whitelist check
+    // File MIME type whitelist check (client-provided Content-Type)
     if (!this.allowedMimeTypes.has(file.mimetype)) {
       throw new BadRequestException(
         `File type '${file.mimetype}' is not permitted. Allowed formats: images, PDF, Word, Excel, ZIP, TXT.`,
       );
     }
+
+    // File extension whitelist (defence against MIME spoofing — e.g. .exe renamed to .png)
+    const allowedExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp',
+      '.pdf', '.doc', '.docx', '.txt', '.zip', '.xls', '.xlsx']);
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    if (!allowedExtensions.has(fileExt)) {
+      throw new BadRequestException(`File extension '${fileExt}' is not permitted`);
+    }
+
+    // Multi-tenant IDOR check (after file validation to fail fast on bad input)
+    await this.verifyTaskAccess(taskId, user);
 
     // Sanitize original filename (prevent path traversal / malicious chars)
     const sanitizedOriginalName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, '_');
