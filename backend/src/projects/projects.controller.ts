@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -10,21 +11,27 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { ProjectsService } from './projects.service';
+import { Role } from '../common/constants/roles.constant';
+import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { ProjectsService } from './projects.service';
 
 @Controller('projects')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
-  create(
-    @Body() dto: CreateProjectDto,
-    @Req() req: any,
-  ) {
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+  )
+  create(@Body() dto: CreateProjectDto, @Req() req: any) {
     return this.projectsService.create(dto, req.user);
   }
 
@@ -39,10 +46,24 @@ export class ProjectsController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProjectDto,
-  ) {
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+  )
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+  )
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.projectsService.deactivate(id);
   }
 }
