@@ -54,9 +54,10 @@ export class CommentsService {
       return taskInfo;
     }
 
-    // Organization-level check: All non-Super-Admin roles must belong to the same org
+    // Organization-level check: NotFoundException (not ForbiddenException) to avoid
+    // confirming resource existence to users outside this tenant
     if (taskInfo.organization_id !== user.organization_id) {
-      throw new ForbiddenException('Access denied: Resource outside user organization');
+      throw new NotFoundException('Resource not found');
     }
 
     // Role 2: Org Admin (all projects within their org)
@@ -179,12 +180,12 @@ export class CommentsService {
 
     const commentInfo = result.rows[0];
 
-    // Organization check: All non-Super-Admin roles must belong to the same org
+    // Organization check: hide resource existence from cross-tenant users
     if (user.role_id !== 1 && commentInfo.organization_id !== user.organization_id) {
-      throw new ForbiddenException('Access denied: Resource outside user organization');
+      throw new NotFoundException('Resource not found');
     }
 
-    // Project membership check: Roles 3-9 must be active project members
+    // Project membership check: user is in the org but not the project
     if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
       throw new ForbiddenException('Access denied: You are not a member of this project');
     }
@@ -248,12 +249,12 @@ export class CommentsService {
 
     const commentInfo = result.rows[0];
 
-    // Organization check: All non-Super-Admin roles must belong to the same org
+    // Organization check: hide resource existence from cross-tenant users
     if (user.role_id !== 1 && commentInfo.organization_id !== user.organization_id) {
-      throw new ForbiddenException('Access denied: Resource outside user organization');
+      throw new NotFoundException('Resource not found');
     }
 
-    // Project membership check: Roles 3-9 must be active project members
+    // Project membership check: user is in the org but not the project
     if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
       throw new ForbiddenException('Access denied: You are not a member of this project');
     }
