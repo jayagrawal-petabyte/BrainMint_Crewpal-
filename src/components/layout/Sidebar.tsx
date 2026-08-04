@@ -7,55 +7,71 @@ import {
   BarChart3,
   Users,
   Bell,
+  Zap,
+  Settings,
 } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types/roles";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export const Sidebar = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const navItems = [
     {
-      label: "Dashboard",
-      path: "/",
+      label: t.dashboard,
+      path: "/dashboard",
       icon: LayoutDashboard,
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
     {
-      label: "Tasks",
+      label: t.tasks,
       path: "/tasks",
       icon: CheckSquare,
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
     {
-      label: "Projects",
+      label: t.projects,
       path: "/projects",
       icon: FolderKanban,
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
     {
-      label: "Organization",
+      label: t.organization,
       path: "/organization",
       icon: Building2,
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
     {
-      label: "Teams",
+      label: t.teams,
       path: "/teams",
       icon: Users,
       roles: [UserRole.ADMIN, UserRole.MANAGER],
     },
     {
-      label: "Reports",
+      label: t.reports,
       path: "/reports",
       icon: BarChart3,
       roles: [UserRole.ADMIN],
     },
     {
-      label: "Notifications",
+      label: t.notifications,
       path: "/notifications",
       icon: Bell,
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+    },
+    {
+      label: t.scrumBoard,
+      path: "/scrum",
+      icon: Zap,
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+    },
+    {
+      label: t.settings,
+      path: "/settings",
+      icon: Settings,
       roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
   ];

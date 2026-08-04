@@ -87,10 +87,9 @@ export const Teams = () => {
 
   const filteredMembers = useMemo(() => {
     return TEAM_MEMBERS.filter((member) => {
-      const matchesSearch =
-        member.name
-          .toLowerCase()
-          .includes(search.toLowerCase());
+      const matchesSearch = member.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
       const matchesDepartment =
         activeDepartment === "All" ||
@@ -109,32 +108,25 @@ export const Teams = () => {
   };
 
   const toggleAllMembers = () => {
-    if (
-      selectedMembers.length === filteredMembers.length
-    ) {
+    if (selectedMembers.length === filteredMembers.length) {
       setSelectedMembers([]);
     } else {
-      setSelectedMembers(
-        filteredMembers.map((member) => member.id)
-      );
+      setSelectedMembers(filteredMembers.map((member) => member.id));
     }
   };
 
   return (
     <div className="px-8 py-6 space-y-10">
-
+      {/* Header */}
       <div className="flex items-center justify-between">
-
         <div>
-
           <h1 className="text-3xl font-bold text-forest-900">
             Team
           </h1>
 
-          <p className="text-sm text-forest-500 mt-2">
+          <p className="mt-2 text-sm text-forest-500">
             Manage team members and their information.
           </p>
-
         </div>
 
         <button
@@ -151,24 +143,20 @@ export const Teams = () => {
         >
           + New Member
         </button>
-
       </div>
 
+      {/* Department Tabs */}
       <div className="space-y-6">
-
-                <div className="flex items-end justify-between gap-8">
-
+        <div className="flex items-end justify-between gap-8">
           <div className="flex flex-1 items-center gap-8 border-b border-cream-300">
-
             {departments.map((department) => {
-
               if (department === "...") {
                 return (
                   <button
                     key="more"
                     type="button"
                     onClick={() => setShowFilters((prev) => !prev)}
-                    className={`pb-4 text-sm font-semibold cursor-pointer transition ${
+                    className={`pb-4 text-sm font-semibold transition ${
                       showFilters
                         ? "text-forest-900"
                         : "text-forest-600 hover:text-forest-900"
@@ -193,11 +181,10 @@ export const Teams = () => {
                   {department}
                 </button>
               );
-
             })}
-
           </div>
 
+          {/* Search */}
           <div
             className="
               w-[260px]
@@ -212,18 +199,12 @@ export const Teams = () => {
               shrink-0
             "
           >
-
-            <Search
-              size={18}
-              className="text-gray-500"
-            />
+            <Search size={18} className="text-gray-500" />
 
             <input
               type="text"
               value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search"
               className="
                 ml-3
@@ -234,17 +215,14 @@ export const Teams = () => {
                 placeholder:text-gray-500
               "
             />
-
           </div>
-
         </div>
 
+        {/* Filters */}
         {showFilters && (
-
           <div className="flex items-center gap-4">
-
             <span className="text-sm font-medium text-forest-700">
-              Filters :
+              Filters:
             </span>
 
             {[
@@ -254,7 +232,6 @@ export const Teams = () => {
               "Available",
               "On Leave",
             ].map((filter) => (
-
               <button
                 key={filter}
                 type="button"
@@ -272,14 +249,9 @@ export const Teams = () => {
               >
                 {filter}
               </button>
-
             ))}
-
           </div>
-
         )}
-
-      </div>
 
       <div
         className="
@@ -291,15 +263,10 @@ export const Teams = () => {
           overflow-hidden
         "
       >
-
-        <table className="w-full">
-
+                <table className="w-full">
           <thead className="bg-gray-100">
-
             <tr className="text-xs uppercase tracking-wider text-forest-600">
-
               <th className="w-14 px-6 py-5">
-
                 <input
                   type="checkbox"
                   checked={
@@ -307,43 +274,23 @@ export const Teams = () => {
                     selectedMembers.length === filteredMembers.length
                   }
                   onClick={(e) => e.stopPropagation()}
-                  onChange={() => toggleAllMembers()}
+                  onChange={toggleAllMembers}
                   className="w-4 h-4 cursor-pointer"
                 />
-
               </th>
 
-              <th className="px-6 py-5 text-left">
-                NAME
-              </th>
-
-              <th className="px-6 py-5 text-left">
-                TASK DIVIDED
-              </th>
-
-              <th className="px-6 py-5 text-left">
-                CURRENT PROJECT
-              </th>
-
-              <th className="px-6 py-5 text-center">
-                ASSIGNED TIME
-              </th>
-
-              <th className="px-6 py-5 text-left">
-                AVAILABILITY
-              </th>
-
-              <th className="px-6 py-5 text-center">
-              </th>
-
+              <th className="px-6 py-5 text-left">NAME</th>
+              <th className="px-6 py-5 text-left">TASK DIVIDED</th>
+              <th className="px-6 py-5 text-left">CURRENT PROJECT</th>
+              <th className="px-6 py-5 text-center">ASSIGNED TIME</th>
+              <th className="px-6 py-5 text-left">AVAILABILITY</th>
+              <th className="px-6 py-5 text-center"></th>
             </tr>
-
           </thead>
 
-          <tbody>            {filteredMembers.length > 0 ? (
-
+          <tbody>
+            {filteredMembers.length > 0 ? (
               filteredMembers.map((member) => (
-
                 <tr
                   key={member.id}
                   onClick={() =>
@@ -359,9 +306,7 @@ export const Teams = () => {
                     cursor-pointer
                   "
                 >
-
                   <td className="px-6 py-5">
-
                     <input
                       type="checkbox"
                       checked={selectedMembers.includes(member.id)}
@@ -372,24 +317,15 @@ export const Teams = () => {
                       }}
                       className="w-4 h-4 cursor-pointer"
                     />
-
                   </td>
 
                   <td className="px-6 py-5">
-
                     <div className="flex items-center gap-4">
-
                       <div className="w-10 h-10 rounded-full bg-[#F4E2DD] flex items-center justify-center">
-
-                        <User
-                          size={18}
-                          className="text-forest-700"
-                        />
-
+                        <User size={18} className="text-forest-700" />
                       </div>
 
                       <div>
-
                         <p className="font-semibold text-forest-900">
                           {member.name}
                         </p>
@@ -397,39 +333,29 @@ export const Teams = () => {
                         <p className="text-xs text-forest-500">
                           {member.registration}
                         </p>
-
                       </div>
-
                     </div>
-
                   </td>
 
                   <td className="px-6 py-5">
-
                     <span className="text-sm text-forest-700">
                       {member.task}
                     </span>
-
                   </td>
 
                   <td className="px-6 py-5">
-
                     <span className="text-sm text-forest-700">
                       {member.project}
                     </span>
-
                   </td>
 
                   <td className="px-6 py-5 text-center">
-
                     <span className="text-sm text-forest-700">
                       {member.assignedTime}
                     </span>
-
                   </td>
 
                   <td className="px-6 py-5">
-
                     <span
                       className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                         member.availability === "Available"
@@ -443,13 +369,10 @@ export const Teams = () => {
                     >
                       {member.availability}
                     </span>
-
                   </td>
 
                   <td className="px-6 py-5">
-
                     <div className="flex justify-center">
-
                       <button
                         type="button"
                         onClick={(e) => {
@@ -465,31 +388,21 @@ export const Teams = () => {
                           cursor-pointer
                         "
                       >
-
                         <MoreHorizontal
                           size={18}
                           className="mx-auto text-forest-700"
                         />
-
                       </button>
-
                     </div>
-
                   </td>
-
                 </tr>
-
               ))
-
             ) : (
-
               <tr>
-
                 <td
                   colSpan={7}
                   className="py-20 text-center"
                 >
-
                   <UsersIcon
                     size={46}
                     className="mx-auto mb-3 text-forest-300"
@@ -502,17 +415,12 @@ export const Teams = () => {
                   <p className="mt-2 text-sm text-forest-500">
                     Try another search or department.
                   </p>
-
                 </td>
-
               </tr>
-
             )}
-
           </tbody>
-                  </table>
-
-        <div
+        </table>
+                <div
           className="
             flex
             items-center
@@ -524,7 +432,6 @@ export const Teams = () => {
             bg-[#FCFAF5]
           "
         >
-
           <button
             type="button"
             className="
@@ -547,7 +454,6 @@ export const Teams = () => {
           </button>
 
           <div className="flex items-center gap-2">
-
             <button className="w-10 h-10 rounded-xl border border-cream-300 hover:bg-cream-100 transition">
               1
             </button>
@@ -571,7 +477,6 @@ export const Teams = () => {
             <button className="w-10 h-10 rounded-xl border border-cream-300 hover:bg-cream-100 transition">
               11
             </button>
-
           </div>
 
           <button
@@ -594,13 +499,9 @@ export const Teams = () => {
             Next
             <ChevronRight size={16} />
           </button>
-
         </div>
-
       </div>
-
     </div>
-
   );
 };
 

@@ -9,6 +9,8 @@ export interface Project {
   createdAt: string;
   description?: string;
   category?: string;
+  techStack?: string;
+  progress?: number;
 }
 
 export type ProjectSortKey = 'name_asc' | 'name_desc' | 'date_asc' | 'date_desc';

@@ -37,6 +37,26 @@ const OrganizationManagement = lazy(() =>
     })),
 );
 
+const Reports = lazy(() => import("../pages/reports"));
+
+const Meetings = lazy(() =>
+  import("../pages/meetings").then((module) => ({
+    default: module.Meetings,
+  }))
+);
+
+const Settings = lazy(() =>
+  import("../pages/settings").then((module) => ({
+    default: module.Settings,
+  }))
+);
+
+const Scrum = lazy(() =>
+  import("../pages/scrum").then((module) => ({
+    default: module.Scrum,
+  }))
+);
+
 const PageLoader = () => (
     <div className="min-h-screen flex items-center justify-center bg-cream-100">
         <div className="w-8 h-8 border-4 border-forest-900 border-t-transparent rounded-full animate-spin"></div>

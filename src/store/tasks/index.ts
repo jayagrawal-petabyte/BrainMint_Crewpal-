@@ -160,6 +160,8 @@ interface TaskState {
   addSubtask: (taskId: string, title: string) => void;
   toggleSubtask: (taskId: string, subtaskId: string) => void;
   deleteSubtask: (taskId: string, subtaskId: string) => void;
+  addAttachment: (taskId: string, name: string, type: string, size: string, url: string) => void;
+  deleteAttachment: (taskId: string, attachmentId: string) => void;
 
   // Filters
   setSearch: (search: string) => void;
@@ -266,12 +268,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId
           ? {
-              ...task,
-              subtasks: task.subtasks.map((st) =>
-                st.id === subtaskId ? { ...st, completed: !st.completed } : st
-              ),
-              updatedAt: new Date().toISOString(),
-            }
+            ...task,
+            subtasks: task.subtasks.map((st) =>
+              st.id === subtaskId ? { ...st, completed: !st.completed } : st
+            ),
+            updatedAt: new Date().toISOString(),
+          }
           : task
       ),
     }));
@@ -282,6 +284,34 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId
           ? { ...task, subtasks: task.subtasks.filter((st) => st.id !== subtaskId), updatedAt: new Date().toISOString() }
+          : task
+      ),
+    }));
+  },
+
+  addAttachment: (taskId, name, type, size, url) => {
+    const attachment = {
+      id: `att-${Date.now()}`,
+      name,
+      type,
+      size,
+      url,
+      uploadedAt: new Date().toISOString(),
+    };
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, attachments: [...(task.attachments || []), attachment], updatedAt: new Date().toISOString() }
+          : task
+      ),
+    }));
+  },
+
+  deleteAttachment: (taskId, attachmentId) => {
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, attachments: (task.attachments || []).filter((a) => a.id !== attachmentId), updatedAt: new Date().toISOString() }
           : task
       ),
     }));
