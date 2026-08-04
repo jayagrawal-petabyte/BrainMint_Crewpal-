@@ -1,10 +1,12 @@
-// organizations/organizations.service.ts
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Pool } from 'pg';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { CreateOrganizationSettingsDto } from './dto/create-organization-settings.dto';
+import { UpdateOrganizationSettingsDto } from './dto/update-organization-settings.dto';
 
 const COLUMNS = 'id, name, is_active, created_at, updated_at';
+const DEFAULT_WORKING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 @Injectable()
 export class OrganizationsService {
@@ -47,5 +49,138 @@ export class OrganizationsService {
       [id],
     );
     return result.rows[0];
+  }
+
+  async getSettings(id: number) {
+    const organization = await this.findOne(id);
+    await this.ensureSettingsTable();
+
+    const settingsRow = await this.getSettingsRow(id);
+    return this.mapSettingsResponse(organization, settingsRow);
+  }
+
+  async upsertSettings(id: number, dto: UpdateOrganizationSettingsDto | CreateOrganizationSettingsDto) {
+    const organization = await this.findOne(id);
+    await this.ensureSettingsTable();
+
+    const currentSettings = await this.getSettingsRow(id);
+    const payload = this.buildSettingsPayload(dto, organization, currentSettings);
+
+    if (!currentSettings) {
+      const result = await this.pool.query(
+        `INSERT INTO organization_settings (
+          organization_id,
+          organization_name,
+          timezone,
+          working_days,
+          default_task_priority,
+          email_notifications,
+          theme,
+          created_at,
+          updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING organization_id, organization_name, timezone, working_days, default_task_priority, email_notifications, theme`,
+        [
+          id,
+          payload.organizationName,
+          payload.timezone,
+          JSON.stringify(payload.workingDays),
+          payload.defaultTaskPriority,
+          payload.emailNotifications,
+          payload.theme,
+        ],
+      );
+      return this.mapSettingsResponse(organization, result.rows[0]);
+    }
+
+    const result = await this.pool.query(
+      `UPDATE organization_settings
+       SET organization_name = COALESCE($1, organization_name),
+           timezone = COALESCE($2, timezone),
+           working_days = COALESCE($3::jsonb, working_days),
+           default_task_priority = COALESCE($4, default_task_priority),
+           email_notifications = COALESCE($5::boolean, email_notifications),
+           theme = COALESCE($6, theme),
+           updated_at = NOW()
+       WHERE organization_id = $7
+       RETURNING organization_id, organization_name, timezone, working_days, default_task_priority, email_notifications, theme`,
+      [
+        payload.organizationName ?? null,
+        payload.timezone ?? null,
+        payload.workingDays ? JSON.stringify(payload.workingDays) : null,
+        payload.defaultTaskPriority ?? null,
+        payload.emailNotifications ?? null,
+        payload.theme ?? null,
+        id,
+      ],
+    );
+
+    return this.mapSettingsResponse(organization, result.rows[0]);
+  }
+
+  private async ensureSettingsTable() {
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS organization_settings (
+        id SERIAL PRIMARY KEY,
+        organization_id INTEGER NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,
+        organization_name VARCHAR(255),
+        timezone VARCHAR(100) NOT NULL DEFAULT 'UTC',
+        working_days JSONB NOT NULL DEFAULT '["Monday","Tuesday","Wednesday","Thursday","Friday"]',
+        default_task_priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+        email_notifications BOOLEAN NOT NULL DEFAULT TRUE,
+        theme VARCHAR(20) NOT NULL DEFAULT 'light',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+  }
+
+  private async getSettingsRow(organizationId: number) {
+    const result = await this.pool.query(
+      `SELECT organization_id, organization_name, timezone, working_days, default_task_priority, email_notifications, theme
+       FROM organization_settings WHERE organization_id = $1`,
+      [organizationId],
+    );
+    return result.rows[0];
+  }
+
+  private buildSettingsPayload(
+    dto: UpdateOrganizationSettingsDto | CreateOrganizationSettingsDto,
+    organization: { name: string },
+    currentSettings?: Record<string, any>,
+  ) {
+    const fallbackName = currentSettings?.organization_name ?? organization.name;
+    const fallbackTimezone = currentSettings?.timezone ?? 'UTC';
+    const fallbackWorkingDays = this.normalizeWorkingDays(currentSettings?.working_days);
+    const fallbackPriority = currentSettings?.default_task_priority ?? 'medium';
+    const fallbackEmailNotifications = currentSettings?.email_notifications ?? true;
+    const fallbackTheme = currentSettings?.theme ?? 'light';
+
+    return {
+      organizationName: dto.organizationName ?? fallbackName,
+      timezone: dto.timezone ?? fallbackTimezone,
+      workingDays: dto.workingDays ? this.normalizeWorkingDays(dto.workingDays) : fallbackWorkingDays,
+      defaultTaskPriority: dto.defaultTaskPriority ?? fallbackPriority,
+      emailNotifications: dto.emailNotifications ?? fallbackEmailNotifications,
+      theme: dto.theme ?? fallbackTheme,
+    };
+  }
+
+  private normalizeWorkingDays(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string');
+    }
+    return [...DEFAULT_WORKING_DAYS];
+  }
+
+  private mapSettingsResponse(organization: { id: number; name: string }, settingsRow?: Record<string, any>) {
+    return {
+      organizationId: organization.id,
+      organizationName: settingsRow?.organization_name ?? organization.name,
+      timezone: settingsRow?.timezone ?? 'UTC',
+      workingDays: this.normalizeWorkingDays(settingsRow?.working_days),
+      defaultTaskPriority: settingsRow?.default_task_priority ?? 'medium',
+      emailNotifications: settingsRow?.email_notifications ?? true,
+      theme: settingsRow?.theme ?? 'light',
+    };
   }
 }
