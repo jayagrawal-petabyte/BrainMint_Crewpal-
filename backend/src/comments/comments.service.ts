@@ -49,21 +49,23 @@ export class CommentsService {
     const taskInfo = result.rows[0];
 
     // Role-based scope verification
-    // Role 1: Super Admin (all access)
-    // Role 2: Org Admin (same org access)
-    // Roles 3-9: Must be an active project member
+    // Role 1: Super Admin (all access across orgs)
     if (user.role_id === 1) {
       return taskInfo;
     }
 
+    // Organization-level check: All non-Super-Admin roles must belong to the same org
+    if (taskInfo.organization_id !== user.organization_id) {
+      throw new ForbiddenException('Access denied: Resource outside user organization');
+    }
+
+    // Role 2: Org Admin (all projects within their org)
     if (user.role_id === 2) {
-      if (taskInfo.organization_id !== user.organization_id) {
-        throw new ForbiddenException('Access denied: Resource outside user organization');
-      }
       return taskInfo;
     }
 
-    if (taskInfo.organization_id !== user.organization_id || !taskInfo.is_member) {
+    // Roles 3-9: Must be an active member of the project
+    if (!taskInfo.is_member) {
       throw new ForbiddenException('Access denied: You are not a member of this project');
     }
 
@@ -177,12 +179,13 @@ export class CommentsService {
 
     const commentInfo = result.rows[0];
 
-    // Membership / IDOR check
-    if (
-      user.role_id !== 1 &&
-      user.role_id !== 2 &&
-      (commentInfo.organization_id !== user.organization_id || !commentInfo.is_member)
-    ) {
+    // Organization check: All non-Super-Admin roles must belong to the same org
+    if (user.role_id !== 1 && commentInfo.organization_id !== user.organization_id) {
+      throw new ForbiddenException('Access denied: Resource outside user organization');
+    }
+
+    // Project membership check: Roles 3-9 must be active project members
+    if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
       throw new ForbiddenException('Access denied: You are not a member of this project');
     }
 
@@ -245,12 +248,13 @@ export class CommentsService {
 
     const commentInfo = result.rows[0];
 
-    // Membership / IDOR check
-    if (
-      user.role_id !== 1 &&
-      user.role_id !== 2 &&
-      (commentInfo.organization_id !== user.organization_id || !commentInfo.is_member)
-    ) {
+    // Organization check: All non-Super-Admin roles must belong to the same org
+    if (user.role_id !== 1 && commentInfo.organization_id !== user.organization_id) {
+      throw new ForbiddenException('Access denied: Resource outside user organization');
+    }
+
+    // Project membership check: Roles 3-9 must be active project members
+    if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
       throw new ForbiddenException('Access denied: You are not a member of this project');
     }
 
