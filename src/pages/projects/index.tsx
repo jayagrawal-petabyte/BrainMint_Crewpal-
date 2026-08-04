@@ -9,15 +9,45 @@ import { ProjectBadge } from '../../components/ui/ProjectBadge';
 import { ProjectActionsMenu } from '../../components/ui/ProjectActionsMenu';
 import { CreateProjectModal } from '../../components/modals/CreateProjectModal';
 import { EditProjectModal } from '../../components/modals/EditProjectModal';
+import { DeleteConfirmModal } from '../../components/modals/DeleteConfirmModal';
+import { ReviewApprovalModal } from '../../components/modals/ReviewApprovalModal';
+import type { PendingApproval } from '../../components/modals/ReviewApprovalModal';
 import type { ProjectStatus, ProjectSortKey, Project } from '../../types/project';
 
 export const Projects = () => {
   const [searchInput, setSearchInput] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
   const [actionMenuProjectId, setActionMenuProjectId] = useState<string | null>(null);
+
+  // Pending approval state
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([
+    {
+      id: 'pending-1',
+      name: 'Marketing Campaign',
+      owner: 'Aastha Sharma',
+      requestedAt: '2026-08-01',
+      description: 'A multi-channel digital marketing campaign for Q3 product launches.',
+    },
+    {
+      id: 'pending-2',
+      name: 'Q4 Planning',
+      owner: 'Rahul Verma',
+      requestedAt: '2026-08-01',
+      description: 'Strategic planning and resource allocation for Q4 initiatives.',
+    },
+  ]);
+  const [reviewApproval, setReviewApproval] = useState<PendingApproval | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
+  // Subscribe to `projects` directly so any isStarred mutation triggers a re-render.
+  // getFilteredProjects reads from get() internally, so we call it fresh each render.
+  const projects = useProjectStore((s) => s.projects);
+  const getFilteredProjects = useProjectStore((s) => s.getFilteredProjects);
 
   const {
     filter,
@@ -27,24 +57,23 @@ export const Projects = () => {
     setSortBy,
     toggleStarProject,
     deleteProject,
-    getFilteredProjects,
     resetFilter,
   } = useProjectStore();
 
   const toast = useToast();
+  // Re-computed on every render; will reflect latest projects + filter state.
   const filteredProjects = getFilteredProjects();
+  // `projects` referenced here to keep the dependency linter satisfied and
+  // ensure this line re-runs whenever any project field (including isStarred) changes.
+  void projects;
 
-  // Mock pending approval data
-  const pendingApprovals = [
-    { id: 'pending-1', name: 'Marketing Campaign', owner: 'Aastha Sharma', requestedAt: '2026-08-01' },
-    { id: 'pending-2', name: 'Q4 Planning', owner: 'Rahul Verma', requestedAt: '2026-08-01' },
-  ];
-
+  // ── Search ───────────────────────────────────────────────
   const handleSearch = (val: string) => {
     setSearchInput(val);
     setSearch(val);
   };
 
+  // ── Selection ────────────────────────────────────────────
   const handleSelectProject = (projectId: string) => {
     setSelectedProjectIds((prev) => {
       const newSet = new Set(prev);
@@ -65,20 +94,46 @@ export const Projects = () => {
     }
   };
 
+  // ── Edit ─────────────────────────────────────────────────
   const handleEditProject = (project: Project) => {
     setSelectedProject(project);
     setShowEditModal(true);
     setActionMenuProjectId(null);
   };
 
-  const handleDeleteProject = (projectId: string) => {
-    deleteProject(projectId);
-    toast.success('Project deleted');
+  // ── Delete (with confirmation) ────────────────────────────
+  const handleDeleteRequest = (project: Project) => {
+    setProjectToDelete(project);
+    setShowDeleteModal(true);
     setActionMenuProjectId(null);
   };
 
-  const handleCreateProject = () => {
-    setShowCreateModal(true);
+  const handleConfirmDelete = () => {
+    if (!projectToDelete) return;
+    deleteProject(projectToDelete.id);
+    // Clean up stale selection
+    setSelectedProjectIds((prev) => {
+      const next = new Set(prev);
+      next.delete(projectToDelete.id);
+      return next;
+    });
+    toast.success('Project deleted');
+    setProjectToDelete(null);
+    setShowDeleteModal(false);
+  };
+
+  // ── Review approval ──────────────────────────────────────
+  const handleReviewClick = (approval: PendingApproval) => {
+    setReviewApproval(approval);
+    setShowReviewModal(true);
+  };
+
+  const handleApprove = (id: string) => {
+    setPendingApprovals((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleReject = (id: string) => {
+    setPendingApprovals((prev) => prev.filter((a) => a.id !== id));
   };
 
   return (
@@ -90,7 +145,7 @@ export const Projects = () => {
           variant="primary"
           leftIcon={<Plus className="w-4 h-4" />}
           size="sm"
-          onClick={handleCreateProject}
+          onClick={() => setShowCreateModal(true)}
         >
           New Project
         </Button>
@@ -105,7 +160,7 @@ export const Projects = () => {
             </div>
             <div>
               <h3 className="text-sm font-bold text-forest-900">Pending Approvals</h3>
-              <p className="text-xs text-forest-500">{pendingApprovals.length} projects awaiting approval</p>
+              <p className="text-xs text-forest-500">{pendingApprovals.length} project{pendingApprovals.length !== 1 ? 's' : ''} awaiting approval</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -123,7 +178,12 @@ export const Projects = () => {
                     <p className="text-[11px] text-forest-500">Requested by {approval.owner}</p>
                   </div>
                 </div>
-                <Button variant="primary" size="sm" className="text-xs px-3 py-1.5">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="text-xs px-3 py-1.5"
+                  onClick={() => handleReviewClick(approval)}
+                >
                   Review
                 </Button>
               </div>
@@ -172,7 +232,7 @@ export const Projects = () => {
           Starred
         </button>
 
-        {/* Sorting Selection */}
+        {/* Sorting */}
         <div className="flex items-center gap-1.5">
           <ArrowUpDown className="w-3.5 h-3.5 text-forest-400" />
           <select
@@ -187,7 +247,7 @@ export const Projects = () => {
           </select>
         </div>
 
-        {/* Reset Filter Button */}
+        {/* Reset */}
         {(filter.status !== 'all' || filter.starredOnly || filter.search !== '') && (
           <button
             onClick={() => {
@@ -201,9 +261,9 @@ export const Projects = () => {
         )}
       </div>
 
-      {/* Project list rendering */}
+      {/* Project list */}
       <Card noPadding className="overflow-hidden border-olive-200">
-        {/* Enhanced Header bar */}
+        {/* Header bar */}
         <div className="bg-rose-300 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <input
@@ -223,13 +283,13 @@ export const Projects = () => {
           </div>
         </div>
 
-        {/* Enhanced Rows */}
+        {/* Rows */}
         {filteredProjects.map((project) => (
           <div
             key={project.id}
             className="flex items-center justify-between px-4 py-3 border-b border-olive-100 last:border-b-0 bg-olive-50/20 hover:bg-olive-100/40 transition-all duration-150 group"
           >
-            {/* Checkbox + Project main info */}
+            {/* Checkbox + Info */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <input
                 type="checkbox"
@@ -256,7 +316,7 @@ export const Projects = () => {
               </div>
             </div>
 
-            {/* Tech Stack + Status + Progress + Favorites + Actions */}
+            {/* Right side columns */}
             <div className="flex items-center gap-4 shrink-0">
               {/* Tech Stack */}
               <div className="hidden lg:block w-24 text-center">
@@ -283,7 +343,7 @@ export const Projects = () => {
                 </div>
               </div>
 
-              {/* Star icon toggle */}
+              {/* Star */}
               <button
                 onClick={() => toggleStarProject(project.id)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-rose-500 cursor-pointer"
@@ -291,7 +351,9 @@ export const Projects = () => {
               >
                 <Star
                   className={`w-4 h-4 transition-transform active:scale-125 ${
-                    project.isStarred ? 'fill-rose-350 text-rose-500' : 'text-forest-400'
+                    project.isStarred
+                      ? 'fill-rose-500 text-rose-500'
+                      : 'text-forest-400'
                   }`}
                 />
               </button>
@@ -299,7 +361,9 @@ export const Projects = () => {
               {/* Actions menu */}
               <div className="relative w-8 flex justify-center">
                 <button
-                  onClick={() => setActionMenuProjectId(actionMenuProjectId === project.id ? null : project.id)}
+                  onClick={() =>
+                    setActionMenuProjectId(actionMenuProjectId === project.id ? null : project.id)
+                  }
                   className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-forest-700 cursor-pointer"
                   title="More options"
                 >
@@ -310,7 +374,7 @@ export const Projects = () => {
                     isOpen={true}
                     onClose={() => setActionMenuProjectId(null)}
                     onEdit={() => handleEditProject(project)}
-                    onDelete={() => handleDeleteProject(project.id)}
+                    onDelete={() => handleDeleteRequest(project)}
                   />
                 )}
               </div>
@@ -344,6 +408,31 @@ export const Projects = () => {
           project={selectedProject}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      {projectToDelete && (
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setProjectToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          taskTitle={projectToDelete.name}
+        />
+      )}
+
+      {/* Review Approval Modal */}
+      <ReviewApprovalModal
+        isOpen={showReviewModal}
+        onClose={() => {
+          setShowReviewModal(false);
+          setReviewApproval(null);
+        }}
+        approval={reviewApproval}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 };
