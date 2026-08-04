@@ -10,12 +10,21 @@ import { AuditLogsService } from './audit-logs.service';
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const SENSITIVE_FIELDS = new Set(['password', 'password_hash', 'access_token']);
 
+interface AuditableRequest {
+  method: string;
+  path: string;
+  user?: { id?: number };
+  params?: Record<string, unknown>;
+  query?: Record<string, unknown>;
+  body?: unknown;
+}
+
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
   constructor(private readonly auditLogsService: AuditLogsService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<AuditableRequest>();
 
     if (
       !MUTATING_METHODS.has(request.method) ||
