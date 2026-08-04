@@ -87,8 +87,9 @@ export class AttachmentsService {
     }
 
     // 2. Organization Isolation: All non-Super-Admin roles must belong to the same org
+    // NotFoundException (not ForbiddenException) to avoid confirming the resource exists to cross-tenant users
     if (taskInfo.organization_id !== user.organization_id) {
-      throw new ForbiddenException('Access denied: Resource outside user organization');
+      throw new NotFoundException('Resource not found');
     }
 
     // 3. Role 2: Org Admin (all projects within their org)
@@ -246,12 +247,12 @@ export class AttachmentsService {
 
     const attachmentInfo = result.rows[0];
 
-    // 1. Organization check (All non-Super-Admin roles)
+    // 1. Organization check: hide resource existence from cross-tenant users
     if (user.role_id !== 1 && attachmentInfo.organization_id !== user.organization_id) {
-      throw new ForbiddenException('Access denied: Resource outside user organization');
+      throw new NotFoundException('Resource not found');
     }
 
-    // 2. Project membership check (Roles 3-9)
+    // 2. Project membership check: user is in the org but not the project
     if (user.role_id !== 1 && user.role_id !== 2 && !attachmentInfo.is_member) {
       throw new ForbiddenException('Access denied: You are not a member of this project');
     }
@@ -305,12 +306,12 @@ export class AttachmentsService {
 
     const attachmentInfo = result.rows[0];
 
-    // 1. Organization check (All non-Super-Admin roles)
+    // 1. Organization check: hide resource existence from cross-tenant users
     if (user.role_id !== 1 && attachmentInfo.organization_id !== user.organization_id) {
-      throw new ForbiddenException('Access denied: Resource outside user organization');
+      throw new NotFoundException('Resource not found');
     }
 
-    // 2. Project membership check (Roles 3-9)
+    // 2. Project membership check: user is in the org but not the project
     if (user.role_id !== 1 && user.role_id !== 2 && !attachmentInfo.is_member) {
       throw new ForbiddenException('Access denied: You are not a member of this project');
     }
