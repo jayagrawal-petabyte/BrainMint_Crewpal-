@@ -4,6 +4,7 @@ import {
   AuditLogFilters,
   CreateAuditLogInput,
 } from './interfaces/audit-log.interface';
+import { Role } from '../common/constants/roles.constant';
 
 const AUDIT_COLUMNS =
   'id, user_id, action, entity_type, entity_id, details, created_at';
@@ -36,23 +37,31 @@ export class AuditLogsService {
     return result.rows[0];
   }
 
-  async findAll(filters: AuditLogFilters = {}) {
+  async findAll(
+    filters: AuditLogFilters = {},
+    user: { organization_id: number; role_id: number },
+  ) {
     const clauses: string[] = [];
     const values: Array<number | string> = [];
 
+    if (user.role_id !== Role.SUPER_ADMIN) {
+      values.push(user.organization_id);
+      clauses.push(`al.user_id IN (SELECT id FROM users WHERE organization_id = $${values.length})`);
+    }
+
     if (filters.userId) {
       values.push(Number(filters.userId));
-      clauses.push(`user_id = $${values.length}`);
+      clauses.push(`al.user_id = $${values.length}`);
     }
 
     if (filters.action) {
       values.push(filters.action);
-      clauses.push(`action = $${values.length}`);
+      clauses.push(`al.action = $${values.length}`);
     }
 
     if (filters.entityType) {
       values.push(filters.entityType);
-      clauses.push(`entity_type = $${values.length}`);
+      clauses.push(`al.entity_type = $${values.length}`);
     }
 
     const limit = Math.min(Number(filters.limit) || 50, 100);
@@ -61,10 +70,10 @@ export class AuditLogsService {
 
     const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
     const result = await this.pool.query(
-      `SELECT ${AUDIT_COLUMNS}
-       FROM audit_logs
+      `SELECT al.${AUDIT_COLUMNS.replace(/,\s*/g, ', al.')}
+       FROM audit_logs al
        ${where}
-       ORDER BY created_at DESC
+       ORDER BY al.created_at DESC
        LIMIT $${values.length - 1}
        OFFSET $${values.length}`,
       values,

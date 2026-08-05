@@ -19,7 +19,7 @@ describe('OrganizationsService settings', () => {
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const result = await service.getSettings(1);
+    const result = await service.getSettings(1, { organization_id: 1, role_id: 2 });
 
     expect(result).toEqual({
       organizationId: 1,
@@ -38,7 +38,7 @@ describe('OrganizationsService settings', () => {
         rows: [{ id: 1, name: 'Acme', is_active: true }],
       })
       .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
+
       .mockResolvedValueOnce({
         rows: [
           {
@@ -59,7 +59,7 @@ describe('OrganizationsService settings', () => {
       defaultTaskPriority: 'high',
       emailNotifications: false,
       theme: 'dark',
-    });
+    }, { organization_id: 1, role_id: 2 });
 
     expect(result).toEqual({
       organizationId: 1,

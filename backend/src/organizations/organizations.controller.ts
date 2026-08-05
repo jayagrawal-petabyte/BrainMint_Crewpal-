@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '../common/constants/roles.constant';
@@ -31,13 +32,13 @@ export class OrganizationsController {
   }
 
   @Get()
-  findAll() {
-    return this.orgService.findAll();
+  findAll(@Req() req: any) {
+    return this.orgService.findAll(req.user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.orgService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.orgService.findOne(id, req.user);
   }
 
   @Patch(':id')
@@ -45,8 +46,9 @@ export class OrganizationsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateOrganizationDto,
+    @Req() req: any,
   ) {
-    return this.orgService.update(id, dto);
+    return this.orgService.update(id, dto, req.user);
   }
 
   @Patch(':id/deactivate')
@@ -57,8 +59,8 @@ export class OrganizationsController {
 
   @Get(':id/settings')
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
-  getSettings(@Param('id', ParseIntPipe) id: number) {
-    return this.orgService.getSettings(id);
+  getSettings(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.orgService.getSettings(id, req.user);
   }
 
   @Put(':id/settings')
@@ -66,7 +68,8 @@ export class OrganizationsController {
   upsertSettings(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateOrganizationSettingsDto | CreateOrganizationSettingsDto,
+    @Req() req: any,
   ) {
-    return this.orgService.upsertSettings(id, dto);
+    return this.orgService.upsertSettings(id, dto, req.user);
   }
 }

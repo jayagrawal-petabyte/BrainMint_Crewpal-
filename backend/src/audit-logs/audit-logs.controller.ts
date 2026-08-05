@@ -1,5 +1,6 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/constants/roles.constant';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuditLogsService } from './audit-logs.service';
@@ -11,8 +12,8 @@ export class AuditLogsController {
   constructor(private readonly auditLogsService: AuditLogsService) {}
 
   @Get()
-  @Roles(1, 2)
-  findAll(@Query() query: AuditLogQueryDto) {
-    return this.auditLogsService.findAll(query);
+  @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
+  findAll(@Query() query: AuditLogQueryDto, @Req() req: any) {
+    return this.auditLogsService.findAll(query, req.user);
   }
 }

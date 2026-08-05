@@ -36,13 +36,13 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Req() req: any) {
+    return this.projectsService.findAll(req.user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.projectsService.findOne(id, req.user);
   }
 
   @Patch(':id')
@@ -52,8 +52,12 @@ export class ProjectsController {
     Role.PROJECT_ADMIN,
     Role.PROJECT_MANAGER,
   )
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
-    return this.projectsService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProjectDto,
+    @Req() req: any,
+  ) {
+    return this.projectsService.update(id, dto, req.user);
   }
 
   @Delete(':id')
@@ -63,7 +67,7 @@ export class ProjectsController {
     Role.PROJECT_ADMIN,
     Role.PROJECT_MANAGER,
   )
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.deactivate(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.projectsService.deactivate(id, req.user);
   }
 }
