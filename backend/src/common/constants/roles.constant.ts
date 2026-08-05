@@ -1,0 +1,11 @@
+export enum Role {
+  SUPER_ADMIN = 1,
+  ORG_ADMIN = 2,
+  PROJECT_ADMIN = 3,
+  PROJECT_MANAGER = 4,
+  TEAM_LEAD = 5,
+  DESIGNER = 6,
+  QA_TESTER = 7,
+  CLIENT = 8,
+  VIEWER = 9,
+}
