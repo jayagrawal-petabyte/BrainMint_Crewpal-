@@ -89,7 +89,7 @@ export class AttachmentsService {
     const taskInfo = result.rows[0];
 
     // 1. Super Admin (Role 1): Allowed cross-org access
-    if (user.role_id === 1) {
+    if (user.role_id === Role.SUPER_ADMIN) {
       return taskInfo;
     }
 
@@ -100,7 +100,7 @@ export class AttachmentsService {
     }
 
     // 3. Role 2: Org Admin (all projects within their org)
-    if (user.role_id === 2) {
+    if (user.role_id === Role.ORG_ADMIN) {
       return taskInfo;
     }
 
@@ -123,7 +123,7 @@ export class AttachmentsService {
     user: AuthenticatedUser,
   ) {
     // Viewer role (Role 9) cannot upload attachments
-    if (user.role_id === 9) {
+    if (user.role_id === Role.VIEWER) {
       throw new ForbiddenException(
         'Viewer role is read-only and cannot upload attachments',
       );
@@ -278,14 +278,18 @@ export class AttachmentsService {
 
     // 1. Organization check: hide resource existence from cross-tenant users
     if (
-      user.role_id !== 1 &&
+      user.role_id !== Role.SUPER_ADMIN &&
       attachmentInfo.organization_id !== user.organization_id
     ) {
       throw new NotFoundException('Resource not found');
     }
 
     // 2. Project membership check: user is in the org but not the project
-    if (user.role_id !== 1 && user.role_id !== 2 && !attachmentInfo.is_member) {
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      user.role_id !== Role.ORG_ADMIN &&
+      !attachmentInfo.is_member
+    ) {
       throw new ForbiddenException(
         'Access denied: You are not a member of this project',
       );
@@ -312,7 +316,7 @@ export class AttachmentsService {
     }
 
     // Viewer role (Role 9) cannot delete attachments
-    if (user.role_id === 9) {
+    if (user.role_id === Role.VIEWER) {
       throw new ForbiddenException('Viewer role cannot delete attachments');
     }
 
@@ -344,14 +348,18 @@ export class AttachmentsService {
 
     // 1. Organization check: hide resource existence from cross-tenant users
     if (
-      user.role_id !== 1 &&
+      user.role_id !== Role.SUPER_ADMIN &&
       attachmentInfo.organization_id !== user.organization_id
     ) {
       throw new NotFoundException('Resource not found');
     }
 
     // 2. Project membership check: user is in the org but not the project
-    if (user.role_id !== 1 && user.role_id !== 2 && !attachmentInfo.is_member) {
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      user.role_id !== Role.ORG_ADMIN &&
+      !attachmentInfo.is_member
+    ) {
       throw new ForbiddenException(
         'Access denied: You are not a member of this project',
       );

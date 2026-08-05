@@ -51,7 +51,7 @@ export class CommentsService {
 
     // Role-based scope verification
     // Role 1: Super Admin (all access across orgs)
-    if (user.role_id === 1) {
+    if (user.role_id === Role.SUPER_ADMIN) {
       return taskInfo;
     }
 
@@ -62,7 +62,7 @@ export class CommentsService {
     }
 
     // Role 2: Org Admin (all projects within their org)
-    if (user.role_id === 2) {
+    if (user.role_id === Role.ORG_ADMIN) {
       return taskInfo;
     }
 
@@ -85,7 +85,7 @@ export class CommentsService {
     user: AuthenticatedUser,
   ) {
     // Viewer role (Role 9) cannot add comments
-    if (user.role_id === 9) {
+    if (user.role_id === Role.VIEWER) {
       throw new ForbiddenException(
         'Viewer role is read-only and cannot post comments',
       );
@@ -165,7 +165,7 @@ export class CommentsService {
     }
 
     // Viewer role (Role 9) cannot edit comments. Clients (Role 8) can edit their own author comments.
-    if (user.role_id === 9) {
+    if (user.role_id === Role.VIEWER) {
       throw new ForbiddenException('Viewer role cannot update comments');
     }
 
@@ -195,14 +195,18 @@ export class CommentsService {
 
     // Organization check: hide resource existence from cross-tenant users
     if (
-      user.role_id !== 1 &&
+      user.role_id !== Role.SUPER_ADMIN &&
       commentInfo.organization_id !== user.organization_id
     ) {
       throw new NotFoundException('Resource not found');
     }
 
     // Project membership check: user is in the org but not the project
-    if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      user.role_id !== Role.ORG_ADMIN &&
+      !commentInfo.is_member
+    ) {
       throw new ForbiddenException(
         'Access denied: You are not a member of this project',
       );
@@ -243,7 +247,7 @@ export class CommentsService {
     }
 
     // Viewer role (Role 9) cannot delete comments
-    if (user.role_id === 9) {
+    if (user.role_id === Role.VIEWER) {
       throw new ForbiddenException('Viewer role cannot delete comments');
     }
 
@@ -272,14 +276,18 @@ export class CommentsService {
 
     // Organization check: hide resource existence from cross-tenant users
     if (
-      user.role_id !== 1 &&
+      user.role_id !== Role.SUPER_ADMIN &&
       commentInfo.organization_id !== user.organization_id
     ) {
       throw new NotFoundException('Resource not found');
     }
 
     // Project membership check: user is in the org but not the project
-    if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      user.role_id !== Role.ORG_ADMIN &&
+      !commentInfo.is_member
+    ) {
       throw new ForbiddenException(
         'Access denied: You are not a member of this project',
       );
