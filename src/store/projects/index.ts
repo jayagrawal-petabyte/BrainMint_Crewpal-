@@ -4,6 +4,7 @@ import type { Project, ProjectFilter, ProjectSortKey } from '../../types/project
 const SEED_PROJECTS: Project[] = [
   {
     id: 'proj-001',
+    memberIds: ['u1', 'u2', 'u3'],
     name: 'School Mobile App',
     owner: 'Jay Agarwal',
     status: 'on_track',
@@ -16,6 +17,7 @@ const SEED_PROJECTS: Project[] = [
   },
   {
     id: 'proj-002',
+    memberIds: ['u2', 'u4'],
     name: 'Management Project',
     owner: 'Jay Agarwal',
     status: 'delayed',
@@ -28,6 +30,7 @@ const SEED_PROJECTS: Project[] = [
   },
   {
     id: 'proj-003',
+    memberIds: ['u1', 'u3', 'u5'],
     name: 'School ERP Project',
     owner: 'Jay Agarwal',
     status: 'on_track',
@@ -40,6 +43,7 @@ const SEED_PROJECTS: Project[] = [
   },
   {
     id: 'proj-004',
+    memberIds: ['u4', 'u5'],
     name: 'Intern Management Project',
     owner: 'Jay Agarwal',
     status: 'completed',
@@ -61,6 +65,7 @@ interface ProjectState {
   toggleStarProject: (id: string) => void;
   deleteProject: (id: string) => void;
   updateProject: (id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>) => void;
+  updateProjectMembers: (projectId: string, memberIds: string[]) => void;
 
   // Filters & Sorting
   setSearch: (search: string) => void;
@@ -110,6 +115,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === id ? { ...p, ...updates } : p
+      ),
+    }));
+  },
+
+  updateProjectMembers: (projectId, memberIds) => {
+    set((state) => ({
+      projects: state.projects.map((project) =>
+        project.id === projectId ? { ...project, memberIds } : project
       ),
     }));
   },

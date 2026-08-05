@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Card } from '../../components/common/Card';
@@ -15,6 +16,7 @@ import type { PendingApproval } from '../../components/modals/ReviewApprovalModa
 import type { ProjectStatus, ProjectSortKey, Project } from '../../types/project';
 
 export const Projects = () => {
+  const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -287,7 +289,8 @@ export const Projects = () => {
         {filteredProjects.map((project) => (
           <div
             key={project.id}
-            className="flex items-center justify-between px-4 py-3 border-b border-olive-100 last:border-b-0 bg-olive-50/20 hover:bg-olive-100/40 transition-all duration-150 group"
+            onClick={() => navigate(`/projects/${project.id}`)}
+            className="flex items-center justify-between px-4 py-3 border-b border-olive-100 last:border-b-0 bg-olive-50/20 hover:bg-olive-100/40 transition-all duration-150 group cursor-pointer"
           >
             {/* Checkbox + Info */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -295,6 +298,7 @@ export const Projects = () => {
                 type="checkbox"
                 checked={selectedProjectIds.has(project.id)}
                 onChange={() => handleSelectProject(project.id)}
+                onClick={(e) => e.stopPropagation()}
                 className="w-4 h-4 rounded border-forest-300 text-forest-600 focus:ring-forest-500 cursor-pointer shrink-0 self-center"
               />
               <div className="w-9 h-9 rounded-full bg-cream-200 text-forest-600 flex items-center justify-center shrink-0 border border-cream-300 font-bold">
@@ -345,7 +349,10 @@ export const Projects = () => {
 
               {/* Star */}
               <button
-                onClick={() => toggleStarProject(project.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleStarProject(project.id);
+                }}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-rose-500 cursor-pointer"
                 title={project.isStarred ? 'Unstar Project' : 'Star Project'}
               >
@@ -361,9 +368,10 @@ export const Projects = () => {
               {/* Actions menu */}
               <div className="relative w-8 flex justify-center">
                 <button
-                  onClick={() =>
-                    setActionMenuProjectId(actionMenuProjectId === project.id ? null : project.id)
-                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActionMenuProjectId(actionMenuProjectId === project.id ? null : project.id);
+                  }}
                   className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-forest-700 cursor-pointer"
                   title="More options"
                 >

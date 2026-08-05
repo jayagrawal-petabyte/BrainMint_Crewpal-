@@ -1,3 +1,94 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { Suspense, lazy } from "react";
+
+import { MainLayout } from "../components/layout/MainLayout";
+import Login from "../pages/login";
+import Forbidden from "../pages/errors/Forbidden";
+import ProtectedRoute from "../components/ProtectedRoute";
+import { UserRole } from "../types/roles";
+import UpdateProfile from "../pages/updateProfile";
+
+const Tasks = lazy(() =>
+  import("../pages/tasks").then((module) => ({
+    default: module.Tasks,
+  }))
+);
+
+const Projects = lazy(() =>
+  import("../pages/projects").then((module) => ({
+    default: module.Projects,
+  }))
+);
+
+const Dashboard = lazy(() =>
+  import("../pages/dashboard").then((module) => ({
+    default: module.Dashboard,
+  }))
+);
+
+const Teams = lazy(() =>
+  import("../pages/teams").then((module) => ({
+    default: module.Teams,
+  }))
+);
+
+const UserProfile = lazy(() =>
+  import("../pages/userProfile").then((module) => ({
+    default: module.UserProfile,
+  }))
+);
+
+const OrganizationManagement = lazy(() =>
+  import("../pages/organization").then((module) => ({
+    default: module.OrganizationManagement,
+  }))
+);
+
+const OrganizationSettings = lazy(() =>
+  import("../pages/organization/settings")
+);
+
+const ProjectDetails = lazy(() =>
+  import("../pages/projects/ProjectDetails").then((module) => ({
+    default: module.ProjectDetails,
+  }))
+);
+
+const Reports = lazy(() => import("../pages/reports"));
+
+const Meetings = lazy(() =>
+  import("../pages/meetings").then((module) => ({
+    default: module.Meetings,
+  }))
+);
+
+const Settings = lazy(() =>
+  import("../pages/settings").then((module) => ({
+    default: module.Settings,
+  }))
+);
+
+const Scrum = lazy(() =>
+  import("../pages/scrum").then((module) => ({
+    default: module.Scrum,
+  }))
+);
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-cream-100">
+    <div className="w-8 h-8 border-4 border-forest-900 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
+
+const UnderConstruction = ({ title }: { title: string }) => (
+  <div className="p-8 text-center space-y-3 bg-cream-50 rounded-2xl border border-cream-200">
+    <h2 className="text-xl font-bold text-forest-800">{title}</h2>
+    <p className="text-sm text-forest-500">
+      This page is under maintenance. Please navigate to Task Management.
+    </p>
+  </div>
+);
+
 export const router = createBrowserRouter([
   {
     path: "/login",
@@ -51,7 +142,19 @@ export const router = createBrowserRouter([
       },
       {
         path: "projects",
-        element: <Projects />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Projects />
+          </Suspense>
+        ),
+      },
+      {
+        path: "projects/:projectId",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectDetails />
+          </Suspense>
+        ),
       },
       {
         path: "organization",
