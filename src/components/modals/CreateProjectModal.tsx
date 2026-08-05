@@ -74,6 +74,7 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
       status,
       techStack: techStack.trim() || 'React + Node',
       progress,
+      memberIds: [],
     });
 
     resetForm();

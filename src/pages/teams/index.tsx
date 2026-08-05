@@ -252,6 +252,7 @@ export const Teams = () => {
             ))}
           </div>
         )}
+      </div>
 
       <div
         className="
