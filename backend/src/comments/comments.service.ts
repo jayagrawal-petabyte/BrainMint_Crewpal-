@@ -1,3 +1,4 @@
+import { Role } from '../common/constants/roles.constant';
 import {
   Injectable,
   Inject,

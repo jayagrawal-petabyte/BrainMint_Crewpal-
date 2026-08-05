@@ -1,3 +1,4 @@
+import { Role } from '../../common/constants/roles.constant';
 // users/dto/create-user.dto.ts
 import {
   IsEmail,

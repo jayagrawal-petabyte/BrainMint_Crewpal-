@@ -1,3 +1,4 @@
+import { Role } from '../common/constants/roles.constant';
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import {
