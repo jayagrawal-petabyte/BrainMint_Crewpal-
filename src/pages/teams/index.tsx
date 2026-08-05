@@ -92,7 +92,8 @@ export const Teams = () => {
         .includes(search.toLowerCase());
 
       const matchesDepartment =
-        activeDepartment === "All" || member.department === activeDepartment;
+        activeDepartment === "All" ||
+        member.department === activeDepartment;
 
       return matchesSearch && matchesDepartment;
     });
@@ -102,7 +103,7 @@ export const Teams = () => {
     setSelectedMembers((prev) =>
       prev.includes(id)
         ? prev.filter((memberId) => memberId !== id)
-        : [...prev, id],
+        : [...prev, id]
     );
   };
 
@@ -116,11 +117,14 @@ export const Teams = () => {
 
   return (
     <div className="px-8 py-6 space-y-10">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-forest-900">Team</h1>
+          <h1 className="text-3xl font-bold text-forest-900">
+            Team
+          </h1>
 
-          <p className="text-sm text-forest-500 mt-2">
+          <p className="mt-2 text-sm text-forest-500">
             Manage team members and their information.
           </p>
         </div>
@@ -141,6 +145,7 @@ export const Teams = () => {
         </button>
       </div>
 
+      {/* Department Tabs */}
       <div className="space-y-6">
         <div className="flex items-end justify-between gap-8">
           <div className="flex flex-1 items-center gap-8 border-b border-cream-300">
@@ -151,7 +156,7 @@ export const Teams = () => {
                     key="more"
                     type="button"
                     onClick={() => setShowFilters((prev) => !prev)}
-                    className={`pb-4 text-sm font-semibold cursor-pointer transition ${
+                    className={`pb-4 text-sm font-semibold transition ${
                       showFilters
                         ? "text-forest-900"
                         : "text-forest-600 hover:text-forest-900"
@@ -179,6 +184,7 @@ export const Teams = () => {
             })}
           </div>
 
+          {/* Search */}
           <div
             className="
               w-[260px]
@@ -212,18 +218,24 @@ export const Teams = () => {
           </div>
         </div>
 
+        {/* Filters */}
         {showFilters && (
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-forest-700">
-              Filters :
+              Filters:
             </span>
 
-            {["3 months", "6 months", "Lead", "Available", "On Leave"].map(
-              (filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  className="
+            {[
+              "3 months",
+              "6 months",
+              "Lead",
+              "Available",
+              "On Leave",
+            ].map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className="
                   px-4
                   py-1
                   rounded-full
@@ -234,14 +246,12 @@ export const Teams = () => {
                   hover:bg-[#F6EFD8]
                   transition
                 "
-                >
-                  {filter}
-                </button>
-              ),
-            )}
+              >
+                {filter}
+              </button>
+            ))}
           </div>
         )}
-      </div>
 
       <div
         className="
@@ -253,7 +263,7 @@ export const Teams = () => {
           overflow-hidden
         "
       >
-        <table className="w-full">
+                <table className="w-full">
           <thead className="bg-gray-100">
             <tr className="text-xs uppercase tracking-wider text-forest-600">
               <th className="w-14 px-6 py-5">
@@ -264,27 +274,21 @@ export const Teams = () => {
                     selectedMembers.length === filteredMembers.length
                   }
                   onClick={(e) => e.stopPropagation()}
-                  onChange={() => toggleAllMembers()}
+                  onChange={toggleAllMembers}
                   className="w-4 h-4 cursor-pointer"
                 />
               </th>
 
               <th className="px-6 py-5 text-left">NAME</th>
-
               <th className="px-6 py-5 text-left">TASK DIVIDED</th>
-
               <th className="px-6 py-5 text-left">CURRENT PROJECT</th>
-
               <th className="px-6 py-5 text-center">ASSIGNED TIME</th>
-
               <th className="px-6 py-5 text-left">AVAILABILITY</th>
-
               <th className="px-6 py-5 text-center"></th>
             </tr>
           </thead>
 
           <tbody>
-            {" "}
             {filteredMembers.length > 0 ? (
               filteredMembers.map((member) => (
                 <tr
@@ -357,10 +361,10 @@ export const Teams = () => {
                         member.availability === "Available"
                           ? "bg-green-100 text-green-700"
                           : member.availability === "On Leave"
-                            ? "bg-red-100 text-red-700"
-                            : member.availability === "StandBy"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-blue-100 text-blue-700"
+                          ? "bg-red-100 text-red-700"
+                          : member.availability === "StandBy"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-blue-100 text-blue-700"
                       }`}
                     >
                       {member.availability}
@@ -395,7 +399,10 @@ export const Teams = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="py-20 text-center">
+                <td
+                  colSpan={7}
+                  className="py-20 text-center"
+                >
                   <UsersIcon
                     size={46}
                     className="mx-auto mb-3 text-forest-300"
@@ -413,8 +420,7 @@ export const Teams = () => {
             )}
           </tbody>
         </table>
-
-        <div
+                <div
           className="
             flex
             items-center
@@ -464,7 +470,9 @@ export const Teams = () => {
               4
             </button>
 
-            <span className="px-2 text-forest-500">...</span>
+            <span className="px-2 text-forest-500">
+              ...
+            </span>
 
             <button className="w-10 h-10 rounded-xl border border-cream-300 hover:bg-cream-100 transition">
               11
