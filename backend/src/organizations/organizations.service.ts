@@ -1,14 +1,18 @@
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Pool } from 'pg';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { CreateOrganizationSettingsDto } from './dto/create-organization-settings.dto';
 import { UpdateOrganizationSettingsDto } from './dto/update-organization-settings.dto';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { Role } from '../common/constants/roles.constant';
 
 const COLUMNS = 'id, name, is_active, created_at, updated_at';
@@ -22,7 +26,10 @@ const DEFAULT_WORKING_DAYS = [
 
 @Injectable()
 export class OrganizationsService {
-  constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
+  constructor(
+    @Inject('PG_CONNECTION') private readonly pool: Pool,
+    private readonly auditLogsService: AuditLogsService,
+  ) {}
 
   private verifyOrgAccess(
     targetOrgId: number,
@@ -32,6 +39,68 @@ export class OrganizationsService {
     if (user.organization_id !== targetOrgId) {
       throw new NotFoundException(`Organization ${targetOrgId} not found`);
     }
+  }
+
+  async updateUserRole(
+    organizationId: number,
+    userId: number,
+    dto: UpdateUserRoleDto,
+    user: { id: number; organization_id: number; role_id: number },
+  ) {
+    const roleId = Role[dto.role as keyof typeof Role];
+    if (roleId === undefined || typeof roleId !== 'number') {
+      throw new BadRequestException(`Invalid role ${dto.role}`);
+    }
+
+    if (user.role_id !== Role.SUPER_ADMIN && roleId === Role.SUPER_ADMIN) {
+      throw new ForbiddenException('Organization Admin cannot assign SUPER_ADMIN role');
+    }
+
+    this.verifyOrgAccess(organizationId, user);
+
+    const orgResult = await this.pool.query(
+      'SELECT id FROM organizations WHERE id = $1',
+      [organizationId],
+    );
+    if (orgResult.rows.length === 0)
+      throw new NotFoundException(`Organization ${organizationId} not found`);
+
+    const userResult = await this.pool.query(
+      'SELECT id, organization_id, role_id FROM users WHERE id = $1',
+      [userId],
+    );
+    if (userResult.rows.length === 0)
+      throw new NotFoundException(`User ${userId} not found`);
+
+    const targetUser = userResult.rows[0];
+    if (targetUser.organization_id !== organizationId) {
+      throw new BadRequestException('User does not belong to organization');
+    }
+
+    const result = await this.pool.query(
+      `UPDATE users SET role_id = $1, updated_at = NOW() WHERE id = $2 RETURNING id, organization_id, role_id`,
+      [roleId, userId],
+    );
+
+    void this.auditLogsService.recordSafely({
+      userId: user.id,
+      action: 'UPDATE_ROLE',
+      entityType: 'user',
+      entityId: userId,
+      details: {
+        organizationId,
+        previousRoleId: targetUser.role_id,
+        roleId,
+        role: dto.role,
+      },
+    });
+
+    return {
+      message: 'Role updated successfully',
+      userId: result.rows[0].id,
+      organizationId,
+      role: dto.role,
+    };
   }
 
   async create(dto: CreateOrganizationDto) {

@@ -1,14 +1,19 @@
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { OrganizationsService } from './organizations.service';
 
 describe('OrganizationsService settings', () => {
   let service: OrganizationsService;
   let pool: { query: jest.Mock };
+  let auditLogsService: { recordSafely: jest.Mock };
 
   beforeEach(() => {
     pool = {
       query: jest.fn(),
     };
-    service = new OrganizationsService(pool as any);
+    auditLogsService = {
+      recordSafely: jest.fn().mockResolvedValue(undefined),
+    };
+    service = new OrganizationsService(pool as any, auditLogsService as any);
   });
 
   it('returns default settings when no organization settings row exists', async () => {
@@ -69,6 +74,39 @@ describe('OrganizationsService settings', () => {
       defaultTaskPriority: 'high',
       emailNotifications: false,
       theme: 'dark',
+    });
+  });
+
+  it('updates a user role within the same organization and logs the change', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ id: 5 }] })
+      .mockResolvedValueOnce({ rows: [{ id: 123, organization_id: 5, role_id: 4 }] })
+      .mockResolvedValueOnce({ rows: [{ id: 123, organization_id: 5, role_id: 3 }] });
+
+    const result = await service.updateUserRole(
+      5,
+      123,
+      { role: 'PROJECT_ADMIN' },
+      { id: 1, organization_id: 5, role_id: 2 },
+    );
+
+    expect(result).toEqual({
+      message: 'Role updated successfully',
+      userId: 123,
+      organizationId: 5,
+      role: 'PROJECT_ADMIN',
+    });
+    expect(auditLogsService.recordSafely).toHaveBeenCalledWith({
+      userId: 1,
+      action: 'UPDATE_ROLE',
+      entityType: 'user',
+      entityId: 123,
+      details: {
+        organizationId: 5,
+        previousRoleId: 4,
+        roleId: 3,
+        role: 'PROJECT_ADMIN',
+      },
     });
   });
 });
