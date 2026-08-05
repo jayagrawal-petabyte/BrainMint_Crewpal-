@@ -1,94 +1,101 @@
-import { DashboardData } from "../types/dashboard";
+import type { ActivityEvent } from '../types/activity';
+import type { Project } from '../types/project';
+import type { Task } from '../types/task';
+import type {
+  DashboardData,
+  DashboardUser,
+  QuickAction,
+  ScheduleItem,
+} from '../types/dashboard';
+import { statisticsService } from './statisticsService';
+import { activityService } from './activityService';
+import { taskService } from './taskService';
+import { projectService } from './projectService';
 
-export const dashboardService = {
-  async getDashboard(): Promise<DashboardData> {
-    return {
-      stats: [
-        {
-          id: "1",
-          title: "Active Projects",
-          value: 4,
-        },
-        {
-          id: "2",
-          title: "Task Completed",
-          value: 2,
-        },
-        {
-          id: "3",
-          title: "Active Interns",
-          value: 60,
-        },
-        {
-          id: "4",
-          title: "Scheduled Meetings",
-          value: 3,
-        },
-      ],
-
-      projects: [
-        {
-          id: "1",
-          name: "Management Project",
-          frontend: 80,
-          backend: 60,
-          cyberChecks: 30,
-        },
-        {
-          id: "2",
-          name: "School App Project",
-          frontend: 80,
-          backend: 60,
-          cyberChecks: 30,
-        },
-        {
-          id: "3",
-          name: "School ERP Project",
-          frontend: 80,
-          backend: 60,
-          cyberChecks: 30,
-        },
-        {
-          id: "4",
-          name: "Intern Project",
-          frontend: 80,
-          backend: 60,
-          cyberChecks: 30,
-        },
-      ],
-
-      schedule: [
-        {
-          id: "1",
-          time: "10:30 AM",
-          title: "Peer review and design discussion",
-          completed: false,
-        },
-        {
-          id: "2",
-          time: "11:00 AM - 12:30 PM",
-          title: "Read the case study and user interview report",
-          completed: false,
-        },
-        {
-          id: "3",
-          time: "1:30 PM",
-          title: "Stand-up and get ready for the designs",
-          completed: false,
-        },
-        {
-          id: "4",
-          time: "2:30 PM",
-          title: "Stakeholder meeting with PM",
-          completed: false,
-        },
-        {
-          id: "5",
-          time: "3:15 PM",
-          title: "User flow presentation",
-          completed: false,
-        },
-      ],
-    };
+const SCHEDULE: ScheduleItem[] = [
+  {
+    id: 'sch-1',
+    time: '10:30 AM',
+    title: 'Peer review and design discussion',
+    completed: false,
   },
-};
+  {
+    id: 'sch-2',
+    time: '11:00 AM - 12:30 PM',
+    title: 'Read the case study and user interview report',
+    completed: false,
+  },
+  {
+    id: 'sch-3',
+    time: '1:30 PM',
+    title: 'Stand-up and get ready for the designs',
+    completed: false,
+  },
+  {
+    id: 'sch-4',
+    time: '2:30 PM',
+    title: 'Stakeholder meeting with PM',
+    completed: false,
+  },
+  {
+    id: 'sch-5',
+    time: '3:15 PM',
+    title: 'User flow presentation',
+    completed: false,
+  },
+];
+
+const QUICK_ACTIONS: QuickAction[] = [
+  { id: 'qa-1', label: 'New Task', path: '/tasks', icon: 'plus' },
+  { id: 'qa-2', label: 'Projects', path: '/projects', icon: 'folder' },
+  { id: 'qa-3', label: 'Team', path: '/teams', icon: 'users' },
+  { id: 'qa-4', label: 'Reports', path: '/reports', icon: 'chart' },
+];
+
+export interface DashboardQuery {
+  tasks: Task[];
+  projects: Project[];
+  events: ActivityEvent[];
+  user: DashboardUser | null;
+}
+
+class DashboardService {
+  async getSchedule(): Promise<ScheduleItem[]> {
+    return SCHEDULE;
+  }
+
+  async getQuickActions(): Promise<QuickAction[]> {
+    return QUICK_ACTIONS;
+  }
+
+  async getDashboard(query: DashboardQuery): Promise<DashboardData> {
+    const [statistics, projects, schedule, quickActions, assignedTasks, deadlines, activities] =
+      await Promise.all([
+        statisticsService.getStatistics({
+          tasks: query.tasks,
+          projects: query.projects,
+        }),
+        projectService.getProjectProgress(query.projects),
+        this.getSchedule(),
+        this.getQuickActions(),
+        taskService.getAssignedTasks(query.tasks, query.user),
+        taskService.getUpcomingDeadlines(query.tasks),
+        activityService.getRecentActivity({
+          events: query.events,
+          tasks: query.tasks,
+        }),
+      ]);
+
+    return {
+      statistics,
+      projects,
+      schedule,
+      quickActions,
+      assignedTasks,
+      deadlines,
+      activities,
+    };
+  }
+}
+
+export const dashboardService = new DashboardService();

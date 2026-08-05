@@ -6,6 +6,7 @@ import Login from "../pages/login";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
+import UpdateProfile from "../pages/updateProfile";
 
 const Tasks = lazy(() =>
   import("../pages/tasks").then((module) => ({
@@ -14,7 +15,9 @@ const Tasks = lazy(() =>
 );
 
 const Projects = lazy(() =>
-  import("../pages/projects").then((module) => ({ default: module.Projects }))
+  import("../pages/projects").then((module) => ({
+    default: module.Projects,
+  }))
 );
 
 const Dashboard = lazy(() =>
@@ -29,15 +32,28 @@ const Teams = lazy(() =>
   }))
 );
 
+const UserProfile = lazy(() =>
+  import("../pages/userProfile").then((module) => ({
+    default: module.UserProfile,
+  }))
+);
+
 const OrganizationManagement = lazy(() =>
   import("../pages/organization").then((module) => ({
     default: module.OrganizationManagement,
   }))
 );
 
+const OrganizationSettings = lazy(() =>
+  import("../pages/organization/settings")
+);
+
 const ProjectDetails = lazy(() =>
   import("../pages/projects/ProjectDetails").then((module) => ({
     default: module.ProjectDetails,
+  }))
+);
+
 const Reports = lazy(() => import("../pages/reports"));
 
 const Meetings = lazy(() =>
@@ -109,18 +125,6 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "projects",
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <Projects />
-          </Suspense>
-        ),
-      },
-      {
-        path: "projects/:projectId",
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ProjectDetails />
         path: "tasks",
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -138,13 +142,33 @@ export const router = createBrowserRouter([
       },
       {
         path: "projects",
-        element: <Projects />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Projects />
+          </Suspense>
+        ),
+      },
+      {
+        path: "projects/:projectId",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectDetails />
+          </Suspense>
+        ),
       },
       {
         path: "organization",
         element: (
           <Suspense fallback={<PageLoader />}>
             <OrganizationManagement />
+          </Suspense>
+        ),
+      },
+      {
+        path: "organization/settings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OrganizationSettings />
           </Suspense>
         ),
       },
@@ -157,6 +181,18 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "teams/:id",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <UserProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: "update-profile/:id",
+        element: <UpdateProfile />,
+      },
+      {
         path: "reports",
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -166,9 +202,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "notifications",
-        element: (
-          <UnderConstruction title="Notifications Center" />
-        ),
+        element: <UnderConstruction title="Notifications Center" />,
       },
       {
         path: "settings",

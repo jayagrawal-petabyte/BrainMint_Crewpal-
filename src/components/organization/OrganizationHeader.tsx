@@ -1,10 +1,11 @@
 import React from 'react';
-import { Plus, UserPlus, Building2, ShieldCheck } from 'lucide-react';
+import { Plus, UserPlus, Building2, ShieldCheck, Settings } from 'lucide-react';
 import { Button } from '../common/Button';
 
 interface OrganizationHeaderProps {
   onOpenCreateModal: () => void;
   onOpenInviteModal?: () => void;
+  onOpenSettings?: () => void;
   activeCount: number;
   totalCount: number;
 }
@@ -12,6 +13,7 @@ interface OrganizationHeaderProps {
 export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
   onOpenCreateModal,
   onOpenInviteModal,
+  onOpenSettings,
   activeCount,
   totalCount,
 }) => {
@@ -44,6 +46,17 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
           <span className="font-semibold">{activeCount} of {totalCount} Active</span>
         </div>
 
+        {onOpenSettings && (
+          <Button
+            variant="secondary"
+            leftIcon={<Settings className="w-4 h-4" />}
+            onClick={onOpenSettings}
+            className="shadow-sm hover:shadow-md transition-all cursor-pointer"
+          >
+            Org Settings
+          </Button>
+        )}
+
         {onOpenInviteModal && (
           <Button
             variant="secondary"
@@ -67,4 +80,5 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
     </div>
   );
 };
+
 

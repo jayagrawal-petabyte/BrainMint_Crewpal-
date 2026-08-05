@@ -12,6 +12,8 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-12T09:00:00Z',
     description: 'Mobile application development for School portals.',
     category: 'Development',
+    techStack: 'React Native',
+    progress: 75,
   },
   {
     id: 'proj-002',
@@ -23,6 +25,8 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-10T10:00:00Z',
     description: 'Internal task and workspace management portal.',
     category: 'Management',
+    techStack: 'React + Node',
+    progress: 45,
   },
   {
     id: 'proj-003',
@@ -34,6 +38,8 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-15T11:00:00Z',
     description: 'Enterprise Resource Planning system for schools.',
     category: 'Development',
+    techStack: 'Next.js + PostgreSQL',
+    progress: 60,
   },
   {
     id: 'proj-004',
@@ -45,6 +51,8 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-08T08:00:00Z',
     description: 'Zustand-powered onboarding & task manager for interns.',
     category: 'HR / Management',
+    techStack: 'React + Zustand',
+    progress: 100,
   },
 ];
 
@@ -85,6 +93,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       id: `proj-${Date.now()}`,
       isStarred: false,
       createdAt: new Date().toISOString(),
+      techStack: projData.techStack || 'React + Node',
+      progress: projData.progress || 0,
     };
     set((state) => ({ projects: [newProj, ...state.projects] }));
   },

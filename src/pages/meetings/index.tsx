@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import {
   Search, Plus, Play, CheckCircle2, Calendar, Clock, MapPin, Users, ChevronDown,
-  ChevronUp, Video, CalendarDays, CheckSquare, Sparkles, Filter, MoreHorizontal
+  ChevronUp, Video, CalendarDays, Sparkles
 } from 'lucide-react';
 import { useSprintStore } from '../../store/sprints/sprintStore';
-import type { Sprint, MeetingItem, SprintStatus } from '../../types/sprint';
+import type { Sprint, SprintStatus } from '../../types/sprint';
 import { useToast } from '../../hooks/useToast';
 
 export const Meetings: React.FC = () => {
   const { sprints, createSprint, startSprint, completeSprint, addMeetingToSprint } = useSprintStore();
-  const { addToast } = useToast();
+  const toast = useToast();
 
   const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState<SprintStatus | 'all'>('all');
+  const [filterStatus] = useState<SprintStatus | 'all'>('all');
   const [expandedSprintIds, setExpandedSprintIds] = useState<string[]>(['sprint-2']);
 
   // Modals state
@@ -32,7 +32,7 @@ export const Meetings: React.FC = () => {
   const [meetingDuration, setMeetingDuration] = useState('45m');
   const [meetingLink, setMeetingLink] = useState('Google Meet');
   const [meetingAgenda, setMeetingAgenda] = useState('');
-  const [attendeesCount, setAttendeesCount] = useState(5);
+  const [attendeesCount] = useState(5);
 
   const toggleExpand = (id: string) => {
     setExpandedSprintIds((prev) =>
@@ -51,7 +51,7 @@ export const Meetings: React.FC = () => {
       endDate: endDate || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
     });
 
-    addToast('Sprint created successfully!', 'success');
+    toast.success('Sprint created successfully!');
     setSprintName('');
     setSprintGoal('');
     setStartDate('');
@@ -61,20 +61,20 @@ export const Meetings: React.FC = () => {
 
   const handleStartSprint = (sprint: Sprint) => {
     if (sprint.status === 'active') {
-      addToast('Sprint is already active', 'info');
+      toast.info('Sprint is already active');
       return;
     }
     startSprint(sprint.id);
-    addToast(`"${sprint.name}" is now STARTED and ACTIVE!`, 'success');
+    toast.success(`"${sprint.name}" is now STARTED and ACTIVE!`);
   };
 
   const handleCompleteSprint = (sprint: Sprint) => {
     if (sprint.status === 'completed') {
-      addToast('Sprint is already completed', 'info');
+      toast.info('Sprint is already completed');
       return;
     }
     completeSprint(sprint.id);
-    addToast(`"${sprint.name}" has been COMPLETED!`, 'success');
+    toast.success(`"${sprint.name}" has been COMPLETED!`);
   };
 
   const handleAddMeetingSubmit = (e: React.FormEvent) => {
@@ -92,7 +92,7 @@ export const Meetings: React.FC = () => {
       agenda: meetingAgenda,
     });
 
-    addToast('Meeting added to sprint!', 'success');
+    toast.success('Meeting added to sprint!');
     setMeetingTitle('');
     setMeetingTime('');
     setMeetingAgenda('');
@@ -340,7 +340,7 @@ export const Meetings: React.FC = () => {
 
                           <div className="flex items-center gap-2 self-end md:self-center shrink-0">
                             <button
-                              onClick={() => addToast(`Joining ${meeting.title}...`, 'info')}
+                              onClick={() => toast.info(`Joining ${meeting.title}...`)}
                               className="px-3 py-1.5 bg-[#1e3624] text-white rounded-full text-xs font-bold hover:bg-[#142619] shadow-sm transition-all"
                             >
                               Join Call

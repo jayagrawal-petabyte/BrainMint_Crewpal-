@@ -3,17 +3,53 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Card } from '../../components/common/Card';
-import { Plus, Search, User, Star, ArrowUpDown, Filter } from 'lucide-react';
+import { Plus, Search, User, Star, ArrowUpDown, Filter, MoreVertical, Clock } from 'lucide-react';
 import { useProjectStore } from '../../store/projects';
-import type { ProjectStatus, ProjectSortKey } from '../../types/project';
+import { useToast } from '../../hooks/useToast';
+import { ProjectBadge } from '../../components/ui/ProjectBadge';
+import { ProjectActionsMenu } from '../../components/ui/ProjectActionsMenu';
+import { CreateProjectModal } from '../../components/modals/CreateProjectModal';
+import { EditProjectModal } from '../../components/modals/EditProjectModal';
+import { DeleteConfirmModal } from '../../components/modals/DeleteConfirmModal';
+import { ReviewApprovalModal } from '../../components/modals/ReviewApprovalModal';
+import type { PendingApproval } from '../../components/modals/ReviewApprovalModal';
+import type { ProjectStatus, ProjectSortKey, Project } from '../../types/project';
 
 export const Projects = () => {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newProjName, setNewProjName] = useState('');
-  const [newProjDesc, setNewProjDesc] = useState('');
-  const [newProjCategory, setNewProjCategory] = useState('Development');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
+  const [actionMenuProjectId, setActionMenuProjectId] = useState<string | null>(null);
+
+  // Pending approval state
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([
+    {
+      id: 'pending-1',
+      name: 'Marketing Campaign',
+      owner: 'Aastha Sharma',
+      requestedAt: '2026-08-01',
+      description: 'A multi-channel digital marketing campaign for Q3 product launches.',
+    },
+    {
+      id: 'pending-2',
+      name: 'Q4 Planning',
+      owner: 'Rahul Verma',
+      requestedAt: '2026-08-01',
+      description: 'Strategic planning and resource allocation for Q4 initiatives.',
+    },
+  ]);
+  const [reviewApproval, setReviewApproval] = useState<PendingApproval | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
+  // Subscribe to `projects` directly so any isStarred mutation triggers a re-render.
+  // getFilteredProjects reads from get() internally, so we call it fresh each render.
+  const projects = useProjectStore((s) => s.projects);
+  const getFilteredProjects = useProjectStore((s) => s.getFilteredProjects);
 
   const {
     filter,
@@ -22,38 +58,88 @@ export const Projects = () => {
     setStarredOnly,
     setSortBy,
     toggleStarProject,
-    addProject,
-    getFilteredProjects,
+    deleteProject,
     resetFilter,
   } = useProjectStore();
 
+  const toast = useToast();
+  // Re-computed on every render; will reflect latest projects + filter state.
   const filteredProjects = getFilteredProjects();
+  // `projects` referenced here to keep the dependency linter satisfied and
+  // ensure this line re-runs whenever any project field (including isStarred) changes.
+  void projects;
 
+  // ── Search ───────────────────────────────────────────────
   const handleSearch = (val: string) => {
     setSearchInput(val);
     setSearch(val);
   };
 
-  const handleCreateProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProjName.trim()) return;
+  // ── Selection ────────────────────────────────────────────
+  const handleSelectProject = (projectId: string) => {
+    setSelectedProjectIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(projectId)) {
+        newSet.delete(projectId);
+      } else {
+        newSet.add(projectId);
+      }
+      return newSet;
+    });
+  };
 
-    addProject({
-  name: newProjName,
-  owner: 'Jay Agrawal',
-  description: newProjDesc,
-  category: newProjCategory,
-  status: 'on_track',
-  memberIds: [],
-});
-    setNewProjName('');
-    setNewProjDesc('');
-    setNewProjCategory('Development');
-    setShowAddForm(false);
+  const handleSelectAll = () => {
+    if (selectedProjectIds.size === filteredProjects.length) {
+      setSelectedProjectIds(new Set());
+    } else {
+      setSelectedProjectIds(new Set(filteredProjects.map((p) => p.id)));
+    }
+  };
+
+  // ── Edit ─────────────────────────────────────────────────
+  const handleEditProject = (project: Project) => {
+    setSelectedProject(project);
+    setShowEditModal(true);
+    setActionMenuProjectId(null);
+  };
+
+  // ── Delete (with confirmation) ────────────────────────────
+  const handleDeleteRequest = (project: Project) => {
+    setProjectToDelete(project);
+    setShowDeleteModal(true);
+    setActionMenuProjectId(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!projectToDelete) return;
+    deleteProject(projectToDelete.id);
+    // Clean up stale selection
+    setSelectedProjectIds((prev) => {
+      const next = new Set(prev);
+      next.delete(projectToDelete.id);
+      return next;
+    });
+    toast.success('Project deleted');
+    setProjectToDelete(null);
+    setShowDeleteModal(false);
+  };
+
+  // ── Review approval ──────────────────────────────────────
+  const handleReviewClick = (approval: PendingApproval) => {
+    setReviewApproval(approval);
+    setShowReviewModal(true);
+  };
+
+  const handleApprove = (id: string) => {
+    setPendingApprovals((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleReject = (id: string) => {
+    setPendingApprovals((prev) => prev.filter((a) => a.id !== id));
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Page Title + New Project Button */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-extrabold text-forest-900">Projects</h1>
@@ -61,63 +147,59 @@ export const Projects = () => {
           variant="primary"
           leftIcon={<Plus className="w-4 h-4" />}
           size="sm"
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => setShowCreateModal(true)}
         >
-          {showAddForm ? 'Cancel' : 'New Project'}
+          New Project
         </Button>
       </div>
 
-      {/* Add New Project Inline Form */}
-      {showAddForm && (
-        <Card className="border-forest-300 bg-cream-50/50 p-5 animate-in slide-in-from-top duration-200">
-          <form onSubmit={handleCreateProject} className="space-y-4">
-            <h3 className="text-sm font-bold text-forest-900 uppercase">Create New Project</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Project Name"
-                placeholder="Enter project name"
-                value={newProjName}
-                onChange={(e) => setNewProjName(e.target.value)}
-                required
-              />
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-forest-700">Category</label>
-                <select
-                  value={newProjCategory}
-                  onChange={(e) => setNewProjCategory(e.target.value)}
-                  className="w-full rounded-full border border-forest-200 bg-white px-4 py-2.5 text-sm text-forest-800 outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20"
+      {/* Pending Approval Section */}
+      {pendingApprovals.length > 0 && (
+        <Card className="border-rose-200 bg-rose-50/40 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-7 h-7 rounded-full bg-rose-200 flex items-center justify-center">
+              <Clock className="w-3.5 h-3.5 text-rose-700" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-forest-900">Pending Approvals</h3>
+              <p className="text-xs text-forest-500">{pendingApprovals.length} project{pendingApprovals.length !== 1 ? 's' : ''} awaiting approval</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {pendingApprovals.map((approval) => (
+              <div
+                key={approval.id}
+                className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-rose-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-cream-200 flex items-center justify-center text-[10px] font-bold text-forest-600">
+                    {approval.owner.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-forest-900">{approval.name}</p>
+                    <p className="text-[11px] text-forest-500">Requested by {approval.owner}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="text-xs px-3 py-1.5"
+                  onClick={() => handleReviewClick(approval)}
                 >
-                  <option value="Development">Development</option>
-                  <option value="Management">Management</option>
-                  <option value="Design">Design</option>
-                  <option value="HR / Recruitment">HR / Recruitment</option>
-                </select>
+                  Review
+                </Button>
               </div>
-            </div>
-            <Input
-              label="Description"
-              placeholder="Brief description about the project"
-              value={newProjDesc}
-              onChange={(e) => setNewProjDesc(e.target.value)}
-            />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddForm(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" variant="primary" size="sm">
-                Save Project
-              </Button>
-            </div>
-          </form>
+            ))}
+          </div>
         </Card>
       )}
 
       {/* Advanced Filters & Sorting Bar */}
-      <div className="flex flex-wrap items-center gap-3 bg-cream-50 p-4 rounded-2xl border border-cream-200">
+      <div className="flex flex-wrap items-center gap-2.5 bg-cream-50 p-3 rounded-xl border border-cream-200">
         {/* Search */}
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[180px]">
           <Input
-            placeholder="Search projects by name..."
+            placeholder="Search projects..."
             value={searchInput}
             onChange={(e) => handleSearch(e.target.value)}
             leftIcon={<Search className="w-4 h-4 text-forest-400" />}
@@ -125,12 +207,12 @@ export const Projects = () => {
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-forest-400" />
+        <div className="flex items-center gap-1.5">
+          <Filter className="w-3.5 h-3.5 text-forest-400" />
           <select
             value={filter.status}
             onChange={(e) => setStatusFilter(e.target.value as ProjectStatus | 'all')}
-            className="rounded-full border border-forest-200 bg-white px-3 py-2 text-xs text-forest-800 focus:outline-none cursor-pointer"
+            className="rounded-full border border-forest-200 bg-white px-2.5 py-1.5 text-xs text-forest-800 focus:outline-none cursor-pointer"
           >
             <option value="all">All Status</option>
             <option value="on_track">On Track</option>
@@ -142,23 +224,23 @@ export const Projects = () => {
         {/* Favorites Filter */}
         <button
           onClick={() => setStarredOnly(!filter.starredOnly)}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
             filter.starredOnly
               ? 'bg-rose-300 text-forest-900 border-rose-400 shadow-sm'
               : 'bg-white text-forest-750 border-forest-200 hover:bg-cream-100'
           }`}
         >
           <Star className={`w-3.5 h-3.5 ${filter.starredOnly ? 'fill-rose-700 text-rose-700' : 'text-forest-400'}`} />
-          Starred Only
+          Starred
         </button>
 
-        {/* Sorting Selection */}
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="w-4 h-4 text-forest-400" />
+        {/* Sorting */}
+        <div className="flex items-center gap-1.5">
+          <ArrowUpDown className="w-3.5 h-3.5 text-forest-400" />
           <select
             value={filter.sortBy}
             onChange={(e) => setSortBy(e.target.value as ProjectSortKey)}
-            className="rounded-full border border-forest-200 bg-white px-3 py-2 text-xs text-forest-800 focus:outline-none cursor-pointer"
+            className="rounded-full border border-forest-200 bg-white px-2.5 py-1.5 text-xs text-forest-800 focus:outline-none cursor-pointer"
           >
             <option value="name_asc">Name (A-Z)</option>
             <option value="name_desc">Name (Z-A)</option>
@@ -167,92 +249,146 @@ export const Projects = () => {
           </select>
         </div>
 
-        {/* Reset Filter Button */}
+        {/* Reset */}
         {(filter.status !== 'all' || filter.starredOnly || filter.search !== '') && (
           <button
             onClick={() => {
               setSearchInput('');
               resetFilter();
             }}
-            className="text-xs text-rose-600 hover:text-rose-800 font-semibold cursor-pointer py-1"
+            className="text-xs text-rose-600 hover:text-rose-800 font-semibold cursor-pointer px-2 py-1"
           >
-            Clear Filters
+            Clear
           </button>
         )}
       </div>
 
-      {/* Project list rendering */}
+      {/* Project list */}
       <Card noPadding className="overflow-hidden border-olive-200">
         {/* Header bar */}
-        <div className="bg-rose-300 px-5 py-3.5 flex items-center justify-between">
+        <div className="bg-rose-300 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={selectedProjectIds.size === filteredProjects.length && filteredProjects.length > 0}
+              onChange={handleSelectAll}
+              className="w-4 h-4 rounded border-forest-300 text-forest-600 focus:ring-forest-500 cursor-pointer self-center"
+            />
             <span className="font-bold text-xs tracking-wider text-forest-900 uppercase">PROJECT INFO</span>
           </div>
-          <div className="flex items-center gap-8 text-forest-900 font-bold text-xs tracking-wider uppercase">
-            <span className="hidden sm:inline w-24 text-center">STATUS</span>
-            <span className="w-10 text-center">FAV</span>
+          <div className="flex items-center gap-4 text-forest-900 font-bold text-xs tracking-wider uppercase">
+            <span className="hidden lg:inline w-24 text-center">TECH STACK</span>
+            <span className="hidden md:inline w-16 text-center">STATUS</span>
+            <span className="hidden md:inline w-16 text-center">PROGRESS</span>
+            <span className="w-8 text-center">FAV</span>
+            <span className="w-8 text-center"></span>
           </div>
         </div>
 
         {/* Rows */}
-        {filteredProjects.map((project) => {
-          const statusColors =
-            project.status === 'on_track' ? 'bg-olive-200 text-forest-900 border-olive-350' :
-            project.status === 'delayed' ? 'bg-rose-200 text-rose-900 border-rose-350' :
-            'bg-cream-200 text-forest-755 border-cream-350';
-
-          return (
-            <div
-              key={project.id}
-              onClick={() => navigate(`/projects/${project.id}`)}
-              className="flex items-center justify-between px-5 py-4 border-b border-olive-100 last:border-b-0 bg-olive-50/50 hover:bg-olive-100/50 transition-colors"
-            >
-              {/* Project main info */}
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-cream-200 text-forest-600 flex items-center justify-center shrink-0 border border-cream-300 font-bold">
-                  <User className="w-4 h-4 text-forest-500" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-sm text-forest-900 truncate">{project.name}</p>
-                    {project.category && (
-                      <span className="text-[10px] bg-forest-50 text-forest-600 border border-forest-100 rounded px-1.5 font-medium">
-                        {project.category}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-forest-400 truncate">Lead: {project.owner}</p>
-                  {project.description && (
-                    <p className="text-xs text-forest-500 italic mt-0.5 max-w-md truncate">{project.description}</p>
+        {filteredProjects.map((project) => (
+          <div
+            key={project.id}
+            onClick={() => navigate(`/projects/${project.id}`)}
+            className="flex items-center justify-between px-4 py-3 border-b border-olive-100 last:border-b-0 bg-olive-50/20 hover:bg-olive-100/40 transition-all duration-150 group cursor-pointer"
+          >
+            {/* Checkbox + Info */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <input
+                type="checkbox"
+                checked={selectedProjectIds.has(project.id)}
+                onChange={() => handleSelectProject(project.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-4 h-4 rounded border-forest-300 text-forest-600 focus:ring-forest-500 cursor-pointer shrink-0 self-center"
+              />
+              <div className="w-9 h-9 rounded-full bg-cream-200 text-forest-600 flex items-center justify-center shrink-0 border border-cream-300 font-bold">
+                <User className="w-4 h-4 text-forest-500" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-sm text-forest-900 truncate">{project.name}</p>
+                  {project.category && (
+                    <span className="text-[10px] bg-forest-50 text-forest-600 border border-forest-100 rounded px-1.5 font-medium shrink-0">
+                      {project.category}
+                    </span>
                   )}
                 </div>
-              </div>
-
-              {/* Status & Favorites Action Column */}
-              <div className="flex items-center gap-8 shrink-0">
-                <span className={`hidden sm:inline text-center text-[10px] font-bold px-2.5 py-0.5 rounded-full border w-24 select-none ${statusColors}`}>
-                  {project.status.replace('_', ' ').toUpperCase()}
-                </span>
-                
-                {/* Star icon toggle */}
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    toggleStarProject(project.id);
-                  }}
-                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-rose-500 cursor-pointer"
-                  title={project.isStarred ? 'Unstar Project' : 'Star Project'}
-                >
-                  <Star
-                    className={`w-5 h-5 transition-transform active:scale-125 ${
-                      project.isStarred ? 'fill-rose-350 text-rose-500' : 'text-forest-400'
-                    }`}
-                  />
-                </button>
+                <p className="text-xs text-forest-500 truncate">Lead: {project.owner}</p>
+                {project.description && (
+                  <p className="text-[11px] text-forest-400 italic mt-0.5 max-w-md truncate">{project.description}</p>
+                )}
               </div>
             </div>
-          );
-        })}
+
+            {/* Right side columns */}
+            <div className="flex items-center gap-4 shrink-0">
+              {/* Tech Stack */}
+              <div className="hidden lg:block w-24 text-center">
+                <span className="text-xs text-forest-600 font-medium truncate block">
+                  {project.techStack || '-'}
+                </span>
+              </div>
+
+              {/* Status Badge */}
+              <div className="hidden md:block w-16 text-center">
+                <ProjectBadge status={project.status} size="sm" />
+              </div>
+
+              {/* Progress */}
+              <div className="hidden md:block w-16 text-center">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cream-100 border border-cream-200">
+                  <div className="w-8 h-1 bg-cream-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-forest-500 rounded-full transition-all"
+                      style={{ width: `${project.progress || 0}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-semibold text-forest-600">{project.progress || 0}%</span>
+                </div>
+              </div>
+
+              {/* Star */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleStarProject(project.id);
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-rose-500 cursor-pointer"
+                title={project.isStarred ? 'Unstar Project' : 'Star Project'}
+              >
+                <Star
+                  className={`w-4 h-4 transition-transform active:scale-125 ${
+                    project.isStarred
+                      ? 'fill-rose-500 text-rose-500'
+                      : 'text-forest-400'
+                  }`}
+                />
+              </button>
+
+              {/* Actions menu */}
+              <div className="relative w-8 flex justify-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActionMenuProjectId(actionMenuProjectId === project.id ? null : project.id);
+                  }}
+                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-forest-700 cursor-pointer"
+                  title="More options"
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
+                {actionMenuProjectId === project.id && (
+                  <ProjectActionsMenu
+                    isOpen={true}
+                    onClose={() => setActionMenuProjectId(null)}
+                    onEdit={() => handleEditProject(project)}
+                    onDelete={() => handleDeleteRequest(project)}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
 
         {filteredProjects.length === 0 && (
           <div className="text-center py-16 space-y-2">
@@ -262,6 +398,49 @@ export const Projects = () => {
           </div>
         )}
       </Card>
+
+      {/* Create Project Modal */}
+      <CreateProjectModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+      />
+
+      {/* Edit Project Modal */}
+      {selectedProject && (
+        <EditProjectModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedProject(null);
+          }}
+          project={selectedProject}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {projectToDelete && (
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setProjectToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          taskTitle={projectToDelete.name}
+        />
+      )}
+
+      {/* Review Approval Modal */}
+      <ReviewApprovalModal
+        isOpen={showReviewModal}
+        onClose={() => {
+          setShowReviewModal(false);
+          setReviewApproval(null);
+        }}
+        approval={reviewApproval}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 };
