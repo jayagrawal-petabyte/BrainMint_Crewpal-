@@ -10,6 +10,7 @@ import {
   Mail,
   Hash,
   UserPlus,
+  Settings,
 } from 'lucide-react';
 import type { Organization } from '../../types/organization';
 import { Button } from '../common/Button';
@@ -19,6 +20,7 @@ interface OrganizationDetailsModalProps {
   onClose: () => void;
   onToggleStatus: (id: string) => void;
   onOpenInviteModal?: (id: string) => void;
+  onOpenSettings?: (id: string) => void;
 }
 
 export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> = ({
@@ -26,6 +28,7 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
   onClose,
   onToggleStatus,
   onOpenInviteModal,
+  onOpenSettings,
 }) => {
   if (!organization) return null;
 
@@ -198,6 +201,19 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
                 Invite Member
               </Button>
             )}
+            {onOpenSettings && (
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Settings className="w-4 h-4" />}
+                onClick={() => {
+                  onOpenSettings(organization.id);
+                  onClose();
+                }}
+              >
+                Settings
+              </Button>
+            )}
           </div>
 
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -208,3 +224,4 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
     </div>
   );
 };
+

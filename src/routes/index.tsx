@@ -38,6 +38,11 @@ const OrganizationManagement = lazy(() =>
   }))
 );
 
+const OrganizationSettings = lazy(() =>
+  import("../pages/organization/settings")
+);
+
+
 const Reports = lazy(() => import("../pages/reports"));
 
 const Meetings = lazy(() =>
@@ -136,6 +141,15 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+      {
+        path: "organization/settings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OrganizationSettings />
+          </Suspense>
+        ),
+      },
+
       {
         path: "teams",
         element: (
