@@ -23,24 +23,21 @@ const COLUMNS = `
 
 @Injectable()
 export class ProjectsService {
-<<<<<<< HEAD
-  create(dto: CreateProjectDto, user?: any) {
-    return { message: 'Create project', dto };
-=======
   constructor(
     @Inject('PG_CONNECTION')
     private readonly pool: Pool,
   ) {}
 
-  async create(dto: CreateProjectDto, user: any) {
-    // Ensure user belongs to the organization
+  async create(
+    dto: CreateProjectDto,
+    user: { id: number; organization_id: number },
+  ) {
     if (user.organization_id !== dto.organizationId) {
       throw new ForbiddenException(
         'You cannot create a project for another organization',
       );
     }
 
-    // Check organization exists
     const organization = await this.pool.query(
       `SELECT id
        FROM organizations
@@ -55,7 +52,6 @@ export class ProjectsService {
       );
     }
 
-    // Prevent duplicate project names inside same organization
     const existing = await this.pool.query(
       `SELECT id
        FROM projects
@@ -66,12 +62,9 @@ export class ProjectsService {
     );
 
     if (existing.rows.length > 0) {
-      throw new ConflictException(
-        'Project with this name already exists',
-      );
+      throw new ConflictException('Project with this name already exists');
     }
 
-    // Insert project
     const result = await this.pool.query(
       `INSERT INTO projects (
           organization_id,
@@ -81,16 +74,10 @@ export class ProjectsService {
       )
       VALUES ($1,$2,$3,$4)
       RETURNING ${COLUMNS}`,
-      [
-        dto.organizationId,
-        dto.name,
-        dto.description ?? null,
-        user.id,
-      ],
+      [dto.organizationId, dto.name, dto.description ?? null, user.id],
     );
 
     return result.rows[0];
->>>>>>> 4ce0f57 (feat(projects): implement project service and CRUD endpoints)
   }
 
   async findAll() {
@@ -114,9 +101,7 @@ export class ProjectsService {
     );
 
     if (result.rows.length === 0) {
-      throw new NotFoundException(
-        `Project ${id} not found`,
-      );
+      throw new NotFoundException(`Project ${id} not found`);
     }
 
     return result.rows[0];
@@ -133,11 +118,7 @@ export class ProjectsService {
           updated_at = NOW()
        WHERE id = $3
        RETURNING ${COLUMNS}`,
-      [
-        dto.name ?? null,
-        dto.description ?? null,
-        id,
-      ],
+      [dto.name ?? null, dto.description ?? null, id],
     );
 
     return result.rows[0];

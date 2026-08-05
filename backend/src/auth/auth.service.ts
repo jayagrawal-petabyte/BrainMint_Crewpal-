@@ -3,12 +3,14 @@ import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject('PG_CONNECTION') private readonly db: Pool,
     private readonly jwtService: JwtService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -40,6 +42,14 @@ export class AuthService {
 
     const token = this.jwtService.sign(payload);
 
+    await this.auditLogsService.recordSafely({
+      userId: user.id,
+      action: 'LOGIN_SUCCESS',
+      entityType: 'auth',
+      entityId: user.id,
+      details: { email: user.email },
+    });
+
     return {
       access_token: token,
       user: {
@@ -52,7 +62,15 @@ export class AuthService {
     };
   }
 
-  async logout() {
+  async logout(user?: { id?: number; email?: string }) {
+    await this.auditLogsService.recordSafely({
+      userId: user?.id ?? null,
+      action: 'LOGOUT',
+      entityType: 'auth',
+      entityId: user?.id ?? null,
+      details: { email: user?.email },
+    });
+
     return { message: 'Logged out successfully' };
   }
 }
