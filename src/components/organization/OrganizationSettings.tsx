@@ -27,7 +27,7 @@ import { Select, SelectOption } from '../common/Select';
 import { Textarea } from '../common/Textarea';
 import { FormGroup } from '../common/FormGroup';
 import { Modal } from '../ui/Modal';
-import { MOCK_ORGANIZATIONS } from '../../data/mockOrganizations';
+import { useOrganizationStore } from '../../store/organization';
 import type { Organization, OrganizationPlanTier } from '../../types/organization';
 
 type TabKey = 'general' | 'security' | 'billing' | 'danger';
@@ -92,18 +92,26 @@ const ToggleSwitch = ({
 
 export const OrganizationSettings: React.FC = () => {
   const navigate = useNavigate();
-  const defaultOrg: Organization = MOCK_ORGANIZATIONS[0];
+  const {
+    organizations,
+    selectedOrg,
+    updateOrganization,
+    toggleOrganizationStatus,
+    removeOrganization,
+  } = useOrganizationStore();
+
+  const defaultOrg: Organization = selectedOrg || organizations[0];
 
   const [activeTab, setActiveTab] = useState<TabKey>('general');
 
   // General Settings State
-  const [name, setName] = useState(defaultOrg.name);
-  const [slug, setSlug] = useState(defaultOrg.slug);
-  const [domain, setDomain] = useState(defaultOrg.domain);
-  const [description, setDescription] = useState(defaultOrg.description);
-  const [industry, setIndustry] = useState(defaultOrg.industry);
-  const [contactEmail, setContactEmail] = useState(defaultOrg.owner.email);
-  const [logoInitials, setLogoInitials] = useState(defaultOrg.logoInitials);
+  const [name, setName] = useState(defaultOrg?.name ?? '');
+  const [slug, setSlug] = useState(defaultOrg?.slug ?? '');
+  const [domain, setDomain] = useState(defaultOrg?.domain ?? '');
+  const [description, setDescription] = useState(defaultOrg?.description ?? '');
+  const [industry, setIndustry] = useState(defaultOrg?.industry ?? '');
+  const [contactEmail, setContactEmail] = useState(defaultOrg?.owner?.email ?? '');
+  const [logoInitials, setLogoInitials] = useState(defaultOrg?.logoInitials ?? 'CP');
 
   // Security Settings State
   const [allowedDomains, setAllowedDomains] = useState('brainmint.io, crewpal.app');
@@ -114,7 +122,7 @@ export const OrganizationSettings: React.FC = () => {
   const [restrictProjectCreation, setRestrictProjectCreation] = useState(false);
 
   // Billing Settings State
-  const [planTier, setPlanTier] = useState<OrganizationPlanTier>(defaultOrg.planTier);
+  const [planTier, setPlanTier] = useState<OrganizationPlanTier>(defaultOrg?.planTier ?? 'Enterprise');
   const [billingEmail, setBillingEmail] = useState('billing@brainmint.io');
 
   // UI Feedback States
@@ -126,7 +134,7 @@ export const OrganizationSettings: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
-  const [isOrgActive, setIsOrgActive] = useState(defaultOrg.is_active);
+  const [isOrgActive, setIsOrgActive] = useState(defaultOrg?.is_active ?? true);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [selectedNewPlan, setSelectedNewPlan] = useState<OrganizationPlanTier>(planTier);
 
@@ -168,6 +176,19 @@ export const OrganizationSettings: React.FC = () => {
     if (!validateForm()) return;
 
     setIsSaving(true);
+    if (defaultOrg) {
+      updateOrganization(defaultOrg.id, {
+        name,
+        slug,
+        domain,
+        description,
+        industry,
+        owner: { ...defaultOrg.owner, email: contactEmail },
+        logoInitials,
+        planTier,
+        is_active: isOrgActive,
+      });
+    }
     setTimeout(() => {
       setIsSaving(false);
       setSaveSuccess(true);
@@ -177,6 +198,7 @@ export const OrganizationSettings: React.FC = () => {
 
   // Reset Handler
   const handleReset = () => {
+    if (!defaultOrg) return;
     setName(defaultOrg.name);
     setSlug(defaultOrg.slug);
     setDomain(defaultOrg.domain);
@@ -192,6 +214,7 @@ export const OrganizationSettings: React.FC = () => {
     setRestrictProjectCreation(false);
     setPlanTier(defaultOrg.planTier);
     setBillingEmail('billing@brainmint.io');
+    setIsOrgActive(defaultOrg.is_active);
     setErrors({});
   };
 
@@ -787,6 +810,9 @@ export const OrganizationSettings: React.FC = () => {
               size="sm"
               onClick={() => {
                 setPlanTier(selectedNewPlan);
+                if (defaultOrg) {
+                  updateOrganization(defaultOrg.id, { planTier: selectedNewPlan });
+                }
                 setIsPlanModalOpen(false);
                 setSaveSuccess(true);
                 setTimeout(() => setSaveSuccess(false), 2500);
@@ -820,6 +846,9 @@ export const OrganizationSettings: React.FC = () => {
               variant={isOrgActive ? 'danger' : 'primary'}
               size="sm"
               onClick={() => {
+                if (defaultOrg) {
+                  toggleOrganizationStatus(defaultOrg.id);
+                }
                 setIsOrgActive(!isOrgActive);
                 setIsDeactivateModalOpen(false);
                 setSaveSuccess(true);
@@ -876,6 +905,9 @@ export const OrganizationSettings: React.FC = () => {
               size="sm"
               disabled={deleteConfirmInput !== slug}
               onClick={() => {
+                if (defaultOrg) {
+                  removeOrganization(defaultOrg.id);
+                }
                 setIsDeleteModalOpen(false);
                 navigate('/organization');
               }}
