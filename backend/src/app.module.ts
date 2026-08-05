@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { SearchModule } from './search/search.module';
 import { CommentsModule } from './comments/comments.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 
@@ -30,6 +31,7 @@ import { AttachmentsModule } from './attachments/attachments.module';
     OrganizationsModule,
     ProjectsModule,
     DashboardModule,
+    SearchModule,
     CommentsModule,
     AttachmentsModule,
   ],
