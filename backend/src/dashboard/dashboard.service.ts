@@ -11,7 +11,11 @@ export class DashboardService {
     private readonly db: Pool,
   ) {}
 
-  async getProjectOverview(user: { id: number; organization_id: number; role_id: number }) {
+  async getProjectOverview(user: {
+    id: number;
+    organization_id: number;
+    role_id: Role;
+  }) {
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.db.query(`
         SELECT
@@ -25,13 +29,16 @@ export class DashboardService {
       };
     }
 
-    const result = await this.db.query(`
+    const result = await this.db.query(
+      `
       SELECT
         COUNT(*) AS "totalProjects",
         COUNT(*) FILTER (WHERE is_active = true) AS "activeProjects"
       FROM projects
       WHERE organization_id = $1;
-    `, [user.organization_id]);
+    `,
+      [user.organization_id],
+    );
 
     return {
       totalProjects: Number(result.rows[0].totalProjects),
@@ -39,7 +46,11 @@ export class DashboardService {
     };
   }
 
-  async getTaskStatistics(user: { id: number; organization_id: number; role_id: number }) {
+  async getTaskStatistics(user: {
+    id: number;
+    organization_id: number;
+    role_id: Role;
+  }) {
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.db.query(`
         SELECT
@@ -61,7 +72,8 @@ export class DashboardService {
       };
     }
 
-    const result = await this.db.query(`
+    const result = await this.db.query(
+      `
       SELECT
         COUNT(*) AS "totalTasks",
         COUNT(*) FILTER (WHERE t.status = 'to_do') AS "todo",
@@ -72,7 +84,9 @@ export class DashboardService {
       FROM tasks t
       JOIN projects p ON p.id = t.project_id
       WHERE p.organization_id = $1;
-    `, [user.organization_id]);
+    `,
+      [user.organization_id],
+    );
 
     return {
       totalTasks: Number(result.rows[0].totalTasks),
@@ -85,14 +99,17 @@ export class DashboardService {
   }
 
   async getAssignedTasks(userId: number) {
-    const result = await this.db.query(`
+    const result = await this.db.query(
+      `
       SELECT
         COUNT(*) AS "myTasks",
         COUNT(*) FILTER (WHERE status != 'done') AS "pending",
         COUNT(*) FILTER (WHERE status = 'done') AS "completed"
       FROM tasks
       WHERE assignee_id = $1;
-    `, [userId]);
+    `,
+      [userId],
+    );
 
     return {
       myTasks: Number(result.rows[0].myTasks),
@@ -101,7 +118,11 @@ export class DashboardService {
     };
   }
 
-  async getSprintOverview(user: { id: number; organization_id: number; role_id: number }) {
+  async getSprintOverview(user: {
+    id: number;
+    organization_id: number;
+    role_id: Role;
+  }) {
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.db.query(`
         SELECT
@@ -117,7 +138,8 @@ export class DashboardService {
       };
     }
 
-    const result = await this.db.query(`
+    const result = await this.db.query(
+      `
       SELECT
         COUNT(*) FILTER (WHERE s.status = 'planned') AS "planned",
         COUNT(*) FILTER (WHERE s.status = 'active') AS "active",
@@ -125,7 +147,9 @@ export class DashboardService {
       FROM sprints s
       JOIN projects p ON p.id = s.project_id
       WHERE p.organization_id = $1;
-    `, [user.organization_id]);
+    `,
+      [user.organization_id],
+    );
 
     return {
       planned: Number(result.rows[0].planned),
@@ -134,7 +158,11 @@ export class DashboardService {
     };
   }
 
-  async getDashboard(user: { id: number; organization_id: number; role_id: number }): Promise<DashboardData> {
+  async getDashboard(user: {
+    id: number;
+    organization_id: number;
+    role_id: Role;
+  }): Promise<DashboardData> {
     const [projectOverview, taskStatistics, assignedTasks, sprintOverview] =
       await Promise.all([
         this.getProjectOverview(user),

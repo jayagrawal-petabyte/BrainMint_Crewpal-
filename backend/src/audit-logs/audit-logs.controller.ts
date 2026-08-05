@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/constants/roles.constant';

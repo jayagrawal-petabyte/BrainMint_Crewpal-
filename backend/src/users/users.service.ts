@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 // users/users.service.ts
 import {
   ConflictException,
@@ -21,7 +23,7 @@ export class UsersService {
 
   private verifyOrgAccess(
     targetOrgId: number,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     if (user.role_id === Role.SUPER_ADMIN) return;
     if (user.organization_id !== targetOrgId) {
@@ -31,7 +33,7 @@ export class UsersService {
 
   async create(
     dto: CreateUserDto,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     if (user.role_id !== Role.SUPER_ADMIN) {
       if (dto.organizationId !== user.organization_id) {
@@ -61,7 +63,7 @@ export class UsersService {
     return result.rows[0];
   }
 
-  async findAll(user: { organization_id: number; role_id: number }) {
+  async findAll(user: { organization_id: number; role_id: Role }) {
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.pool.query(
         `SELECT ${SAFE_COLUMNS} FROM users ORDER BY id`,
@@ -76,16 +78,12 @@ export class UsersService {
     return result.rows;
   }
 
-  async findOne(
-    id: number,
-    user: { organization_id: number; role_id: number },
-  ) {
+  async findOne(id: number, user: { organization_id: number; role_id: Role }) {
     const result = await this.pool.query(
       `SELECT ${SAFE_COLUMNS} FROM users WHERE id = $1`,
       [id],
     );
-    if (result.rows.length === 0)
-      throw new NotFoundException('User not found');
+    if (result.rows.length === 0) throw new NotFoundException('User not found');
 
     this.verifyOrgAccess(result.rows[0].organization_id, user);
     return result.rows[0];
@@ -94,7 +92,7 @@ export class UsersService {
   async update(
     id: number,
     dto: UpdateUserDto,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     const target = await this.findOne(id, user);
 
@@ -132,7 +130,7 @@ export class UsersService {
 
   async deactivate(
     id: number,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     await this.findOne(id, user);
 
@@ -145,11 +143,13 @@ export class UsersService {
 
   async updateRole(
     id: number,
-    roleId: number,
-    user: { organization_id: number; role_id: number },
+    roleId: Role,
+    user: { organization_id: number; role_id: Role },
   ) {
     if (user.role_id !== Role.SUPER_ADMIN && roleId === Role.SUPER_ADMIN) {
-      throw new ForbiddenException('Only SUPER_ADMIN can assign SUPER_ADMIN role');
+      throw new ForbiddenException(
+        'Only SUPER_ADMIN can assign SUPER_ADMIN role',
+      );
     }
 
     const role = await this.pool.query('SELECT id FROM roles WHERE id = $1', [

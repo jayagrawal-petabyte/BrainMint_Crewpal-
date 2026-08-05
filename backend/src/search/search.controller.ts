@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -14,10 +15,7 @@ export class SearchController {
     @Query('isActive') isActive: boolean | undefined,
     @Req() req: any,
   ) {
-    return this.searchService.searchProjects(
-      { search, isActive },
-      req.user,
-    );
+    return this.searchService.searchProjects({ search, isActive }, req.user);
   }
 
   @Get('tasks')

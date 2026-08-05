@@ -39,14 +39,16 @@ export class AuditLogsService {
 
   async findAll(
     filters: AuditLogFilters = {},
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     const clauses: string[] = [];
     const values: Array<number | string> = [];
 
     if (user.role_id !== Role.SUPER_ADMIN) {
       values.push(user.organization_id);
-      clauses.push(`al.user_id IN (SELECT id FROM users WHERE organization_id = $${values.length})`);
+      clauses.push(
+        `al.user_id IN (SELECT id FROM users WHERE organization_id = $${values.length})`,
+      );
     }
 
     if (filters.userId) {

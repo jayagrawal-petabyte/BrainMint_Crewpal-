@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   ConflictException,
   ForbiddenException,
@@ -31,7 +33,7 @@ export class ProjectsService {
 
   private verifyOrgAccess(
     projectOrgId: number,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     if (user.role_id === Role.SUPER_ADMIN) return;
     if (user.organization_id !== projectOrgId) {
@@ -41,7 +43,7 @@ export class ProjectsService {
 
   async create(
     dto: CreateProjectDto,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     if (
       user.role_id !== Role.SUPER_ADMIN &&
@@ -94,7 +96,7 @@ export class ProjectsService {
     return result.rows[0];
   }
 
-  async findAll(user: { organization_id: number; role_id: number }) {
+  async findAll(user: { organization_id: number; role_id: Role }) {
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.pool.query(
         `SELECT ${COLUMNS}
@@ -145,10 +147,7 @@ export class ProjectsService {
     return result.rows;
   }
 
-  async findOne(
-    id: number,
-    user?: { organization_id: number; role_id: number },
-  ) {
+  async findOne(id: number, user?: { organization_id: number; role_id: Role }) {
     const result = await this.pool.query(
       `SELECT ${COLUMNS}
        FROM projects
@@ -171,9 +170,9 @@ export class ProjectsService {
   async update(
     id: number,
     dto: UpdateProjectDto,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
-    const project = await this.findOne(id, user);
+    await this.findOne(id, user);
 
     const result = await this.pool.query(
       `UPDATE projects
@@ -191,7 +190,7 @@ export class ProjectsService {
 
   async deactivate(
     id: number,
-    user?: { organization_id: number; role_id: number },
+    user?: { organization_id: number; role_id: Role },
   ) {
     if (user) {
       await this.findOne(id, user);

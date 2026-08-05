@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   Injectable,
   Inject,
@@ -13,7 +15,7 @@ import { randomUUID } from 'crypto';
 export interface AuthenticatedUser {
   id: number;
   email: string;
-  role_id: number;
+  role_id: Role;
   organization_id: number;
 }
 

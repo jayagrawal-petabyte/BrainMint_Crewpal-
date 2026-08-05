@@ -4,18 +4,21 @@ import { Role } from '../common/constants/roles.constant';
 
 @Injectable()
 export class SearchService {
-  constructor(
-    private readonly projectsService: ProjectsService,
-  ) {}
+  constructor(private readonly projectsService: ProjectsService) {}
 
   async searchProjects(
     filters: {
       search?: string;
       isActive?: boolean;
     },
-    user: { id: number; organization_id: number; role_id: number },
+    user: {
+      id: number;
+      organization_id: number;
+      role_id: Role;
+    },
   ) {
-    const orgId = user.role_id === Role.SUPER_ADMIN ? undefined : user.organization_id;
+    const orgId =
+      user.role_id === Role.SUPER_ADMIN ? undefined : user.organization_id;
     return this.projectsService.searchProjects({
       ...filters,
       organizationId: orgId,
@@ -23,7 +26,7 @@ export class SearchService {
   }
 
   async searchTasks(
-    filters: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */ filters: {
       search?: string;
       status?: string;
       priority?: string;
@@ -31,7 +34,11 @@ export class SearchService {
       assigneeId?: number;
       isClosed?: boolean;
     },
-    user: { id: number; organization_id: number; role_id: number },
+    /* eslint-disable @typescript-eslint/no-unused-vars */ user: {
+      id: number;
+      organization_id: number;
+      role_id: Role;
+    },
   ) {
     throw new NotImplementedException('Task search is not implemented yet.');
   }

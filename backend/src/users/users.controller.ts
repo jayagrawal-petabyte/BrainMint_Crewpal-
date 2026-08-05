@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 // users/users.controller.ts
 import {
   Body,
@@ -7,7 +8,6 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -60,7 +60,7 @@ export class UsersController {
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
   updateRole(
     @Param('id', ParseIntPipe) id: number,
-    @Body('roleId', ParseIntPipe) roleId: number,
+    @Body('roleId', ParseIntPipe) roleId: Role,
     @Req() req: any,
   ) {
     return this.usersService.updateRole(id, roleId, req.user);

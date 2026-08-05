@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';

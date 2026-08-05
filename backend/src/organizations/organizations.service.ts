@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   ConflictException,
   Inject,
@@ -26,7 +28,7 @@ export class OrganizationsService {
 
   private verifyOrgAccess(
     targetOrgId: number,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     if (user.role_id === Role.SUPER_ADMIN) return;
     if (user.organization_id !== targetOrgId) {
@@ -49,10 +51,12 @@ export class OrganizationsService {
     return result.rows[0];
   }
 
-  async findAll(user: { organization_id: number; role_id: number }) {
+  async findAll(user: { organization_id: number; role_id: Role }) {
     if (user.role_id === Role.SUPER_ADMIN) {
       return (
-        await this.pool.query(`SELECT ${COLUMNS} FROM organizations ORDER BY id`)
+        await this.pool.query(
+          `SELECT ${COLUMNS} FROM organizations ORDER BY id`,
+        )
       ).rows;
     }
 
@@ -64,10 +68,7 @@ export class OrganizationsService {
     ).rows;
   }
 
-  async findOne(
-    id: number,
-    user: { organization_id: number; role_id: number },
-  ) {
+  async findOne(id: number, user: { organization_id: number; role_id: Role }) {
     this.verifyOrgAccess(id, user);
 
     const result = await this.pool.query(
@@ -82,7 +83,7 @@ export class OrganizationsService {
   async update(
     id: number,
     dto: UpdateOrganizationDto,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     this.verifyOrgAccess(id, user);
     await this.findOne(id, user);
@@ -111,7 +112,7 @@ export class OrganizationsService {
 
   async getSettings(
     id: number,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     this.verifyOrgAccess(id, user);
     const organization = await this.findOne(id, user);
@@ -123,7 +124,7 @@ export class OrganizationsService {
   async upsertSettings(
     id: number,
     dto: UpdateOrganizationSettingsDto | CreateOrganizationSettingsDto,
-    user: { organization_id: number; role_id: number },
+    user: { organization_id: number; role_id: Role },
   ) {
     this.verifyOrgAccess(id, user);
     const organization = await this.findOne(id, user);

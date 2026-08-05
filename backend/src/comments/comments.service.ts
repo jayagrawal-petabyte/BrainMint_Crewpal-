@@ -12,7 +12,7 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 export interface AuthenticatedUser {
   id: number;
   email: string;
-  role_id: number;
+  role_id: Role;
   organization_id: number;
 }
 

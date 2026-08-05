@@ -19,7 +19,10 @@ describe('OrganizationsService settings', () => {
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const result = await service.getSettings(1, { organization_id: 1, role_id: 2 });
+    const result = await service.getSettings(1, {
+      organization_id: 1,
+      role_id: 2,
+    });
 
     expect(result).toEqual({
       organizationId: 1,
@@ -53,13 +56,17 @@ describe('OrganizationsService settings', () => {
         ],
       });
 
-    const result = await service.upsertSettings(1, {
-      timezone: 'America/New_York',
-      workingDays: ['Monday', 'Wednesday'],
-      defaultTaskPriority: 'high',
-      emailNotifications: false,
-      theme: 'dark',
-    }, { organization_id: 1, role_id: 2 });
+    const result = await service.upsertSettings(
+      1,
+      {
+        timezone: 'America/New_York',
+        workingDays: ['Monday', 'Wednesday'],
+        defaultTaskPriority: 'high',
+        emailNotifications: false,
+        theme: 'dark',
+      },
+      { organization_id: 1, role_id: 2 },
+    );
 
     expect(result).toEqual({
       organizationId: 1,

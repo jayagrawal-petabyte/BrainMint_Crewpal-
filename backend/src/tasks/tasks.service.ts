@@ -25,7 +25,7 @@ export class TasksService {
 
   private async verifyProjectAccess(
     projectId: number,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     const result = await this.pool.query(
       `SELECT p.id, p.organization_id
@@ -50,7 +50,7 @@ export class TasksService {
 
   private async verifyTaskAccess(
     taskId: number,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     const result = await this.pool.query(
       `SELECT t.id, t.project_id, t.created_by, p.organization_id
@@ -76,7 +76,7 @@ export class TasksService {
 
   async create(
     dto: CreateTaskDto,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     await this.verifyProjectAccess(dto.projectId, user);
 
@@ -99,7 +99,7 @@ export class TasksService {
     return result.rows[0];
   }
 
-  async findAll(user: { id: number; organization_id: number; role_id: number }) {
+  async findAll(user: { id: number; organization_id: number; role_id: Role }) {
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.pool.query(
         `SELECT ${TASK_COLUMNS} FROM tasks t ORDER BY t.id`,
@@ -120,7 +120,7 @@ export class TasksService {
 
   async findOne(
     id: number,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     await this.verifyTaskAccess(id, user);
 
@@ -134,7 +134,7 @@ export class TasksService {
   async update(
     id: number,
     dto: UpdateTaskDto,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     await this.verifyTaskAccess(id, user);
 
@@ -174,7 +174,7 @@ export class TasksService {
   async updateStatus(
     id: number,
     status: TaskStatus,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     await this.verifyTaskAccess(id, user);
 
@@ -188,7 +188,7 @@ export class TasksService {
   async assignUser(
     id: number,
     assigneeId: number,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     await this.verifyTaskAccess(id, user);
 
@@ -201,14 +201,11 @@ export class TasksService {
 
   async remove(
     id: number,
-    user: { id: number; organization_id: number; role_id: number },
+    user: { id: number; organization_id: number; role_id: Role },
   ) {
     const task = await this.verifyTaskAccess(id, user);
 
-    if (
-      user.role_id > Role.PROJECT_MANAGER &&
-      task.created_by !== user.id
-    ) {
+    if (user.role_id > Role.PROJECT_MANAGER && task.created_by !== user.id) {
       throw new ForbiddenException('Not authorized to delete this task');
     }
 
