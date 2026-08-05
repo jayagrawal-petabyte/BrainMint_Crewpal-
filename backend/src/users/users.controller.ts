@@ -1,5 +1,15 @@
 // users/users.controller.ts
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,15 +25,21 @@ export class UsersController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
-  create(@Body() dto: CreateUserDto) { return this.usersService.create(dto); }
+  create(@Body() dto: CreateUserDto) {
+    return this.usersService.create(dto);
+  }
 
   @Get()
   findAll(@Query('organizationId') organizationId?: string) {
-    return this.usersService.findAll(organizationId ? Number(organizationId) : undefined);
+    return this.usersService.findAll(
+      organizationId ? Number(organizationId) : undefined,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) { return this.usersService.findOne(id); }
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
+  }
 
   @Patch(':id')
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
@@ -39,7 +55,10 @@ export class UsersController {
 
   @Patch(':id/role')
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
-  updateRole(@Param('id', ParseIntPipe) id: number, @Body('roleId', ParseIntPipe) roleId: number) {
+  updateRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('roleId', ParseIntPipe) roleId: number,
+  ) {
     return this.usersService.updateRole(id, roleId);
   }
-}
+}

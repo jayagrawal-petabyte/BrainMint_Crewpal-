@@ -91,6 +91,36 @@ export class ProjectsService {
     return result.rows;
   }
 
+  async searchProjects(filters: {
+    search?: string;
+    organizationId?: number;
+    isActive?: boolean;
+  }) {
+    let query = `SELECT ${COLUMNS} FROM projects WHERE 1=1`;
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (filters.organizationId !== undefined) {
+      query += ` AND organization_id = $${paramIndex++}`;
+      params.push(filters.organizationId);
+    }
+
+    if (filters.isActive !== undefined) {
+      query += ` AND is_active = $${paramIndex++}`;
+      params.push(filters.isActive);
+    }
+
+    if (filters.search) {
+      query += ` AND name ILIKE $${paramIndex++}`;
+      params.push(`%${filters.search}%`);
+    }
+
+    query += ` ORDER BY id`;
+
+    const result = await this.pool.query(query, params);
+    return result.rows;
+  }
+
   async findOne(id: number) {
     const result = await this.pool.query(
       `SELECT ${COLUMNS}

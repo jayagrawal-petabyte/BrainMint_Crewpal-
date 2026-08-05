@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Pool } from 'pg';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
@@ -6,15 +11,25 @@ import { CreateOrganizationSettingsDto } from './dto/create-organization-setting
 import { UpdateOrganizationSettingsDto } from './dto/update-organization-settings.dto';
 
 const COLUMNS = 'id, name, is_active, created_at, updated_at';
-const DEFAULT_WORKING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const DEFAULT_WORKING_DAYS = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+];
 
 @Injectable()
 export class OrganizationsService {
   constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
 
   async create(dto: CreateOrganizationDto) {
-    const existing = await this.pool.query('SELECT id FROM organizations WHERE name = $1', [dto.name]);
-    if (existing.rows.length > 0) throw new ConflictException('Organization name already exists');
+    const existing = await this.pool.query(
+      'SELECT id FROM organizations WHERE name = $1',
+      [dto.name],
+    );
+    if (existing.rows.length > 0)
+      throw new ConflictException('Organization name already exists');
 
     const result = await this.pool.query(
       `INSERT INTO organizations (name) VALUES ($1) RETURNING ${COLUMNS}`,
@@ -24,12 +39,18 @@ export class OrganizationsService {
   }
 
   async findAll() {
-    return (await this.pool.query(`SELECT ${COLUMNS} FROM organizations ORDER BY id`)).rows;
+    return (
+      await this.pool.query(`SELECT ${COLUMNS} FROM organizations ORDER BY id`)
+    ).rows;
   }
 
   async findOne(id: number) {
-    const result = await this.pool.query(`SELECT ${COLUMNS} FROM organizations WHERE id = $1`, [id]);
-    if (result.rows.length === 0) throw new NotFoundException(`Organization ${id} not found`);
+    const result = await this.pool.query(
+      `SELECT ${COLUMNS} FROM organizations WHERE id = $1`,
+      [id],
+    );
+    if (result.rows.length === 0)
+      throw new NotFoundException(`Organization ${id} not found`);
     return result.rows[0];
   }
 
@@ -59,12 +80,19 @@ export class OrganizationsService {
     return this.mapSettingsResponse(organization, settingsRow);
   }
 
-  async upsertSettings(id: number, dto: UpdateOrganizationSettingsDto | CreateOrganizationSettingsDto) {
+  async upsertSettings(
+    id: number,
+    dto: UpdateOrganizationSettingsDto | CreateOrganizationSettingsDto,
+  ) {
     const organization = await this.findOne(id);
     await this.ensureSettingsTable();
 
     const currentSettings = await this.getSettingsRow(id);
-    const payload = this.buildSettingsPayload(dto, organization, currentSettings);
+    const payload = this.buildSettingsPayload(
+      dto,
+      organization,
+      currentSettings,
+    );
 
     if (!currentSettings) {
       const result = await this.pool.query(
@@ -148,17 +176,23 @@ export class OrganizationsService {
     organization: { name: string },
     currentSettings?: Record<string, any>,
   ) {
-    const fallbackName = currentSettings?.organization_name ?? organization.name;
+    const fallbackName =
+      currentSettings?.organization_name ?? organization.name;
     const fallbackTimezone = currentSettings?.timezone ?? 'UTC';
-    const fallbackWorkingDays = this.normalizeWorkingDays(currentSettings?.working_days);
+    const fallbackWorkingDays = this.normalizeWorkingDays(
+      currentSettings?.working_days,
+    );
     const fallbackPriority = currentSettings?.default_task_priority ?? 'medium';
-    const fallbackEmailNotifications = currentSettings?.email_notifications ?? true;
+    const fallbackEmailNotifications =
+      currentSettings?.email_notifications ?? true;
     const fallbackTheme = currentSettings?.theme ?? 'light';
 
     return {
       organizationName: dto.organizationName ?? fallbackName,
       timezone: dto.timezone ?? fallbackTimezone,
-      workingDays: dto.workingDays ? this.normalizeWorkingDays(dto.workingDays) : fallbackWorkingDays,
+      workingDays: dto.workingDays
+        ? this.normalizeWorkingDays(dto.workingDays)
+        : fallbackWorkingDays,
       defaultTaskPriority: dto.defaultTaskPriority ?? fallbackPriority,
       emailNotifications: dto.emailNotifications ?? fallbackEmailNotifications,
       theme: dto.theme ?? fallbackTheme,
@@ -172,7 +206,10 @@ export class OrganizationsService {
     return [...DEFAULT_WORKING_DAYS];
   }
 
-  private mapSettingsResponse(organization: { id: number; name: string }, settingsRow?: Record<string, any>) {
+  private mapSettingsResponse(
+    organization: { id: number; name: string },
+    settingsRow?: Record<string, any>,
+  ) {
     return {
       organizationId: organization.id,
       organizationName: settingsRow?.organization_name ?? organization.name,

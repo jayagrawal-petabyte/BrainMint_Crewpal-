@@ -27,7 +27,9 @@ export class AttachmentsController {
    * Upload an attachment file to a task.
    */
   @Post('tasks/:taskId/attachments')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @HttpCode(HttpStatus.CREATED)
   async uploadAttachment(
     @Param('taskId', ParseIntPipe) taskId: number,

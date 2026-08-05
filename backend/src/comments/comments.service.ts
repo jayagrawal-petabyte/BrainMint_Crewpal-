@@ -18,7 +18,7 @@ export interface AuthenticatedUser {
 
 @Injectable()
 export class CommentsService {
-  constructor(@Inject('PG_CONNECTION') private readonly db: Pool) { }
+  constructor(@Inject('PG_CONNECTION') private readonly db: Pool) {}
 
   /**
    * Helper method to verify task existence and validate user access (IDOR check).
@@ -67,7 +67,9 @@ export class CommentsService {
 
     // Roles 3-9: Must be an active member of the project
     if (!taskInfo.is_member) {
-      throw new ForbiddenException('Access denied: You are not a member of this project');
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
     }
 
     return taskInfo;
@@ -76,10 +78,16 @@ export class CommentsService {
   /**
    * Add a comment to a task.
    */
-  async createComment(taskId: number, dto: CreateCommentDto, user: AuthenticatedUser) {
+  async createComment(
+    taskId: number,
+    dto: CreateCommentDto,
+    user: AuthenticatedUser,
+  ) {
     // Viewer role (Role 9) cannot add comments
     if (user.role_id === 9) {
-      throw new ForbiddenException('Viewer role is read-only and cannot post comments');
+      throw new ForbiddenException(
+        'Viewer role is read-only and cannot post comments',
+      );
     }
 
     // Verify task existence and user authorization (IDOR Check)
@@ -146,7 +154,11 @@ export class CommentsService {
   /**
    * Update an existing comment.
    */
-  async updateComment(commentId: number, dto: UpdateCommentDto, user: AuthenticatedUser) {
+  async updateComment(
+    commentId: number,
+    dto: UpdateCommentDto,
+    user: AuthenticatedUser,
+  ) {
     if (!commentId || isNaN(commentId)) {
       throw new BadRequestException('Invalid comment ID');
     }
@@ -181,13 +193,18 @@ export class CommentsService {
     const commentInfo = result.rows[0];
 
     // Organization check: hide resource existence from cross-tenant users
-    if (user.role_id !== 1 && commentInfo.organization_id !== user.organization_id) {
+    if (
+      user.role_id !== 1 &&
+      commentInfo.organization_id !== user.organization_id
+    ) {
       throw new NotFoundException('Resource not found');
     }
 
     // Project membership check: user is in the org but not the project
     if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
-      throw new ForbiddenException('Access denied: You are not a member of this project');
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
     }
 
     // Authorization check: Only author or privileged admin roles (Super Admin 1, Org Admin 2, Project Admin 3, PM 4)
@@ -205,7 +222,10 @@ export class CommentsService {
       RETURNING id, task_id AS "taskId", user_id AS "userId", content, created_at AS "createdAt", updated_at AS "updatedAt"
     `;
 
-    const updateResult = await this.db.query(updateQuery, [dto.content.trim(), commentId]);
+    const updateResult = await this.db.query(updateQuery, [
+      dto.content.trim(),
+      commentId,
+    ]);
 
     return {
       message: 'Comment updated successfully',
@@ -250,13 +270,18 @@ export class CommentsService {
     const commentInfo = result.rows[0];
 
     // Organization check: hide resource existence from cross-tenant users
-    if (user.role_id !== 1 && commentInfo.organization_id !== user.organization_id) {
+    if (
+      user.role_id !== 1 &&
+      commentInfo.organization_id !== user.organization_id
+    ) {
       throw new NotFoundException('Resource not found');
     }
 
     // Project membership check: user is in the org but not the project
     if (user.role_id !== 1 && user.role_id !== 2 && !commentInfo.is_member) {
-      throw new ForbiddenException('Access denied: You are not a member of this project');
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
     }
 
     // Authorization check: Only author or privileged admin roles (Super Admin 1, Org Admin 2, Project Admin 3, PM 4)

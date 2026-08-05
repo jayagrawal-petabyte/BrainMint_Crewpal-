@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotImplementedException,
-} from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { ProjectsService } from '../projects/projects.service';
 
 @Injectable()
@@ -19,6 +16,7 @@ export class SearchService {
     return this.projectsService.searchProjects(filters);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async searchTasks(filters: {
     search?: string;
     status?: string;
@@ -33,8 +31,6 @@ export class SearchService {
      * return this.tasksService.searchTasks(filters);
      */
 
-    throw new NotImplementedException(
-      'Task search is not implemented yet.',
-    );
+    throw new NotImplementedException('Task search is not implemented yet.');
   }
 }
