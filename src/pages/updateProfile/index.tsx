@@ -110,6 +110,7 @@ const handleGithubChange = (
   batchYear,
   github,
   email,
+  profilePhoto: photoPreview,
 };
 
   localStorage.setItem(

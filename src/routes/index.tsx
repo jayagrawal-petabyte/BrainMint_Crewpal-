@@ -8,6 +8,7 @@ import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
 import UpdateProfile from "../pages/updateProfile";
+import AddMember from "../pages/addMember";
 
 const Tasks = lazy(() =>
     import("../pages/tasks").then((module) => ({ default: module.Tasks })),
@@ -29,6 +30,12 @@ const UserProfile = lazy(() =>
     import("../pages/userProfile").then((module) => ({
         default: module.UserProfile,
     })),
+);
+
+const UserDashboard = lazy(() =>
+  import("../pages/userDashboard").then((module) => ({
+    default: module.UserDashboard,
+  }))
 );
 
 const OrganizationManagement = lazy(() =>
@@ -111,17 +118,53 @@ export const router = createBrowserRouter([
             },
 
             {
-                path: "teams/:id",
-                element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <UserProfile />
-                    </Suspense>
-                ),
-            },
+  path: "teams/:id",
+  element: (
+    <ProtectedRoute
+      allowedRoles={[
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+      ]}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <UserProfile />
+      </Suspense>
+    </ProtectedRoute>
+  ),
+},
 
             {
-                path: "update-profile/:id",
-                element: <UpdateProfile />,
+  path: "user-dashboard",
+  element: (
+    <ProtectedRoute
+      allowedRoles={[UserRole.EMPLOYEE]}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <UserDashboard />
+      </Suspense>
+    </ProtectedRoute>
+  ),
+},
+
+           {
+  path: "update-profile",
+  element: (
+    <ProtectedRoute
+      allowedRoles={[
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+        UserRole.EMPLOYEE,
+      ]}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <UpdateProfile />
+      </Suspense>
+    </ProtectedRoute>
+  ),
+},
+            {
+                path: "add-member",
+                element: <AddMember />,
             },
 
             {

@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { UserRole } from "../../types/roles";
 import {
   Search,
   User,
@@ -15,6 +17,7 @@ const TEAM_MEMBERS = [
     avatar: "SB",
     name: "Shanti Biswas",
     registration: "RA231156402364",
+    email: "sb3547@srmist.edu.in",
     department: "Frontend",
     task: "Notification Panel",
     project: "School ERP Project",
@@ -26,6 +29,7 @@ const TEAM_MEMBERS = [
     avatar: "AA",
     name: "Arush Ashrut",
     registration: "RA231156402364",
+    email: "arush@srmist.edu.in",
     department: "Backend",
     task: "Assignment Module",
     project: "Management Project",
@@ -37,6 +41,7 @@ const TEAM_MEMBERS = [
     avatar: "NM",
     name: "Nirmal Mehta",
     registration: "RA231156402364",
+    email: "nirmal@srmist.edu.in",
     department: "UI/UX Designer",
     task: "Authorisation Module",
     project: "School Mobile App",
@@ -48,6 +53,7 @@ const TEAM_MEMBERS = [
     avatar: "PJ",
     name: "P Jaishwari",
     registration: "RA231156402364",
+    email: "jaishwari@srmist.edu.in",
     department: "HR",
     task: "Assignment Module",
     project: "School ERP Project",
@@ -59,6 +65,7 @@ const TEAM_MEMBERS = [
     avatar: "ST",
     name: "Sagar T A",
     registration: "RA231156402364",
+    email: "sagar@srmist.edu.in",
     department: "Frontend",
     task: "Exam Module",
     project: "Management Project",
@@ -71,9 +78,13 @@ export const Teams = () => {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
+  const { user } = useAuth();
   const [showFilters, setShowFilters] = useState(false);
   const [activeDepartment, setActiveDepartment] = useState("All");
+  const [selectedFilter, setSelectedFilter] = useState("All");
+  const menuRef = useRef<HTMLDivElement>(null);
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
 
   const departments = [
     "All",
@@ -85,8 +96,17 @@ export const Teams = () => {
     "...",
   ];
 
+  const savedMembers = JSON.parse(
+  localStorage.getItem("teamMembers") || "[]"
+  );
+
+  const members = [
+    ...TEAM_MEMBERS,
+    ...savedMembers,
+  ];
+
   const filteredMembers = useMemo(() => {
-    return TEAM_MEMBERS.filter((member) => {
+    return members.filter((member) => {
       const matchesSearch =
         member.name
           .toLowerCase()
@@ -95,10 +115,45 @@ export const Teams = () => {
       const matchesDepartment =
         activeDepartment === "All" ||
         member.department === activeDepartment;
+      
+      let matchesExtraFilter = true;
 
-      return matchesSearch && matchesDepartment;
-    });
-  }, [search, activeDepartment]);
+    switch (selectedFilter) {
+      case "3 months":
+        matchesExtraFilter = member.duration === "3 months";
+        break;
+
+      case "6 months":
+        matchesExtraFilter = member.duration === "6 months";
+        break;
+
+      case "Lead":
+        matchesExtraFilter =
+          member.position?.toLowerCase().includes("lead") ?? false;
+        break;
+
+      case "Available":
+        matchesExtraFilter =
+          member.availability === "Available";
+        break;
+
+      case "On Leave":
+        matchesExtraFilter =
+          member.availability === "On Leave";
+        break;
+
+      default:
+        matchesExtraFilter = true;
+    }
+
+      return (
+      matchesSearch &&
+      matchesDepartment &&
+      matchesExtraFilter
+    );
+
+  });
+}, [search, activeDepartment, selectedFilter]);
 
   const toggleMember = (id: number) => {
     setSelectedMembers((prev) =>
@@ -120,6 +175,50 @@ export const Teams = () => {
     }
   };
 
+  const handleDelete = (id: number) => {
+
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this member?"
+  );
+
+  if (!confirmed) return;
+
+  const savedMembers = JSON.parse(
+    localStorage.getItem("teamMembers") || "[]"
+  );
+
+  const updatedMembers = savedMembers.filter(
+    (member: any) => member.id !== id
+  );
+
+  localStorage.setItem(
+    "teamMembers",
+    JSON.stringify(updatedMembers)
+  );
+
+  window.location.reload();
+};
+
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(event.target as Node)
+    ) {
+      setMenuOpenId(null);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+  };
+}, []);
+
   return (
     <div className="px-8 py-6 space-y-10">
 
@@ -137,7 +236,11 @@ export const Teams = () => {
 
         </div>
 
-        <button
+        
+          {user?.role !== UserRole.EMPLOYEE && (
+
+    <button
+          onClick={() => navigate("/add-member")}
           className="
             bg-forest-800
             hover:bg-forest-900
@@ -149,8 +252,13 @@ export const Teams = () => {
             transition
           "
         >
-          + New Member
-        </button>
+
+        + New Member
+
+    </button>
+
+)}
+
 
       </div>
 
@@ -248,30 +356,45 @@ export const Teams = () => {
             </span>
 
             {[
-              "3 months",
-              "6 months",
-              "Lead",
-              "Available",
-              "On Leave",
-            ].map((filter) => (
+  "Clear",
+  "3 months",
+  "6 months",
+  "Lead",
+  "Available",
+  "On Leave",
+].map((filter) => (
 
               <button
-                key={filter}
-                type="button"
-                className="
-                  px-4
-                  py-1
-                  rounded-full
-                  border
-                  border-[#E6D7B2]
-                  bg-[#FFF8EA]
-                  text-xs
-                  hover:bg-[#F6EFD8]
-                  transition
-                "
-              >
-                {filter}
-              </button>
+  key={filter}
+  type="button"
+  onClick={() => {
+  if (filter === "Clear") {
+    setSelectedFilter("");
+  } else {
+    setSelectedFilter(
+      selectedFilter === filter ? "" : filter
+    );
+  }
+}}
+  className={`
+    px-4
+    py-1
+    rounded-full
+    border
+    text-xs
+    transition
+
+    ${
+      filter === "Clear"
+        ? "border-red-300 text-red-600 hover:bg-red-50"
+        : selectedFilter === filter
+        ? "bg-[#0D556D] text-white border-[#0D556D]"
+        : "border-[#E6D7B2] bg-[#FFF8EA] hover:bg-[#F6EFD8]"
+    }
+  `}
+>
+  {filter === "Clear" ? "✕ Clear" : filter}
+</button>
 
             ))}
 
@@ -346,11 +469,27 @@ export const Teams = () => {
 
                 <tr
                   key={member.id}
-                  onClick={() =>
-                    navigate(`/teams/${member.id}`, {
-                      state: { member },
-                    })
-                  }
+                  onClick={() => {
+
+  const isOwnProfile =
+  user?.email?.toLowerCase() ===
+  member.email?.toLowerCase();
+
+if (
+  user?.role === UserRole.EMPLOYEE &&
+  isOwnProfile
+) {
+  navigate("/user-dashboard", {
+    state: { member },
+  });
+  return;
+}
+
+navigate(`/teams/${member.id}`, {
+  state: { member },
+});
+
+}}
                   className="
                     border-t
                     border-cream-200
@@ -446,36 +585,94 @@ export const Teams = () => {
 
                   </td>
 
-                  <td className="px-6 py-5">
+                  <td className="relative px-6 py-5">
+{user?.role !== UserRole.EMPLOYEE && (
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
 
-                    <div className="flex justify-center">
+      setMenuOpenId(
+        menuOpenId === member.id
+          ? null
+          : member.id
+      );
+    }}
+    className="
+      p-2
+      rounded-lg
+      hover:bg-gray-100
+      transition
+      cursor-pointer
+    "
+  >
+    <MoreHorizontal size={18} />
+  </button>
+  )}
 
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log(member.id);
-                        }}
-                        className="
-                          w-8
-                          h-8
-                          rounded-full
-                          hover:bg-cream-100
-                          transition
-                          cursor-pointer
-                        "
-                      >
+  {user?.role !== UserRole.EMPLOYEE &&
+ menuOpenId === member.id && (
 
-                        <MoreHorizontal
-                          size={18}
-                          className="mx-auto text-forest-700"
-                        />
+    <div
+      ref={menuRef}
+      className="
+        absolute
+        right-5
+        mt-2
+        w-44
+        rounded-xl
+        bg-white
+        shadow-xl
+        border
+        z-50
+      "
+    >
 
-                      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
 
-                    </div>
+          navigate(`/update-profile/${member.id}`);
+        }}
+        className="
+          w-full
+          text-left
+          px-4
+          py-3
+          hover:bg-gray-50
+          flex
+          items-center
+          gap-3
+        "
+      >
+        ✏️ Edit Member
+      </button>
 
-                  </td>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+
+          handleDelete(member.id);
+        }}
+        className="
+          w-full
+          text-left
+          px-4
+          py-3
+          hover:bg-red-50
+          text-red-600
+          flex
+          items-center
+          gap-3
+        "
+      >
+        🗑 Delete Member
+      </button>
+
+    </div>
+
+  )}
+
+</td>
 
                 </tr>
 

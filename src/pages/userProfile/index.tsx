@@ -1,5 +1,7 @@
 import { User } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { UserRole } from "../../types/roles";
 
 const USERS = [
     {
@@ -19,6 +21,7 @@ const USERS = [
         project: "School ERP Project",
         projectCount: 2,
         projects: ["School ERP Project", "Management Project"],
+        profilePhoto: "",
     },
     {
         id: 2,
@@ -37,6 +40,7 @@ const USERS = [
         project: "Management Project",
         projectCount: 2,
         projects: ["Management Project", "CrewPal"],
+        profilePhoto: "",
     },
     {
         id: 3,
@@ -55,6 +59,7 @@ const USERS = [
         project: "School Mobile App",
         projectCount: 1,
         projects: ["School Mobile App"],
+        profilePhoto: "",
     },
     {
         id: 4,
@@ -73,6 +78,7 @@ const USERS = [
         project: "School ERP Project",
         projectCount: 2,
         projects: ["School ERP Project", "Attendance Portal"],
+        profilePhoto: "",
     },
     {
         id: 5,
@@ -90,30 +96,59 @@ const USERS = [
         task: "Exam Module",
         project: "Management Project",
         projectCount: 4,
-        projects: [
-            "Management Project",
-            "Exam Portal",
-            "CrewPal",
-            "Attendance System",
-        ],
+        projects: ["Management Project", "Exam Portal", "CrewPal", "Attendance System",],
+        profilePhoto: "",
     },
 ];
 
 export const UserProfile = () => {
-    const navigate = useNavigate();
-    const { id } = useParams();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { user: loggedInUser } = useAuth();
 
-    const defaultUser = USERS.find(
-  (member) => member.id === Number(id)
-);
+  // Members added through Add Member page
+  const savedMembers = JSON.parse(
+    localStorage.getItem("teamMembers") || "[]"
+  );
 
-const savedUser = localStorage.getItem(
-  `user-${id}`
-);
+  // Combine default users + added users
+  const allUsers = [...USERS, ...savedMembers];
 
-const user = savedUser
-  ? JSON.parse(savedUser)
-  : defaultUser;
+  // If a profile was updated, prefer that version
+  const savedUser = localStorage.getItem(`user-${id}`);
+
+  const user = savedUser
+    ? JSON.parse(savedUser)
+    : allUsers.find(
+        (member) => member.id === Number(id)
+      );
+
+  const isAdminOrManager =
+    loggedInUser?.role === UserRole.ADMIN ||
+    loggedInUser?.role === UserRole.MANAGER;
+
+  const isOwnProfile =
+    loggedInUser?.email?.toLowerCase() ===
+    user?.email?.toLowerCase();
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-forest-900">
+            User not found
+          </h2>
+
+          <button
+            onClick={() => navigate("/teams")}
+            className="mt-6 bg-forest-900 text-white px-6 py-3 rounded-xl"
+          >
+            Back to Team
+          </button>
+        </div>
+      </div>
+    );
+  }
 
     if (!user) {
         return (
@@ -144,7 +179,31 @@ const user = savedUser
 
                     <div className="bg-[#F9E8DE] rounded-3xl p-7 flex items-center gap-6">
                         <div className="w-24 h-24 rounded-full bg-[#D79B93] flex items-center justify-center">
-                            <User size={34} className="text-[#0D556D]" />
+                            <div
+    className="
+        w-24
+        h-24
+        rounded-full
+        overflow-hidden
+        bg-[#D79B93]
+        flex
+        items-center
+        justify-center
+    "
+>
+    {user.profilePhoto ? (
+        <img
+            src={user.profilePhoto}
+            alt={user.name}
+            className="w-full h-full object-cover"
+        />
+    ) : (
+        <User
+            size={34}
+            className="text-[#0D556D]"
+        />
+    )}
+</div>
                         </div>
 
                         <div>
@@ -215,12 +274,12 @@ const user = savedUser
                                     <span className="font-semibold">
                                         No of Project Allocated:
                                     </span>{" "}
-                                    {user.projectCount}
+                                    {user.projects?.length ?? 0}
                                 </p>
 
                                 <div className="mt-5">
                                     <p className="font-semibold">
-                                        Project Allocated:
+                                        Projects Allocated:
                                     </p>
 
                                     <div className="mt-2 space-y-1">
@@ -275,6 +334,7 @@ const user = savedUser
                         </div>
 
                         <div className="flex justify-end gap-4 mt-10">
+                            {(isAdminOrManager || isOwnProfile) && (
                             <button
                                 onClick={() =>
                                     navigate(`/update-profile/${user.id}`)
@@ -293,6 +353,7 @@ const user = savedUser
                             >
                                 Update Profile
                             </button>
+                            )}
 
                             <button
                                 onClick={() => navigate("/teams")}
