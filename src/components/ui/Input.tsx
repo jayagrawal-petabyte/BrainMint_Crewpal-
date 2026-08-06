@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -18,14 +19,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="mb-1.5 block text-sm font-medium text-forest/80"
+            className="mb-1.5 block text-sm font-medium text-forest/80 transition-colors"
           >
             {label}
           </label>
         )}
-        <div className="relative">
+        <motion.div 
+          className="relative"
+          initial={false}
+          animate={error ? { x: [-2, 2, -2, 2, 0] } : {}}
+          transition={{ duration: 0.3 }}
+        >
           {icon && (
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-forest/40">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-forest/40 transition-colors peer-focus:text-forest">
               {icon}
             </span>
           )}
@@ -35,7 +41,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={!!error}
             aria-describedby={error ? errorId : undefined}
             className={cn(
-              "h-12 w-full rounded-xl border border-forest/15 bg-white/70 px-4 text-sm text-forest placeholder:text-forest/35 outline-none transition-colors focus:border-forest focus:ring-2 focus:ring-forest/20",
+              "peer h-12 w-full rounded-xl border border-forest/15 bg-white/70 px-4 text-sm text-forest placeholder:text-forest/35 outline-none transition-all duration-200 focus:border-forest focus:ring-2 focus:ring-forest/20 focus:bg-white",
               icon && "pl-11",
               trailingAction && "pr-11",
               error && "border-red-400 focus:border-red-500 focus:ring-red-200",
@@ -46,12 +52,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {trailingAction && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2">{trailingAction}</span>
           )}
-        </div>
-        {error && (
-          <p id={errorId} role="alert" className="mt-1.5 text-xs font-medium text-red-500">
-            {error}
-          </p>
-        )}
+        </motion.div>
+        <AnimatePresence>
+          {error && (
+            <motion.p 
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              id={errorId} 
+              role="alert" 
+              className="mt-1.5 text-xs font-medium text-red-500"
+            >
+              {error}
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
