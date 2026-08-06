@@ -5,14 +5,14 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:pointer-events-none disabled:opacity-60",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:pointer-events-none disabled:opacity-60",
   {
     variants: {
       variant: {
         primary: "bg-forest text-cream hover:bg-forest-light shadow-soft",
         outline: "border border-forest/20 bg-transparent text-forest hover:bg-forest/5",
         ghost: "bg-transparent text-forest hover:bg-forest/5",
-        link: "bg-transparent text-forest underline-offset-4 hover:underline p-0 h-auto",
+        link: "bg-transparent text-forest underline-offset-4 hover:underline p-0 h-auto active:scale-100",
       },
       size: {
         default: "h-12 px-6",
