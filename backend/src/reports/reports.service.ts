@@ -86,6 +86,7 @@ export class ReportsService {
     `;
 
     const result = await this.db.query(query, [projectId]);
+    
 
     return Number(result.rows[0].total_members);
   }

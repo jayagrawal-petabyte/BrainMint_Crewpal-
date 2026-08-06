@@ -2,14 +2,17 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+
 import { DatabaseModule } from './database/db.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { SearchModule } from './search/search.module';
 import { CommentsModule } from './comments/comments.module';
-import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -29,9 +32,11 @@ import { ReportsModule } from './reports/reports.module';
     UsersModule,
     OrganizationsModule,
     ProjectsModule,
+    TasksModule,
     DashboardModule,
+    AuditLogsModule,
+    SearchModule,
     CommentsModule,
-    ReportsModule,
   ],
   controllers: [],
   providers: [
