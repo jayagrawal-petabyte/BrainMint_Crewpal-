@@ -32,7 +32,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     clearError();
     try {
-      await login(values);
+      await login({ ...values, rememberMe: values.rememberMe ?? false });
       setSuccess(true);
       setTimeout(() => navigate("/dashboard"), 900);
     } catch {
