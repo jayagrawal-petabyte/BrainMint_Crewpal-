@@ -38,6 +38,12 @@ const UserDashboard = lazy(() =>
   }))
 );
 
+const ChangePassword = lazy(() =>
+  import("../pages/changePassword").then((module) => ({
+    default: module.ChangePassword,
+  }))
+);
+
 const OrganizationManagement = lazy(() =>
     import("../pages/organization").then((module) => ({
         default: module.OrganizationManagement,
@@ -141,6 +147,23 @@ export const router = createBrowserRouter([
     >
       <Suspense fallback={<PageLoader />}>
         <UserDashboard />
+      </Suspense>
+    </ProtectedRoute>
+  ),
+},
+
+{
+  path: "change-password/:id",
+  element: (
+    <ProtectedRoute
+      allowedRoles={[
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+        UserRole.EMPLOYEE,
+      ]}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <ChangePassword />
       </Suspense>
     </ProtectedRoute>
   ),

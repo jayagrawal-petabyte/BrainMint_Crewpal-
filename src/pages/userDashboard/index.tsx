@@ -13,7 +13,7 @@ export const UserDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const USERS = [
+  /*const USERS = [
     {
       id: 1,
       name: "Shanti Biswas",
@@ -39,7 +39,7 @@ export const UserDashboard = () => {
 
   const savedMembers = JSON.parse(
     localStorage.getItem("teamMembers") || "[]"
-  );
+  );*/
 
   const user = location.state?.member;
 

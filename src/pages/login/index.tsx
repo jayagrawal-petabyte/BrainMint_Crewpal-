@@ -85,7 +85,7 @@ const Login = () => {
       role,
     });
 
-    navigate("/tasks");
+    navigate("/dashboard");
   };
 
   return (
