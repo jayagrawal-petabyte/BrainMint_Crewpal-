@@ -41,7 +41,9 @@ export class RolesGuard implements CanActivate {
         `Role ${user.role_id} denied access to ${context.getHandler().name} ` +
           `(requires: ${requiredRoles.join(', ')}) — user ${user.id}`,
       );
-      throw new ForbiddenException('You do not have the required role to access this resource');
+      throw new ForbiddenException(
+        'You do not have the required role to access this resource',
+      );
     }
 
     return true;

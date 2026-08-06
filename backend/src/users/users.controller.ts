@@ -1,5 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 // users/users.controller.ts
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,31 +26,43 @@ export class UsersController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
-  create(@Body() dto: CreateUserDto) { return this.usersService.create(dto); }
+  create(@Body() dto: CreateUserDto, @Req() req: any) {
+    return this.usersService.create(dto, req.user);
+  }
 
   @Get()
-  findAll(@Query('organizationId') organizationId?: string) {
-    return this.usersService.findAll(organizationId ? Number(organizationId) : undefined);
+  findAll(@Req() req: any) {
+    return this.usersService.findAll(req.user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) { return this.usersService.findOne(id); }
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.usersService.findOne(id, req.user);
+  }
 
   @Patch(':id')
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+    @Req() req: any,
+  ) {
+    return this.usersService.update(id, dto, req.user);
   }
 
   @Patch(':id/deactivate')
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
-  deactivate(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.deactivate(id);
+  deactivate(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.usersService.deactivate(id, req.user);
   }
 
   @Patch(':id/role')
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
-  updateRole(@Param('id', ParseIntPipe) id: number, @Body('roleId', ParseIntPipe) roleId: number) {
-    return this.usersService.updateRole(id, roleId);
+  updateRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('roleId', ParseIntPipe) roleId: Role,
+    @Req() req: any,
+  ) {
+    return this.usersService.updateRole(id, roleId, req.user);
   }
-}
+}

@@ -1,32 +1,76 @@
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
+
 export enum TaskStatus {
-  TODO = 'TODO',
-  IN_PROGRESS = 'IN_PROGRESS',
-  IN_REVIEW = 'IN_REVIEW',
-  TESTING = 'TESTING',
-  DONE = 'DONE',
+  TODO = 'to_do',
+  IN_PROGRESS = 'in_progress',
+  IN_REVIEW = 'in_review',
+  TESTING = 'testing',
+  DONE = 'done',
 }
 
 export enum TaskPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT',
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
 }
 
 export class CreateTaskDto {
-  title!: string;
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  title: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
-  organizationId!: string;
-  projectId!: string;
+
+  @IsInt()
+  @Min(1)
+  projectId: number;
+
+  @IsOptional()
+  @IsEnum(TaskPriority)
   priority?: TaskPriority = TaskPriority.MEDIUM;
+
+  @IsOptional()
+  @IsEnum(TaskStatus)
   status?: TaskStatus = TaskStatus.TODO;
-  assigneeId?: string;
-  sprintId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  assigneeId?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  sprintId?: number;
 }
 
 export class UpdateTaskDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
   title?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsEnum(TaskPriority)
   priority?: TaskPriority;
-  sprintId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  sprintId?: number;
 }
