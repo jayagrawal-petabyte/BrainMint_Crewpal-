@@ -2,39 +2,41 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 
 import { MainLayout } from "../components/layout/MainLayout";
-import { Projects } from "../pages/projects";
 import Login from "../pages/login";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
+
 import UpdateProfile from "../pages/updateProfile";
 import AddMember from "../pages/addMember";
 
 const Tasks = lazy(() =>
-    import("../pages/tasks").then((module) => ({ default: module.Tasks })),
+  import("../pages/tasks").then((module) => ({
+    default: module.Tasks,
+  }))
+);
+
+const Projects = lazy(() =>
+  import("../pages/projects").then((module) => ({
+    default: module.Projects,
+  }))
 );
 
 const Dashboard = lazy(() =>
-    import("../pages/dashboard").then((module) => ({
-        default: module.Dashboard,
-    })),
+  import("../pages/dashboard").then((module) => ({
+    default: module.Dashboard,
+  }))
 );
 
 const Teams = lazy(() =>
-    import("../pages/teams").then((module) => ({
-        default: module.Teams,
-    })),
+  import("../pages/teams").then((module) => ({
+    default: module.Teams,
+  }))
 );
 
 const UserProfile = lazy(() =>
-    import("../pages/userProfile").then((module) => ({
-        default: module.UserProfile,
-    })),
-);
-
-const UserDashboard = lazy(() =>
-  import("../pages/userDashboard").then((module) => ({
-    default: module.UserDashboard,
+  import("../pages/userProfile").then((module) => ({
+    default: module.UserProfile,
   }))
 );
 
@@ -45,163 +47,258 @@ const ChangePassword = lazy(() =>
 );
 
 const OrganizationManagement = lazy(() =>
-    import("../pages/organization").then((module) => ({
-        default: module.OrganizationManagement,
-    })),
+  import("../pages/organization").then((module) => ({
+    default: module.OrganizationManagement,
+  }))
+);
+
+const OrganizationSettings = lazy(() =>
+  import("../pages/organization/settings")
+);
+
+const ProjectDetails = lazy(() =>
+  import("../pages/projects/ProjectDetails").then((module) => ({
+    default: module.ProjectDetails,
+  }))
+);
+
+const Reports = lazy(() => import("../pages/reports"));
+
+const Meetings = lazy(() =>
+  import("../pages/meetings").then((module) => ({
+    default: module.Meetings,
+  }))
+);
+
+const Settings = lazy(() =>
+  import("../pages/settings").then((module) => ({
+    default: module.Settings,
+  }))
+);
+
+const Scrum = lazy(() =>
+  import("../pages/scrum").then((module) => ({
+    default: module.Scrum,
+  }))
 );
 
 const PageLoader = () => (
-    <div className="min-h-screen flex items-center justify-center bg-cream-100">
-        <div className="w-8 h-8 border-4 border-forest-900 border-t-transparent rounded-full animate-spin"></div>
-    </div>
+  <div className="min-h-screen flex items-center justify-center bg-cream-100">
+    <div className="w-8 h-8 border-4 border-forest-900 border-t-transparent rounded-full animate-spin"></div>
+  </div>
 );
 
 const UnderConstruction = ({ title }: { title: string }) => (
-    <div className="p-8 text-center space-y-3 bg-cream-50 rounded-2xl border border-cream-200">
-        <h2 className="text-xl font-bold text-forest-800">{title}</h2>
-        <p className="text-sm text-forest-500">
-            This page is under maintenance. Please navigate to Task Management.
-        </p>
-    </div>
+  <div className="p-8 text-center space-y-3 bg-cream-50 rounded-2xl border border-cream-200">
+    <h2 className="text-xl font-bold text-forest-800">{title}</h2>
+    <p className="text-sm text-forest-500">
+      This page is under maintenance. Please navigate to Task Management.
+    </p>
+  </div>
 );
 
 export const router = createBrowserRouter([
-    {
-        path: "/login",
-        element: <Login />,
-    },
-    {
-        path: "/403",
-        element: <Forbidden />,
-    },
-    {
-        path: "/",
-        element: <MainLayout />,
-        children: [
-            {
-                index: true,
-                element: <Navigate to="/tasks" replace />,
-            },
-            {
-                path: "tasks",
-                element: (
-                    <ProtectedRoute
-                        allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
-                    >
-                        <Suspense fallback={<PageLoader />}>
-                            <Tasks />
-                        </Suspense>
-                    </ProtectedRoute>
-                ),
-            },
-            {
-                path: "projects",
-                element: <Projects />,
-            },
-            {
-                path: "organization",
-                element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <OrganizationManagement />
-                    </Suspense>
-                ),
-            },
-            {
-                path: "dashboard",
-                element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <Dashboard />
-                    </Suspense>
-                ),
-            },
-            {
-                path: "teams",
-                element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <Teams />
-                    </Suspense>
-                ),
-            },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/403",
+    element: <Forbidden />,
+  },
+  {
+    path: "/",
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.EMPLOYEE,
+        ]}
+      >
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/dashboard" replace />,
+      },
 
-            {
-  path: "teams/:id",
-  element: (
-    <ProtectedRoute
-      allowedRoles={[
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-      ]}
-    >
-      <Suspense fallback={<PageLoader />}>
-        <UserProfile />
-      </Suspense>
-    </ProtectedRoute>
-  ),
-},
+      {
+        path: "dashboard",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
+        ),
+      },
 
-            {
-  path: "user-dashboard",
-  element: (
-    <ProtectedRoute
-      allowedRoles={[UserRole.EMPLOYEE]}
-    >
-      <Suspense fallback={<PageLoader />}>
-        <UserDashboard />
-      </Suspense>
-    </ProtectedRoute>
-  ),
-},
+      {
+        path: "tasks",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Tasks />
+          </Suspense>
+        ),
+      },
 
-{
-  path: "change-password/:id",
-  element: (
-    <ProtectedRoute
-      allowedRoles={[
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-        UserRole.EMPLOYEE,
-      ]}
-    >
-      <Suspense fallback={<PageLoader />}>
-        <ChangePassword />
-      </Suspense>
-    </ProtectedRoute>
-  ),
-},
+      {
+        path: "meetings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Meetings />
+          </Suspense>
+        ),
+      },
 
-           {
-  path: "update-profile",
-  element: (
-    <ProtectedRoute
-      allowedRoles={[
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-        UserRole.EMPLOYEE,
-      ]}
-    >
-      <Suspense fallback={<PageLoader />}>
-        <UpdateProfile />
-      </Suspense>
-    </ProtectedRoute>
-  ),
-},
-            {
-                path: "add-member",
-                element: <AddMember />,
-            },
+      {
+        path: "projects",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Projects />
+          </Suspense>
+        ),
+      },
 
-            {
-                path: "reports",
-                element: <UnderConstruction title="Analytics & Reports" />,
-            },
-            {
-                path: "notifications",
-                element: <UnderConstruction title="Notifications Center" />,
-            },
-            {
-                path: "*",
-                element: <Navigate to="/tasks" replace />,
-            },
-        ],
-    },
+      {
+        path: "projects/:projectId",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectDetails />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "organization",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OrganizationManagement />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "organization/settings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OrganizationSettings />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "teams",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Teams />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "teams/:id",
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+            ]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <UserProfile />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "add-member",
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+            ]}
+          >
+            <AddMember />
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "update-profile/:id",
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+              UserRole.EMPLOYEE,
+            ]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <UpdateProfile />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "change-password/:id",
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+              UserRole.EMPLOYEE,
+            ]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <ChangePassword />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "reports",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Reports />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "notifications",
+        element: (
+          <UnderConstruction title="Notifications Center" />
+        ),
+      },
+
+      {
+        path: "settings",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Settings />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "scrum",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Scrum />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "*",
+        element: <Navigate to="/dashboard" replace />,
+      },
+    ],
+  },
 ]);

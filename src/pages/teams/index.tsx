@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types/roles";
+
 import {
   Search,
   User,
@@ -76,15 +77,16 @@ const TEAM_MEMBERS = [
 
 export const Teams = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [search, setSearch] = useState("");
-  const { user } = useAuth();
   const [showFilters, setShowFilters] = useState(false);
   const [activeDepartment, setActiveDepartment] = useState("All");
-  const [selectedFilter, setSelectedFilter] = useState("All");
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [selectedFilter, setSelectedFilter] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const departments = [
     "All",
@@ -97,7 +99,7 @@ export const Teams = () => {
   ];
 
   const savedMembers = JSON.parse(
-  localStorage.getItem("teamMembers") || "[]"
+    localStorage.getItem("teamMembers") || "[]"
   );
 
   const members = [
@@ -105,166 +107,179 @@ export const Teams = () => {
     ...savedMembers,
   ];
 
-  const filteredMembers = useMemo(() => {
+    const filteredMembers = useMemo(() => {
     return members.filter((member) => {
-      const matchesSearch =
-        member.name
-          .toLowerCase()
-          .includes(search.toLowerCase());
+      const matchesSearch = member.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
       const matchesDepartment =
         activeDepartment === "All" ||
         member.department === activeDepartment;
-      
+
       let matchesExtraFilter = true;
 
-    switch (selectedFilter) {
-      case "3 months":
-        matchesExtraFilter = member.duration === "3 months";
-        break;
+      switch (selectedFilter) {
+        case "3 months":
+          matchesExtraFilter = member.duration === "3 months";
+          break;
 
-      case "6 months":
-        matchesExtraFilter = member.duration === "6 months";
-        break;
+        case "6 months":
+          matchesExtraFilter = member.duration === "6 months";
+          break;
 
-      case "Lead":
-        matchesExtraFilter =
-          member.position?.toLowerCase().includes("lead") ?? false;
-        break;
+        case "Lead":
+          matchesExtraFilter =
+            member.position?.toLowerCase().includes("lead") ??
+            false;
+          break;
 
-      case "Available":
-        matchesExtraFilter =
-          member.availability === "Available";
-        break;
+        case "Available":
+          matchesExtraFilter =
+            member.availability === "Available";
+          break;
 
-      case "On Leave":
-        matchesExtraFilter =
-          member.availability === "On Leave";
-        break;
+        case "On Leave":
+          matchesExtraFilter =
+            member.availability === "On Leave";
+          break;
 
-      default:
-        matchesExtraFilter = true;
-    }
+        default:
+          matchesExtraFilter = true;
+      }
 
       return (
-      matchesSearch &&
-      matchesDepartment &&
-      matchesExtraFilter
-    );
-
-  });
-}, [search, activeDepartment, selectedFilter]);
+        matchesSearch &&
+        matchesDepartment &&
+        matchesExtraFilter
+      );
+    });
+  }, [
+    members,
+    search,
+    activeDepartment,
+    selectedFilter,
+  ]);
 
   const toggleMember = (id: number) => {
     setSelectedMembers((prev) =>
       prev.includes(id)
-        ? prev.filter((memberId) => memberId !== id)
+        ? prev.filter(
+            (memberId) => memberId !== id
+          )
         : [...prev, id]
     );
   };
 
   const toggleAllMembers = () => {
     if (
-      selectedMembers.length === filteredMembers.length
+      selectedMembers.length ===
+      filteredMembers.length
     ) {
       setSelectedMembers([]);
     } else {
       setSelectedMembers(
-        filteredMembers.map((member) => member.id)
+        filteredMembers.map(
+          (member) => member.id
+        )
       );
     }
   };
 
   const handleDelete = (id: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this member?"
+    );
 
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this member?"
-  );
+    if (!confirmed) return;
 
-  if (!confirmed) return;
+    const savedMembers = JSON.parse(
+      localStorage.getItem("teamMembers") ||
+        "[]"
+    );
 
-  const savedMembers = JSON.parse(
-    localStorage.getItem("teamMembers") || "[]"
-  );
+    const updatedMembers =
+      savedMembers.filter(
+        (member: any) => member.id !== id
+      );
 
-  const updatedMembers = savedMembers.filter(
-    (member: any) => member.id !== id
-  );
+    localStorage.setItem(
+      "teamMembers",
+      JSON.stringify(updatedMembers)
+    );
 
-  localStorage.setItem(
-    "teamMembers",
-    JSON.stringify(updatedMembers)
-  );
-
-  window.location.reload();
-};
-
-useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      menuRef.current &&
-      !menuRef.current.contains(event.target as Node)
-    ) {
-      setMenuOpenId(null);
-    }
+    window.location.reload();
   };
 
-  document.addEventListener("mousedown", handleClickOutside);
+  useEffect(() => {
+    const handleClickOutside = (
+      event: MouseEvent
+    ) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setMenuOpenId(null);
+      }
+    };
 
-  return () => {
-    document.removeEventListener(
+    document.addEventListener(
       "mousedown",
       handleClickOutside
     );
-  };
-}, []);
 
-  return (
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+    return (
     <div className="px-8 py-6 space-y-10">
+
+      {/* Header */}
 
       <div className="flex items-center justify-between">
 
         <div>
-
           <h1 className="text-3xl font-bold text-forest-900">
             Team
           </h1>
 
-          <p className="text-sm text-forest-500 mt-2">
+          <p className="mt-2 text-sm text-forest-500">
             Manage team members and their information.
           </p>
-
         </div>
 
-        
-          {user?.role !== UserRole.EMPLOYEE && (
-
-    <button
-          onClick={() => navigate("/add-member")}
-          className="
-            bg-forest-800
-            hover:bg-forest-900
-            text-white
-            rounded-full
-            px-6
-            py-3
-            font-medium
-            transition
-          "
-        >
-
-        + New Member
-
-    </button>
-
-)}
-
+        {user?.role !== UserRole.EMPLOYEE && (
+          <button
+            onClick={() => navigate("/add-member")}
+            className="
+              bg-forest-800
+              hover:bg-forest-900
+              text-white
+              rounded-full
+              px-6
+              py-3
+              font-medium
+              transition
+            "
+          >
+            + New Member
+          </button>
+        )}
 
       </div>
 
+      {/* Department Tabs */}
+
       <div className="space-y-6">
 
-                <div className="flex items-end justify-between gap-8">
+        <div className="flex items-end justify-between gap-8">
 
           <div className="flex flex-1 items-center gap-8 border-b border-cream-300">
 
@@ -275,8 +290,10 @@ useEffect(() => {
                   <button
                     key="more"
                     type="button"
-                    onClick={() => setShowFilters((prev) => !prev)}
-                    className={`pb-4 text-sm font-semibold cursor-pointer transition ${
+                    onClick={() =>
+                      setShowFilters((prev) => !prev)
+                    }
+                    className={`pb-4 text-sm font-semibold transition ${
                       showFilters
                         ? "text-forest-900"
                         : "text-forest-600 hover:text-forest-900"
@@ -291,7 +308,9 @@ useEffect(() => {
                 <button
                   key={department}
                   type="button"
-                  onClick={() => setActiveDepartment(department)}
+                  onClick={() =>
+                    setActiveDepartment(department)
+                  }
                   className={`pb-4 text-sm font-semibold border-b-[3px] transition-all ${
                     activeDepartment === department
                       ? "border-forest-800 text-forest-900"
@@ -301,10 +320,11 @@ useEffect(() => {
                   {department}
                 </button>
               );
-
             })}
 
           </div>
+
+          {/* Search */}
 
           <div
             className="
@@ -347,54 +367,60 @@ useEffect(() => {
 
         </div>
 
+        {/* Extra Filters */}
+
         {showFilters && (
 
           <div className="flex items-center gap-4">
 
             <span className="text-sm font-medium text-forest-700">
-              Filters :
+              Filters:
             </span>
 
             {[
-  "Clear",
-  "3 months",
-  "6 months",
-  "Lead",
-  "Available",
-  "On Leave",
-].map((filter) => (
+              "Clear",
+              "3 months",
+              "6 months",
+              "Lead",
+              "Available",
+              "On Leave",
+            ].map((filter) => (
 
               <button
-  key={filter}
-  type="button"
-  onClick={() => {
-  if (filter === "Clear") {
-    setSelectedFilter("");
-  } else {
-    setSelectedFilter(
-      selectedFilter === filter ? "" : filter
-    );
-  }
-}}
-  className={`
-    px-4
-    py-1
-    rounded-full
-    border
-    text-xs
-    transition
+                key={filter}
+                type="button"
+                onClick={() => {
+                  if (filter === "Clear") {
+                    setSelectedFilter("");
+                  } else {
+                    setSelectedFilter(
+                      selectedFilter === filter
+                        ? ""
+                        : filter
+                    );
+                  }
+                }}
+                className={`
+                  px-4
+                  py-1
+                  rounded-full
+                  border
+                  text-xs
+                  transition
 
-    ${
-      filter === "Clear"
-        ? "border-red-300 text-red-600 hover:bg-red-50"
-        : selectedFilter === filter
-        ? "bg-[#0D556D] text-white border-[#0D556D]"
-        : "border-[#E6D7B2] bg-[#FFF8EA] hover:bg-[#F6EFD8]"
-    }
-  `}
->
-  {filter === "Clear" ? "✕ Clear" : filter}
-</button>
+                  ${
+                    filter === "Clear"
+                      ? "border-red-300 text-red-600 hover:bg-red-50"
+                      : selectedFilter === filter
+                      ? "bg-[#0D556D] text-white border-[#0D556D]"
+                      : "border-[#E6D7B2] bg-[#FFF8EA] hover:bg-[#F6EFD8]"
+                  }
+                `}
+              >
+                {filter === "Clear"
+                  ? "✕ Clear"
+                  : filter}
+              </button>
 
             ))}
 
@@ -403,6 +429,8 @@ useEffect(() => {
         )}
 
       </div>
+
+      {/* Table Container */}
 
       <div
         className="
@@ -427,10 +455,13 @@ useEffect(() => {
                   type="checkbox"
                   checked={
                     filteredMembers.length > 0 &&
-                    selectedMembers.length === filteredMembers.length
+                    selectedMembers.length ===
+                      filteredMembers.length
                   }
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={() => toggleAllMembers()}
+                  onClick={(e) =>
+                    e.stopPropagation()
+                  }
+                  onChange={toggleAllMembers}
                   className="w-4 h-4 cursor-pointer"
                 />
 
@@ -456,40 +487,25 @@ useEffect(() => {
                 AVAILABILITY
               </th>
 
-              <th className="px-6 py-5 text-center">
-              </th>
+              <th className="px-6 py-5 text-center"></th>
 
             </tr>
 
           </thead>
 
-          <tbody>            {filteredMembers.length > 0 ? (
+          <tbody>
 
+                        {filteredMembers.length > 0 ? (
               filteredMembers.map((member) => (
-
                 <tr
                   key={member.id}
                   onClick={() => {
-
-  const isOwnProfile =
-  user?.email?.toLowerCase() ===
-  member.email?.toLowerCase();
-
-if (
-  user?.role === UserRole.EMPLOYEE &&
-  isOwnProfile
-) {
-  navigate("/user-dashboard", {
-    state: { member },
-  });
-  return;
-}
-
-navigate(`/teams/${member.id}`, {
-  state: { member },
-});
-
-}}
+                    if (user?.role !== UserRole.EMPLOYEE) {
+                      navigate(`/teams/${member.id}`, {
+                        state: { member },
+                      });
+                    }
+                  }}
                   className="
                     border-t
                     border-cream-200
@@ -498,9 +514,9 @@ navigate(`/teams/${member.id}`, {
                     cursor-pointer
                   "
                 >
+                  {/* Checkbox */}
 
                   <td className="px-6 py-5">
-
                     <input
                       type="checkbox"
                       checked={selectedMembers.includes(member.id)}
@@ -511,20 +527,28 @@ navigate(`/teams/${member.id}`, {
                       }}
                       className="w-4 h-4 cursor-pointer"
                     />
-
                   </td>
 
-                  <td className="px-6 py-5">
+                  {/* Name */}
 
+                  <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
 
-                      <div className="w-10 h-10 rounded-full bg-[#F4E2DD] flex items-center justify-center">
-
+                      <div
+                        className="
+                          w-10
+                          h-10
+                          rounded-full
+                          bg-[#F4E2DD]
+                          flex
+                          items-center
+                          justify-center
+                        "
+                      >
                         <User
                           size={18}
                           className="text-forest-700"
                         />
-
                       </div>
 
                       <div>
@@ -540,8 +564,9 @@ navigate(`/teams/${member.id}`, {
                       </div>
 
                     </div>
-
                   </td>
+
+                  {/* Task */}
 
                   <td className="px-6 py-5">
 
@@ -551,6 +576,8 @@ navigate(`/teams/${member.id}`, {
 
                   </td>
 
+                  {/* Project */}
+
                   <td className="px-6 py-5">
 
                     <span className="text-sm text-forest-700">
@@ -559,6 +586,8 @@ navigate(`/teams/${member.id}`, {
 
                   </td>
 
+                  {/* Assigned Time */}
+
                   <td className="px-6 py-5 text-center">
 
                     <span className="text-sm text-forest-700">
@@ -566,6 +595,8 @@ navigate(`/teams/${member.id}`, {
                     </span>
 
                   </td>
+
+                  {/* Availability */}
 
                   <td className="px-6 py-5">
 
@@ -585,108 +616,110 @@ navigate(`/teams/${member.id}`, {
 
                   </td>
 
+                  {/* Actions */}
+
                   <td className="relative px-6 py-5">
-{user?.role !== UserRole.EMPLOYEE && (
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
 
-      setMenuOpenId(
-        menuOpenId === member.id
-          ? null
-          : member.id
-      );
-    }}
-    className="
-      p-2
-      rounded-lg
-      hover:bg-gray-100
-      transition
-      cursor-pointer
-    "
-  >
-    <MoreHorizontal size={18} />
-  </button>
-  )}
+                    {user?.role !== UserRole.EMPLOYEE && (
 
-  {user?.role !== UserRole.EMPLOYEE &&
- menuOpenId === member.id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
 
-    <div
-      ref={menuRef}
-      className="
-        absolute
-        right-5
-        mt-2
-        w-44
-        rounded-xl
-        bg-white
-        shadow-xl
-        border
-        z-50
-      "
-    >
+                          setMenuOpenId(
+                            menuOpenId === member.id
+                              ? null
+                              : member.id
+                          );
+                        }}
+                        className="
+                          p-2
+                          rounded-lg
+                          hover:bg-gray-100
+                          transition
+                          cursor-pointer
+                        "
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
+                    )}
 
-          navigate(`/update-profile/${member.id}`);
-        }}
-        className="
-          w-full
-          text-left
-          px-4
-          py-3
-          hover:bg-gray-50
-          flex
-          items-center
-          gap-3
-        "
-      >
-        ✏️ Edit Member
-      </button>
+                    {user?.role !== UserRole.EMPLOYEE &&
+                      menuOpenId === member.id && (
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
+                        <div
+                          ref={menuRef}
+                          className="
+                            absolute
+                            right-5
+                            mt-2
+                            w-44
+                            rounded-xl
+                            bg-white
+                            shadow-xl
+                            border
+                            z-50
+                          "
+                        >
 
-          handleDelete(member.id);
-        }}
-        className="
-          w-full
-          text-left
-          px-4
-          py-3
-          hover:bg-red-50
-          text-red-600
-          flex
-          items-center
-          gap-3
-        "
-      >
-        🗑 Delete Member
-      </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
 
-    </div>
+                              navigate(
+                                `/update-profile/${member.id}`
+                              );
+                            }}
+                            className="
+                              w-full
+                              text-left
+                              px-4
+                              py-3
+                              hover:bg-gray-50
+                              flex
+                              items-center
+                              gap-3
+                            "
+                          >
+                            ✏️ Edit Member
+                          </button>
 
-  )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(member.id);
+                            }}
+                            className="
+                              w-full
+                              text-left
+                              px-4
+                              py-3
+                              hover:bg-red-50
+                              text-red-600
+                              flex
+                              items-center
+                              gap-3
+                            "
+                          >
+                            🗑 Delete Member
+                          </button>
 
-</td>
+                        </div>
+
+                    )}
+
+                  </td>
 
                 </tr>
-
               ))
-
             ) : (
 
-              <tr>
-
+                            <tr>
                 <td
                   colSpan={7}
                   className="py-20 text-center"
                 >
-
                   <UsersIcon
                     size={46}
                     className="mx-auto mb-3 text-forest-300"
@@ -699,15 +732,14 @@ navigate(`/teams/${member.id}`, {
                   <p className="mt-2 text-sm text-forest-500">
                     Try another search or department.
                   </p>
-
                 </td>
-
               </tr>
-
             )}
-
           </tbody>
-                  </table>
+
+        </table>
+
+        {/* Pagination */}
 
         <div
           className="
@@ -745,19 +777,58 @@ navigate(`/teams/${member.id}`, {
 
           <div className="flex items-center gap-2">
 
-            <button className="w-10 h-10 rounded-xl border border-cream-300 hover:bg-cream-100 transition">
+            <button
+              className="
+                w-10
+                h-10
+                rounded-xl
+                border
+                border-cream-300
+                hover:bg-cream-100
+                transition
+              "
+            >
               1
             </button>
 
-            <button className="w-10 h-10 rounded-xl bg-[#A9C4FF] text-forest-900 font-bold">
+            <button
+              className="
+                w-10
+                h-10
+                rounded-xl
+                bg-[#A9C4FF]
+                text-forest-900
+                font-bold
+              "
+            >
               2
             </button>
 
-            <button className="w-10 h-10 rounded-xl border border-cream-300 hover:bg-cream-100 transition">
+            <button
+              className="
+                w-10
+                h-10
+                rounded-xl
+                border
+                border-cream-300
+                hover:bg-cream-100
+                transition
+              "
+            >
               3
             </button>
 
-            <button className="w-10 h-10 rounded-xl border border-cream-300 hover:bg-cream-100 transition">
+            <button
+              className="
+                w-10
+                h-10
+                rounded-xl
+                border
+                border-cream-300
+                hover:bg-cream-100
+                transition
+              "
+            >
               4
             </button>
 
@@ -765,7 +836,17 @@ navigate(`/teams/${member.id}`, {
               ...
             </span>
 
-            <button className="w-10 h-10 rounded-xl border border-cream-300 hover:bg-cream-100 transition">
+            <button
+              className="
+                w-10
+                h-10
+                rounded-xl
+                border
+                border-cream-300
+                hover:bg-cream-100
+                transition
+              "
+            >
               11
             </button>
 
@@ -797,7 +878,6 @@ navigate(`/teams/${member.id}`, {
       </div>
 
     </div>
-
   );
 };
 

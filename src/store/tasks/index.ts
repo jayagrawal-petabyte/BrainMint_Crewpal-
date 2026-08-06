@@ -23,6 +23,7 @@ const PRIORITY_RANK: Record<TaskPriority, number> = { high: 3, medium: 2, low: 1
 const SEED_TASKS: Task[] = [
   {
     id: 'task-1',
+    projectId: 'proj-001',
     title: 'Design Task Management Architecture',
     description: 'Structure components, store, and state flow for CREWPAL Task module.',
     techTag: 'React + Node',
@@ -37,6 +38,7 @@ const SEED_TASKS: Task[] = [
   },
   {
     id: 'task-2',
+    projectId: 'proj-001',
     title: 'Implement Reusable Task Cards',
     description: 'Extract TaskCard component with hover effects, priority dot, and actions.',
     techTag: 'React + Tailwind',
@@ -51,6 +53,7 @@ const SEED_TASKS: Task[] = [
   },
   {
     id: 'task-3',
+    projectId: 'proj-002',
     title: 'Build Filter & Search System',
     description: 'Multi-criteria filter dropdown for status and priority with real-time search.',
     techTag: 'Zustand + React',
@@ -71,6 +74,7 @@ const SEED_TASKS: Task[] = [
   },
   {
     id: 'task-4',
+    projectId: 'proj-002',
     title: 'Create Task & Edit Task Modals',
     description: 'Interactive popup forms with assignee selection and full validation.',
     techTag: 'React Modal',
@@ -91,6 +95,7 @@ const SEED_TASKS: Task[] = [
   },
   {
     id: 'task-5',
+    projectId: 'proj-003',
     title: 'Setup CI/CD Pipeline',
     description: 'Configure GitHub Actions for lint, build, and deploy to staging.',
     techTag: 'Node.js',
@@ -105,6 +110,7 @@ const SEED_TASKS: Task[] = [
   },
   {
     id: 'task-6',
+    projectId: 'proj-003',
     title: 'Responsive Layout & Mobile View',
     description: 'Ensure all pages work on 375px through 1440px screens.',
     techTag: 'React + Tailwind',
@@ -122,6 +128,7 @@ const SEED_TASKS: Task[] = [
   },
   {
     id: 'task-7',
+    projectId: 'proj-004',
     title: 'Dashboard Stats & Charts',
     description: 'Build overview cards showing task metrics and priority distribution.',
     techTag: 'React',
@@ -152,6 +159,7 @@ interface TaskState {
   assignTask: (id: string, assignees: Assignee[]) => void;
   updateStatus: (id: string, status: TaskStatus) => void;
   updatePriority: (id: string, priority: TaskPriority) => void;
+  updateProjectTasks: (projectId: string, taskIds: string[]) => void;
 
   // Comments
   addComment: (taskId: string, authorId: string, authorName: string, authorInitials: string, text: string) => void;
@@ -160,6 +168,8 @@ interface TaskState {
   addSubtask: (taskId: string, title: string) => void;
   toggleSubtask: (taskId: string, subtaskId: string) => void;
   deleteSubtask: (taskId: string, subtaskId: string) => void;
+  addAttachment: (taskId: string, name: string, type: string, size: string, url: string) => void;
+  deleteAttachment: (taskId: string, attachmentId: string) => void;
 
   // Filters
   setSearch: (search: string) => void;
@@ -232,6 +242,22 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     get().updateTask(id, { priority });
   },
 
+  updateProjectTasks: (projectId, taskIds) => {
+    set((state) => ({
+      tasks: state.tasks.map((task) => {
+        if (taskIds.includes(task.id)) {
+          return { ...task, projectId };
+        }
+
+        if (task.projectId === projectId) {
+          return { ...task, projectId: undefined };
+        }
+
+        return task;
+      }),
+    }));
+  },
+
   // ─── Comments ──────────────────────────────────────────────────────────────
 
   addComment: (taskId, authorId, authorName, authorInitials, text) => {
@@ -266,12 +292,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId
           ? {
-              ...task,
-              subtasks: task.subtasks.map((st) =>
-                st.id === subtaskId ? { ...st, completed: !st.completed } : st
-              ),
-              updatedAt: new Date().toISOString(),
-            }
+            ...task,
+            subtasks: task.subtasks.map((st) =>
+              st.id === subtaskId ? { ...st, completed: !st.completed } : st
+            ),
+            updatedAt: new Date().toISOString(),
+          }
           : task
       ),
     }));
@@ -282,6 +308,34 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId
           ? { ...task, subtasks: task.subtasks.filter((st) => st.id !== subtaskId), updatedAt: new Date().toISOString() }
+          : task
+      ),
+    }));
+  },
+
+  addAttachment: (taskId, name, type, size, url) => {
+    const attachment = {
+      id: `att-${Date.now()}`,
+      name,
+      type,
+      size,
+      url,
+      uploadedAt: new Date().toISOString(),
+    };
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, attachments: [...(task.attachments || []), attachment], updatedAt: new Date().toISOString() }
+          : task
+      ),
+    }));
+  },
+
+  deleteAttachment: (taskId, attachmentId) => {
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, attachments: (task.attachments || []).filter((a) => a.id !== attachmentId), updatedAt: new Date().toISOString() }
           : task
       ),
     }));

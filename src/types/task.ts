@@ -23,8 +23,18 @@ export interface Subtask {
   completed: boolean;
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  size: string;
+  type: string; // e.g. 'image/png', 'application/pdf', etc.
+  uploadedAt: string;
+}
+
 export interface Task {
   id: string;
+  projectId?: string;
   title: string;
   description: string;
   techTag: string;
@@ -34,6 +44,7 @@ export interface Task {
   assignees: Assignee[];
   comments: Comment[];
   subtasks: Subtask[];
+  attachments?: Attachment[];
   createdAt: string;
   updatedAt: string;
 }

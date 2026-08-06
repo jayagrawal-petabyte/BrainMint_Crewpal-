@@ -85,9 +85,8 @@ export const TaskActionsMenu = ({
               <button
                 key={opt.value}
                 onClick={() => { onChangeStatus(opt.value); onClose(); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors rounded-lg ${
-                  currentStatus === opt.value ? 'bg-forest-700 text-white' : 'text-forest-600 hover:bg-cream-200'
-                }`}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors rounded-lg ${currentStatus === opt.value ? 'bg-forest-700 text-white' : 'text-forest-600 hover:bg-cream-200'
+                  }`}
               >
                 <span className={`w-2 h-2 rounded-full ${opt.color}`}></span>
                 {opt.label}
@@ -111,9 +110,8 @@ export const TaskActionsMenu = ({
               <button
                 key={opt.value}
                 onClick={() => { onChangePriority(opt.value); onClose(); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors rounded-lg ${
-                  currentPriority === opt.value ? 'bg-forest-700 text-white' : 'text-forest-600 hover:bg-cream-200'
-                }`}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors rounded-lg ${currentPriority === opt.value ? 'bg-forest-700 text-white' : 'text-forest-600 hover:bg-cream-200'
+                  }`}
               >
                 <span className={`w-2 h-2 rounded-full ${opt.color}`}></span>
                 {opt.label}
