@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Card } from '../../components/common/Card';
@@ -286,117 +287,129 @@ export const Projects = () => {
         </div>
 
         {/* Rows */}
-        {filteredProjects.map((project) => (
-          <div
-            key={project.id}
-            onClick={() => navigate(`/projects/${project.id}`)}
-            className="flex items-center justify-between px-4 py-3 border-b border-olive-100 last:border-b-0 bg-olive-50/20 hover:bg-olive-100/40 transition-all duration-150 group cursor-pointer"
-          >
-            {/* Checkbox + Info */}
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <input
-                type="checkbox"
-                checked={selectedProjectIds.has(project.id)}
-                onChange={() => handleSelectProject(project.id)}
-                onClick={(e) => e.stopPropagation()}
-                className="w-4 h-4 rounded border-forest-300 text-forest-600 focus:ring-forest-500 cursor-pointer shrink-0 self-center"
-              />
-              <div className="w-9 h-9 rounded-full bg-cream-200 text-forest-600 flex items-center justify-center shrink-0 border border-cream-300 font-bold">
-                <User className="w-4 h-4 text-forest-500" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-sm text-forest-900 truncate">{project.name}</p>
-                  {project.category && (
-                    <span className="text-[10px] bg-forest-50 text-forest-600 border border-forest-100 rounded px-1.5 font-medium shrink-0">
-                      {project.category}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-forest-500 truncate">Lead: {project.owner}</p>
-                {project.description && (
-                  <p className="text-[11px] text-forest-400 italic mt-0.5 max-w-md truncate">{project.description}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Right side columns */}
-            <div className="flex items-center gap-4 shrink-0">
-              {/* Tech Stack */}
-              <div className="hidden lg:block w-24 text-center">
-                <span className="text-xs text-forest-600 font-medium truncate block">
-                  {project.techStack || '-'}
-                </span>
-              </div>
-
-              {/* Status Badge */}
-              <div className="hidden md:block w-16 text-center">
-                <ProjectBadge status={project.status} size="sm" />
-              </div>
-
-              {/* Progress */}
-              <div className="hidden md:block w-16 text-center">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cream-100 border border-cream-200">
-                  <div className="w-8 h-1 bg-cream-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-forest-500 rounded-full transition-all"
-                      style={{ width: `${project.progress || 0}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-semibold text-forest-600">{project.progress || 0}%</span>
-                </div>
-              </div>
-
-              {/* Star */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleStarProject(project.id);
-                }}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-rose-500 cursor-pointer"
-                title={project.isStarred ? 'Unstar Project' : 'Star Project'}
+        <div className="relative">
+          <AnimatePresence mode="popLayout">
+            {filteredProjects.map((project) => (
+              <motion.div
+                key={project.id}
+                layout
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => navigate(`/projects/${project.id}`)}
+                className="flex items-center justify-between px-4 py-3 border-b border-olive-100 last:border-b-0 bg-olive-50/20 hover:bg-olive-100/40 transition-colors duration-150 group cursor-pointer"
               >
-                <Star
-                  className={`w-4 h-4 transition-transform active:scale-125 ${
-                    project.isStarred
-                      ? 'fill-rose-500 text-rose-500'
-                      : 'text-forest-400'
-                  }`}
-                />
-              </button>
-
-              {/* Actions menu */}
-              <div className="relative w-8 flex justify-center">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActionMenuProjectId(actionMenuProjectId === project.id ? null : project.id);
-                  }}
-                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-forest-700 cursor-pointer"
-                  title="More options"
-                >
-                  <MoreVertical className="w-3.5 h-3.5" />
-                </button>
-                {actionMenuProjectId === project.id && (
-                  <ProjectActionsMenu
-                    isOpen={true}
-                    onClose={() => setActionMenuProjectId(null)}
-                    onEdit={() => handleEditProject(project)}
-                    onDelete={() => handleDeleteRequest(project)}
+                {/* Checkbox + Info */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedProjectIds.has(project.id)}
+                    onChange={() => handleSelectProject(project.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-4 h-4 rounded border-forest-300 text-forest-600 focus:ring-forest-500 cursor-pointer shrink-0 self-center"
                   />
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+                  <div className="w-9 h-9 rounded-full bg-cream-200 text-forest-600 flex items-center justify-center shrink-0 border border-cream-300 font-bold">
+                    <User className="w-4 h-4 text-forest-500" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-sm text-forest-900 truncate group-hover:text-forest-700 transition-colors">{project.name}</p>
+                      {project.category && (
+                        <span className="text-[10px] bg-forest-50 text-forest-600 border border-forest-100 rounded px-1.5 font-medium shrink-0">
+                          {project.category}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-forest-500 truncate">Lead: {project.owner}</p>
+                    {project.description && (
+                      <p className="text-[11px] text-forest-400 italic mt-0.5 max-w-md truncate">{project.description}</p>
+                    )}
+                  </div>
+                </div>
 
-        {filteredProjects.length === 0 && (
-          <div className="text-center py-16 space-y-2">
-            <p className="text-3xl">📁</p>
-            <p className="text-forest-700 font-bold">No projects matched your criteria</p>
-            <p className="text-forest-450 text-xs">Try clearing filters or create a new project above.</p>
-          </div>
-        )}
+                {/* Right side columns */}
+                <div className="flex items-center gap-4 shrink-0">
+                  {/* Tech Stack */}
+                  <div className="hidden lg:block w-24 text-center">
+                    <span className="text-xs text-forest-600 font-medium truncate block">
+                      {project.techStack || '-'}
+                    </span>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="hidden md:block w-16 text-center">
+                    <ProjectBadge status={project.status} size="sm" />
+                  </div>
+
+                  {/* Progress */}
+                  <div className="hidden md:block w-16 text-center">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cream-100 border border-cream-200">
+                      <div className="w-8 h-1 bg-cream-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-forest-500 rounded-full transition-all duration-500"
+                          style={{ width: `${project.progress || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-semibold text-forest-600">{project.progress || 0}%</span>
+                    </div>
+                  </div>
+
+                  {/* Star */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStarProject(project.id);
+                    }}
+                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-rose-500 cursor-pointer"
+                    title={project.isStarred ? 'Unstar Project' : 'Star Project'}
+                  >
+                    <Star
+                      className={`w-4 h-4 transition-transform active:scale-125 ${
+                        project.isStarred
+                          ? 'fill-rose-500 text-rose-500'
+                          : 'text-forest-400'
+                      }`}
+                    />
+                  </button>
+
+                  {/* Actions menu */}
+                  <div className="relative w-8 flex justify-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActionMenuProjectId(actionMenuProjectId === project.id ? null : project.id);
+                      }}
+                      className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-cream-200 transition-colors text-forest-400 hover:text-forest-700 cursor-pointer"
+                      title="More options"
+                    >
+                      <MoreVertical className="w-3.5 h-3.5" />
+                    </button>
+                    {actionMenuProjectId === project.id && (
+                      <ProjectActionsMenu
+                        isOpen={true}
+                        onClose={() => setActionMenuProjectId(null)}
+                        onEdit={() => handleEditProject(project)}
+                        onDelete={() => handleDeleteRequest(project)}
+                      />
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {filteredProjects.length === 0 && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="text-center py-16 space-y-2"
+            >
+              <p className="text-3xl">📁</p>
+              <p className="text-forest-700 font-bold">No projects matched your criteria</p>
+              <p className="text-forest-450 text-xs">Try clearing filters or create a new project above.</p>
+            </motion.div>
+          )}
+        </div>
       </Card>
 
       {/* Create Project Modal */}
