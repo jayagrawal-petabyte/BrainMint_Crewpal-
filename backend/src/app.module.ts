@@ -13,7 +13,6 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { SearchModule } from './search/search.module';
 import { CommentsModule } from './comments/comments.module';
-import { AttachmentsModule } from './attachments/attachments.module';
 
 @Module({
   imports: [
@@ -38,7 +37,6 @@ import { AttachmentsModule } from './attachments/attachments.module';
     AuditLogsModule,
     SearchModule,
     CommentsModule,
-    AttachmentsModule,
   ],
   controllers: [],
   providers: [
