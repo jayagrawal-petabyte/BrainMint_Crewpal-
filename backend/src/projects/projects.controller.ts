@@ -22,10 +22,7 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateProjectDto,
-    @Req() req: any,
-  ) {
+  create(@Body() dto: CreateProjectDto, @Req() req: any) {
     return this.projectsService.create(dto, req.user);
   }
 
@@ -35,10 +32,7 @@ export class ProjectsController {
   }
 
   @Get(':id')
-  findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: any,
-  ) {
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.projectsService.findOne(id, req.user);
   }
 
@@ -52,9 +46,7 @@ export class ProjectsController {
   }
 
   @Delete(':id')
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.deactivate(id);
   }
 }

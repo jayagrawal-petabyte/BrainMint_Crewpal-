@@ -28,24 +28,43 @@ export class TasksService {
     user: { id: number; organization_id: number; role_id: Role },
   ) {
     const result = await this.pool.query(
-      `SELECT p.id, p.organization_id
+      `SELECT p.id, p.organization_id,
+              (pm.user_id IS NOT NULL) AS is_member
        FROM projects p
-       WHERE p.id = $1 AND p.is_active = TRUE`,
-      [projectId],
+       LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = $1
+       WHERE p.id = $2 AND p.is_active = TRUE`,
+      [user.id, projectId],
     );
 
     if (result.rows.length === 0) {
       throw new NotFoundException('Project not found');
     }
 
-    if (
-      user.role_id !== Role.SUPER_ADMIN &&
-      result.rows[0].organization_id !== user.organization_id
-    ) {
+    const projectInfo = result.rows[0];
+
+    // Super Admin: cross-org access allowed
+    if (user.role_id === Role.SUPER_ADMIN) {
+      return projectInfo;
+    }
+
+    // Organization isolation: NotFoundException to avoid confirming resource existence
+    if (projectInfo.organization_id !== user.organization_id) {
       throw new NotFoundException('Project not found');
     }
 
-    return result.rows[0];
+    // Org Admin: all projects within their org
+    if (user.role_id === Role.ORG_ADMIN) {
+      return projectInfo;
+    }
+
+    // Roles 3-9: must be an active member of the project
+    if (!projectInfo.is_member) {
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
+    }
+
+    return projectInfo;
   }
 
   private async verifyTaskAccess(
@@ -53,25 +72,44 @@ export class TasksService {
     user: { id: number; organization_id: number; role_id: Role },
   ) {
     const result = await this.pool.query(
-      `SELECT t.id, t.project_id, t.created_by, p.organization_id
+      `SELECT t.id, t.project_id, t.created_by, p.organization_id,
+              (pm.user_id IS NOT NULL) AS is_member
        FROM tasks t
        JOIN projects p ON p.id = t.project_id
-       WHERE t.id = $1`,
-      [taskId],
+       LEFT JOIN project_members pm ON pm.project_id = t.project_id AND pm.user_id = $1
+       WHERE t.id = $2`,
+      [user.id, taskId],
     );
 
     if (result.rows.length === 0) {
       throw new NotFoundException('Task not found');
     }
 
-    if (
-      user.role_id !== Role.SUPER_ADMIN &&
-      result.rows[0].organization_id !== user.organization_id
-    ) {
+    const taskInfo = result.rows[0];
+
+    // Super Admin: cross-org access allowed
+    if (user.role_id === Role.SUPER_ADMIN) {
+      return taskInfo;
+    }
+
+    // Organization isolation: NotFoundException to avoid confirming resource existence
+    if (taskInfo.organization_id !== user.organization_id) {
       throw new NotFoundException('Task not found');
     }
 
-    return result.rows[0];
+    // Org Admin: all projects within their org
+    if (user.role_id === Role.ORG_ADMIN) {
+      return taskInfo;
+    }
+
+    // Roles 3-9: must be an active member of the project
+    if (!taskInfo.is_member) {
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
+    }
+
+    return taskInfo;
   }
 
   async create(
@@ -190,7 +228,33 @@ export class TasksService {
     assigneeId: number,
     user: { id: number; organization_id: number; role_id: Role },
   ) {
-    await this.verifyTaskAccess(id, user);
+    const task = await this.verifyTaskAccess(id, user);
+
+    // Validate assignee: must exist, be active, belong to same org, and be a project member
+    const assigneeResult = await this.pool.query(
+      `SELECT u.id, u.organization_id,
+              (pm.user_id IS NOT NULL) AS is_project_member
+       FROM users u
+       LEFT JOIN project_members pm ON pm.user_id = u.id AND pm.project_id = $1
+       WHERE u.id = $2 AND u.is_active = TRUE`,
+      [task.project_id, assigneeId],
+    );
+
+    if (assigneeResult.rows.length === 0) {
+      throw new NotFoundException('Assignee user not found or inactive');
+    }
+
+    const assignee = assigneeResult.rows[0];
+
+    if (assignee.organization_id !== task.organization_id) {
+      throw new ForbiddenException(
+        'Cannot assign a user from a different organization',
+      );
+    }
+
+    if (!assignee.is_project_member) {
+      throw new ForbiddenException('Assignee must be a member of the project');
+    }
 
     const result = await this.pool.query(
       `UPDATE tasks SET assignee_id = $1, updated_at = NOW() WHERE id = $2 RETURNING ${TASK_COLUMNS}`,
