@@ -1,9 +1,5 @@
 # BrainMint CrewPal — Secure Coding Guidelines & PR Review Checklist
 
-> **Owner:** Security Engineering  
-> **Last Updated:** 2026-08-07  
-> **Applies to:** All backend code in `backend/src/`
-
 ---
 
 ## Table of Contents
