@@ -40,6 +40,12 @@ const UserProfile = lazy(() =>
   }))
 );
 
+const UserDashboard = lazy(() =>
+  import("../pages/userDashboard").then((module) => ({
+    default: module.UserDashboard,
+  }))
+);
+
 const ChangePassword = lazy(() =>
   import("../pages/changePassword").then((module) => ({
     default: module.ChangePassword,
@@ -243,6 +249,23 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+
+      {
+  path: "user-dashboard",
+  element: (
+    <ProtectedRoute
+      allowedRoles={[
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+        UserRole.EMPLOYEE,
+      ]}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <UserDashboard />
+      </Suspense>
+    </ProtectedRoute>
+  ),
+},
 
       {
         path: "change-password/:id",
