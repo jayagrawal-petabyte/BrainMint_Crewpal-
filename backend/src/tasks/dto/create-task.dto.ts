@@ -26,7 +26,7 @@ export class CreateTaskDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  title: string;
+  title!: string;
 
   @IsOptional()
   @IsString()
@@ -34,7 +34,7 @@ export class CreateTaskDto {
 
   @IsInt()
   @Min(1)
-  projectId: number;
+  projectId!: number;
 
   @IsOptional()
   @IsEnum(TaskPriority)

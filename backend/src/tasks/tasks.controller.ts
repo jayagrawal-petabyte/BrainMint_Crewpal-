@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable */
 import {
   Controller,
   Get,
@@ -9,6 +9,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
   ParseIntPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
@@ -45,6 +46,11 @@ export class TasksController {
   @Get()
   findAll(@Req() req: any) {
     return this.tasksService.findAll(req.user);
+  }
+
+  @Get('search')
+  searchTasks(@Query() filters: any, @Req() req: any) {
+    return this.tasksService.searchTasks(filters, req.user);
   }
 
   @Get(':id')
