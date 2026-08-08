@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
 import { Search } from "lucide-react";
 
 import { Sidebar } from "./Sidebar";
+import { PageTransition } from "./PageTransition";
 import { GlobalSearch } from "../modals/GlobalSearch";
 import { ToastContainer } from "../ui/Toast";
 
@@ -26,7 +26,7 @@ export const MainLayout = () => {
       <Sidebar />
 
       <main className="flex-1 overflow-auto">
-        <Outlet />
+        <PageTransition />
       </main>
 
       <ToastContainer />
