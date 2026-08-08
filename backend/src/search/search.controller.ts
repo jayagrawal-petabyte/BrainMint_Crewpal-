@@ -1,7 +1,15 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { SearchService } from './search.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller('search')
+@UseGuards(JwtAuthGuard)
 export class SearchController {
   constructor(
     private readonly searchService: SearchService,
@@ -10,14 +18,19 @@ export class SearchController {
   @Get('projects')
   async searchProjects(
     @Query('search') search?: string,
-    @Query('organizationId') organizationId?: number,
-    @Query('isActive') isActive?: boolean,
+    @Query('isActive') isActive?: string,
+    @Req() req?: any,
   ) {
-    return this.searchService.searchProjects({
-      search,
-      organizationId,
-      isActive,
-    });
+    return this.searchService.searchProjects(
+      {
+        search,
+        isActive:
+          isActive !== undefined
+            ? isActive === 'true'
+            : undefined,
+      },
+      req.user,
+    );
   }
 
   @Get('tasks')
@@ -25,17 +38,30 @@ export class SearchController {
     @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('priority') priority?: string,
-    @Query('projectId') projectId?: number,
-    @Query('assigneeId') assigneeId?: number,
-    @Query('isClosed') isClosed?: boolean,
+    @Query('projectId') projectId?: string,
+    @Query('assigneeId') assigneeId?: string,
+    @Query('isClosed') isClosed?: string,
+    @Req() req?: any,
   ) {
-    return this.searchService.searchTasks({
-      search,
-      status,
-      priority,
-      projectId,
-      assigneeId,
-      isClosed,
-    });
+    return this.searchService.searchTasks(
+      {
+        search,
+        status,
+        priority,
+        projectId:
+          projectId !== undefined
+            ? Number(projectId)
+            : undefined,
+        assigneeId:
+          assigneeId !== undefined
+            ? Number(assigneeId)
+            : undefined,
+        isClosed:
+          isClosed !== undefined
+            ? isClosed === 'true'
+            : undefined,
+      },
+      req.user,
+    );
   }
 }

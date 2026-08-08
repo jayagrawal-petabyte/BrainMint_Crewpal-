@@ -1,40 +1,52 @@
-import {
-  Injectable,
-  NotImplementedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ProjectsService } from '../projects/projects.service';
+import { TasksService } from '../tasks/tasks.service';
+
+interface SearchProjectFilters {
+  search?: string;
+  isActive?: boolean;
+}
+
+interface SearchTaskFilters {
+  search?: string;
+  status?: string;
+  priority?: string;
+  projectId?: number;
+  assigneeId?: number;
+  isClosed?: boolean;
+}
+
+interface SearchUser {
+  id: number;
+  organization_id: number;
+  role_id: number;
+}
 
 @Injectable()
 export class SearchService {
   constructor(
     private readonly projectsService: ProjectsService,
-    // private readonly tasksService: TasksService,
+    private readonly tasksService: TasksService,
   ) {}
 
-  async searchProjects(filters: {
-    search?: string;
-    organizationId?: number;
-    isActive?: boolean;
-  }) {
-    return this.projectsService.searchProjects(filters);
+  async searchProjects(
+    filters: SearchProjectFilters,
+    user: SearchUser,
+  ) {
+    return this.projectsService.searchProjects({
+      search: filters.search,
+      isActive: filters.isActive,
+      organizationId: user.organization_id,
+    });
   }
 
-  async searchTasks(filters: {
-    search?: string;
-    status?: string;
-    priority?: string;
-    projectId?: number;
-    assigneeId?: number;
-    isClosed?: boolean;
-  }) {
-    /**
-     * Uncomment after TasksService is implemented
-     *
-     * return this.tasksService.searchTasks(filters);
-     */
-
-    throw new NotImplementedException(
-      'Task search is not implemented yet.',
+  async searchTasks(
+    filters: SearchTaskFilters,
+    user: SearchUser,
+  ) {
+    return this.tasksService.searchTasks(
+      filters,
+      user,
     );
   }
 }
