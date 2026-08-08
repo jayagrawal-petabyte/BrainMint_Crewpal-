@@ -1,11 +1,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Outlet, useLocation } from "react-router-dom";
 
-/**
- * Wraps <Outlet /> with a subtle fade + lift transition whenever the
- * authenticated route changes. Drop-in replacement for <Outlet /> inside
- * MainLayout — do not use for content outside the authenticated shell.
- */
+
 export const PageTransition = () => {
   const location = useLocation();
   const shouldReduceMotion = useReducedMotion();
