@@ -1,195 +1,171 @@
 /* eslint-disable */
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+} from '@nestjs/common';
 import { Pool } from 'pg';
-import { TaskStatus } from './dto/create-task.dto';
-
-export enum Role {
-  SUPER_ADMIN = 'SUPER_ADMIN',
-  ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER',
-}
-
-export { TaskStatus };
-
-export const TASK_COLUMNS =
-  't.id, t.title, t.description, t.status, t.priority, t.project_id, t.assignee_id, t.created_at';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { AssignTaskDto } from './dto/assign-task.dto';
 
 @Injectable()
 export class TasksService {
-  constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
+  constructor(
+    @Inject('PG_CONNECTION') private readonly pool: Pool,
+  ) {}
 
-  async create(createTaskDto: any, user?: any) {
+  private async verifyProjectAccess(user: any, projectId: string | number) {
+    const result = await this.pool.query(
+      `SELECT p.id, p.organization_id,
+              (pm.user_id IS NOT NULL) AS is_member
+       FROM projects p
+       LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = $1
+       WHERE p.id = $2 AND p.is_active = TRUE`,
+      [user?.id, projectId],
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const projectInfo = result.rows[0];
+
+    // Check super admin status safely
+    if (user?.role === 'SUPER_ADMIN' || user?.role_id === 1 || user?.role_id === '1') {
+      return projectInfo;
+    }
+
+    if (String(projectInfo.organization_id) !== String(user?.organization_id)) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return projectInfo;
+  }
+
+  async create(createTaskDto: CreateTaskDto, user: any) {
     const { title, description, priority, projectId, assigneeId } = createTaskDto;
+
+    await this.verifyProjectAccess(user, projectId);
+
     const result = await this.pool.query(
       `INSERT INTO tasks (title, description, status, priority, project_id, assignee_id)
-       VALUES ($1, $2, $3, $4, $5, $6)
+       VALUES ($1, $2, 'TODO', $3, $4, $5)
        RETURNING *`,
-      [
-        title,
-        description,
-        TaskStatus.TODO,
-        priority || 'MEDIUM',
-        projectId,
-        assigneeId || null,
-      ],
+      [title, description, priority, projectId, assigneeId],
     );
+
     return result.rows[0];
   }
 
-  async findAll(user: any) {
-    let query = `SELECT ${TASK_COLUMNS} FROM tasks t JOIN projects p ON p.id = t.project_id`;
-    const values: any[] = [];
+  async findAll(user: any, projectId?: string | number) {
+    if (projectId) {
+      await this.verifyProjectAccess(user, projectId);
+      const result = await this.pool.query(
+        `SELECT * FROM tasks WHERE project_id = $1 ORDER BY created_at DESC`,
+        [projectId],
+      );
+      return result.rows;
+    }
 
-    if (user.role_id !== Role.SUPER_ADMIN) {
-      query += ` WHERE p.organization_id = $1`;
-      values.push(user.organization_id);
+    const result = await this.pool.query(
+      `SELECT t.* FROM tasks t
+       JOIN projects p ON t.project_id = p.id
+       WHERE p.organization_id = $1
+       ORDER BY t.created_at DESC`,
+      [user?.organization_id],
+    );
+    return result.rows;
+  }
+
+  async searchTasks(user: any, queryParams: any) {
+    const { search, status, priority, assigneeId, projectId } = queryParams;
+
+    let query = `
+      SELECT t.* FROM tasks t
+      JOIN projects p ON t.project_id = p.id
+      WHERE p.organization_id = $1
+    `;
+    const params: any[] = [user?.organization_id];
+
+    if (search) {
+      params.push(`%${search}%`);
+      query += ` AND (t.title ILIKE $${params.length} OR t.description ILIKE $${params.length})`;
+    }
+
+    if (status) {
+      params.push(status);
+      query += ` AND t.status = $${params.length}`;
+    }
+
+    if (priority) {
+      params.push(priority);
+      query += ` AND t.priority = $${params.length}`;
+    }
+
+    if (assigneeId) {
+      params.push(assigneeId);
+      query += ` AND t.assignee_id = $${params.length}`;
+    }
+
+    if (projectId) {
+      params.push(projectId);
+      query += ` AND t.project_id = $${params.length}`;
     }
 
     query += ` ORDER BY t.created_at DESC`;
-    const result = await this.pool.query(query, values);
+
+    const result = await this.pool.query(query, params);
     return result.rows;
   }
 
-  async findOne(id: number, user?: any) {
-    const result = await this.pool.query(
-      `SELECT ${TASK_COLUMNS} 
-       FROM tasks t 
-       JOIN projects p ON p.id = t.project_id 
-       WHERE t.id = $1`,
-      [id],
-    );
-
+  async findOne(id: string | number, user: any) {
+    const result = await this.pool.query(`SELECT * FROM tasks WHERE id = $1`, [id]);
     if (result.rows.length === 0) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      throw new NotFoundException('Task not found');
     }
+
+    const task = result.rows[0];
+    await this.verifyProjectAccess(user, task.project_id);
+    return task;
+  }
+
+  async updateStatus(id: string | number, updateTaskStatusDto: UpdateTaskStatusDto, user: any) {
+    const task = await this.findOne(id, user);
+
+    const result = await this.pool.query(
+      `UPDATE tasks SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [updateTaskStatusDto.status, task.id],
+    );
 
     return result.rows[0];
   }
 
-  async update(id: number, updateTaskDto: any, user?: any) {
-    const { title, description, priority, projectId, assigneeId } = updateTaskDto;
-    const result = await this.pool.query(
-      `UPDATE tasks 
-       SET title = COALESCE($1, title),
-           description = COALESCE($2, description),
-           priority = COALESCE($3, priority),
-           project_id = COALESCE($4, project_id),
-           assignee_id = COALESCE($5, assignee_id)
-       WHERE id = $6
-       RETURNING *`,
-      [title, description, priority, projectId, assigneeId, id],
-    );
+  // Alias for tasks.controller.ts calling .update()
+  async update(id: string | number, updateDto: any, user: any) {
+    return this.updateStatus(id, updateDto, user);
+  }
 
-    if (result.rows.length === 0) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
-    }
+  async assign(id: string | number, assignTaskDto: AssignTaskDto, user: any) {
+    const task = await this.findOne(id, user);
+
+    const result = await this.pool.query(
+      `UPDATE tasks SET assignee_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [assignTaskDto.assigneeId, task.id],
+    );
 
     return result.rows[0];
   }
 
-  async updateStatus(id: number, status: TaskStatus, user?: any) {
-    const result = await this.pool.query(
-      `UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *`,
-      [status, id],
-    );
-
-    if (result.rows.length === 0) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
-    }
-
-    return result.rows[0];
+  // Alias for tasks.controller.ts calling .assignUser()
+  async assignUser(id: string | number, assignDto: any, user: any) {
+    return this.assign(id, assignDto, user);
   }
 
-  async assignUser(id: number, assigneeId: number, user?: any) {
-    const result = await this.pool.query(
-      `UPDATE tasks SET assignee_id = $1 WHERE id = $2 RETURNING *`,
-      [assigneeId, id],
-    );
+  async remove(id: string | number, user: any) {
+    const task = await this.findOne(id, user);
 
-    if (result.rows.length === 0) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
-    }
-
-    return result.rows[0];
-  }
-
-  async remove(id: number, user?: any) {
-    const result = await this.pool.query(
-      `DELETE FROM tasks WHERE id = $1 RETURNING *`,
-      [id],
-    );
-
-    if (result.rows.length === 0) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
-    }
-
-    return { message: `Task ${id} successfully deleted` };
-  }
-
-  async searchTasks(
-    filters: {
-      search?: string;
-      status?: TaskStatus;
-      priority?: string;
-      projectId?: number;
-      assigneeId?: number;
-    },
-    user: { id: number; organization_id: number; role_id: Role },
-  ) {
-    const conditions: string[] = [];
-    const values: any[] = [];
-    let index = 1;
-
-    if (user.role_id !== Role.SUPER_ADMIN) {
-      conditions.push(`p.organization_id = $${index}`);
-      values.push(user.organization_id);
-      index++;
-    }
-
-    if (filters.search) {
-      conditions.push(
-        `(t.title ILIKE $${index} OR t.description ILIKE $${index})`,
-      );
-      values.push(`%${filters.search}%`);
-      index++;
-    }
-
-    if (filters.status) {
-      conditions.push(`t.status = $${index}`);
-      values.push(filters.status);
-      index++;
-    }
-
-    if (filters.priority) {
-      conditions.push(`t.priority = $${index}`);
-      values.push(filters.priority);
-      index++;
-    }
-
-    if (filters.projectId) {
-      conditions.push(`t.project_id = $${index}`);
-      values.push(filters.projectId);
-      index++;
-    }
-
-    if (filters.assigneeId) {
-      conditions.push(`t.assignee_id = $${index}`);
-      values.push(filters.assigneeId);
-      index++;
-    }
-
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-    const result = await this.pool.query(
-      `SELECT ${TASK_COLUMNS}
-       FROM tasks t
-       JOIN projects p ON p.id = t.project_id
-       ${whereClause}
-       ORDER BY t.created_at DESC`,
-      values,
-    );
-
-    return result.rows;
+    await this.pool.query(`DELETE FROM tasks WHERE id = $1`, [task.id]);
+    return { message: 'Task deleted successfully' };
   }
 }

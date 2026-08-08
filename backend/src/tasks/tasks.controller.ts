@@ -13,11 +13,9 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import {
-  CreateTaskDto,
-  UpdateTaskDto,
-  TaskStatus,
-} from './dto/create-task.dto';
+import { CreateTaskDto, UpdateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { AssignTaskDto } from './dto/assign-task.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -90,10 +88,10 @@ export class TasksController {
   )
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Body('status') status: TaskStatus,
+    @Body() dto: UpdateTaskStatusDto,
     @Req() req: any,
   ) {
-    return this.tasksService.updateStatus(id, status, req.user);
+    return this.tasksService.updateStatus(id, dto, req.user);
   }
 
   @Patch(':id/assign')
@@ -106,10 +104,10 @@ export class TasksController {
   )
   assignUser(
     @Param('id', ParseIntPipe) id: number,
-    @Body('assigneeId', ParseIntPipe) assigneeId: number,
+    @Body() dto: AssignTaskDto,
     @Req() req: any,
   ) {
-    return this.tasksService.assignUser(id, assigneeId, req.user);
+    return this.tasksService.assignUser(id, dto.assigneeId, req.user);
   }
 
   @Delete(':id')

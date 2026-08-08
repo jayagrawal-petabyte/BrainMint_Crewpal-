@@ -30,6 +30,7 @@ export class CreateTaskDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(10000)
   description?: string;
 
   @IsInt()
@@ -63,6 +64,7 @@ export class UpdateTaskDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(10000)
   description?: string;
 
   @IsOptional()
