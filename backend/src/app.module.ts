@@ -14,6 +14,8 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { SearchModule } from './search/search.module';
 import { CommentsModule } from './comments/comments.module';
 
+import { NotificationsModule } from './notifications/notifications.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -37,6 +39,7 @@ import { CommentsModule } from './comments/comments.module';
     AuditLogsModule,
     SearchModule,
     CommentsModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [
