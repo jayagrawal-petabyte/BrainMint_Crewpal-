@@ -9,7 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { BoardsService } from './boards.service';
-import type { AuthenticatedUser } from './boards.service';
+import type { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller()

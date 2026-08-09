@@ -12,7 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { SprintsService } from './sprints.service';
-import type { AuthenticatedUser } from './sprints.service';
+import type { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 import { AssignTaskDto } from './dto/assign-task.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 

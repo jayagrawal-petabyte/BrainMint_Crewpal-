@@ -1,4 +1,5 @@
 import { Role } from '../common/constants/roles.constant';
+import { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 import {
   Injectable,
   Inject,
@@ -10,12 +11,12 @@ import { Pool } from 'pg';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
-export interface AuthenticatedUser {
-  id: number;
-  email: string;
-  role_id: Role;
-  organization_id: number;
-}
+const PRIVILEGED_ROLES = new Set<Role>([
+  Role.SUPER_ADMIN,
+  Role.ORG_ADMIN,
+  Role.PROJECT_ADMIN,
+  Role.PROJECT_MANAGER,
+]);
 
 @Injectable()
 export class CommentsService {
@@ -212,9 +213,9 @@ export class CommentsService {
       );
     }
 
-    // Authorization check: Only author or privileged admin roles (Super Admin 1, Org Admin 2, Project Admin 3, PM 4)
+    // Authorization check: Only author or privileged admin roles (Super Admin, Org Admin, Project Admin, PM)
     const isAuthor = commentInfo.author_id === user.id;
-    const isPrivilegedAdmin = [1, 2, 3, 4].includes(user.role_id);
+    const isPrivilegedAdmin = PRIVILEGED_ROLES.has(user.role_id);
 
     if (!isAuthor && !isPrivilegedAdmin) {
       throw new ForbiddenException('You can only update your own comments');
@@ -293,9 +294,9 @@ export class CommentsService {
       );
     }
 
-    // Authorization check: Only author or privileged admin roles (Super Admin 1, Org Admin 2, Project Admin 3, PM 4)
+    // Authorization check: Only author or privileged admin roles (Super Admin, Org Admin, Project Admin, PM)
     const isAuthor = commentInfo.author_id === user.id;
-    const isPrivilegedAdmin = [1, 2, 3, 4].includes(user.role_id);
+    const isPrivilegedAdmin = PRIVILEGED_ROLES.has(user.role_id);
 
     if (!isAuthor && !isPrivilegedAdmin) {
       throw new ForbiddenException('You can only delete your own comments');

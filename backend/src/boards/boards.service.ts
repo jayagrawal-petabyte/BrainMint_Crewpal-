@@ -7,13 +7,7 @@ import {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import { Role } from '../common/constants/roles.constant';
-
-export interface AuthenticatedUser {
-  id: number;
-  email: string;
-  role_id: Role;
-  organization_id: number;
-}
+import { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 
 // Status lane ordering for the scrum board view
 const TASK_STATUS_LANES = [
