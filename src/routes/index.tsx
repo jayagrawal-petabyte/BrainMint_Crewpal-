@@ -6,7 +6,9 @@ import Login from "../pages/login";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
+
 import UpdateProfile from "../pages/updateProfile";
+import AddMember from "../pages/addMember";
 
 const Tasks = lazy(() =>
   import("../pages/tasks").then((module) => ({
@@ -35,6 +37,18 @@ const Teams = lazy(() =>
 const UserProfile = lazy(() =>
   import("../pages/userProfile").then((module) => ({
     default: module.UserProfile,
+  }))
+);
+
+const UserDashboard = lazy(() =>
+  import("../pages/userDashboard").then((module) => ({
+    default: module.UserDashboard,
+  }))
+);
+
+const ChangePassword = lazy(() =>
+  import("../pages/changePassword").then((module) => ({
+    default: module.ChangePassword,
   }))
 );
 
@@ -116,6 +130,7 @@ export const router = createBrowserRouter([
         index: true,
         element: <Navigate to="/dashboard" replace />,
       },
+
       {
         path: "dashboard",
         element: (
@@ -124,6 +139,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "tasks",
         element: (
@@ -132,6 +148,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "meetings",
         element: (
@@ -140,6 +157,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "projects",
         element: (
@@ -148,6 +166,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "projects/:projectId",
         element: (
@@ -156,6 +175,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "organization",
         element: (
@@ -164,6 +184,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "organization/settings",
         element: (
@@ -172,6 +193,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "teams",
         element: (
@@ -180,18 +202,88 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "teams/:id",
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <UserProfile />
-          </Suspense>
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+            ]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <UserProfile />
+            </Suspense>
+          </ProtectedRoute>
         ),
       },
+
+      {
+        path: "add-member",
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+            ]}
+          >
+            <AddMember />
+          </ProtectedRoute>
+        ),
+      },
+
       {
         path: "update-profile/:id",
-        element: <UpdateProfile />,
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+              UserRole.EMPLOYEE,
+            ]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <UpdateProfile />
+            </Suspense>
+          </ProtectedRoute>
+        ),
       },
+
+      {
+  path: "user-dashboard",
+  element: (
+    <ProtectedRoute
+      allowedRoles={[
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+        UserRole.EMPLOYEE,
+      ]}
+    >
+      <Suspense fallback={<PageLoader />}>
+        <UserDashboard />
+      </Suspense>
+    </ProtectedRoute>
+  ),
+},
+
+      {
+        path: "change-password/:id",
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+              UserRole.EMPLOYEE,
+            ]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <ChangePassword />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+
       {
         path: "reports",
         element: (
@@ -200,10 +292,14 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "notifications",
-        element: <UnderConstruction title="Notifications Center" />,
+        element: (
+          <UnderConstruction title="Notifications Center" />
+        ),
       },
+
       {
         path: "settings",
         element: (
@@ -212,6 +308,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "scrum",
         element: (
@@ -220,6 +317,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "*",
         element: <Navigate to="/dashboard" replace />,

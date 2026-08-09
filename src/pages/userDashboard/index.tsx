@@ -4,15 +4,12 @@ import { api } from "../../services/apiClient";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types/roles";
-
 export const UserProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user: loggedInUser } = useAuth();
-
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -24,27 +21,21 @@ export const UserProfile = () => {
         setLoading(false);
       }
     };
-
     fetchUser();
   }, [id]);
-
   const isAdminOrManager =
     loggedInUser?.role === UserRole.ADMIN ||
     loggedInUser?.role === UserRole.MANAGER;
-
   const isOwnProfile =
     loggedInUser?.email?.toLowerCase() === user?.email?.toLowerCase();
-
   if (loading) {
     return <div className="text-center mt-10">Loading profile...</div>;
   }
-
   if (!user) {
     return (
       <div className="flex items-center justify-center h-[70vh]">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-forest-900">User not found</h2>
-
           <button
             onClick={() => navigate("/teams")}
             className="mt-6 bg-forest-900 text-white px-6 py-3 rounded-xl"
@@ -55,13 +46,11 @@ export const UserProfile = () => {
       </div>
     );
   }
-
   if (!user) {
     return (
       <div className="flex items-center justify-center h-[70vh]">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-forest-900">User not found</h2>
-
           <button
             onClick={() => navigate("/teams")}
             className="mt-6 bg-forest-900 text-white px-6 py-3 rounded-xl"
@@ -72,7 +61,6 @@ export const UserProfile = () => {
       </div>
     );
   }
-
   return (
     <div className="px-10 py-8">
       <div className="max-w-5xl mx-auto">
@@ -80,7 +68,6 @@ export const UserProfile = () => {
           <h2 className="text-xl font-bold text-[#0D556D] mb-6 px-6">
             USER PROFILE
           </h2>
-
           <div className="bg-[#F9E8DE] rounded-3xl p-7 flex items-center gap-6">
             <div className="w-24 h-24 rounded-full bg-[#D79B93] flex items-center justify-center">
               <div
@@ -106,36 +93,29 @@ export const UserProfile = () => {
                 )}
               </div>
             </div>
-
             <div>
               <h1 className="text-3xl font-bold text-forest-900">
                 {user.name}
               </h1>
-
               <p className="text-gray-500 mt-1">{user.registration}</p>
-
               <p className="text-[#0D556D] mt-1">
                 {user.designation || "Not Assigned"}
               </p>
             </div>
           </div>
-
           <div className="bg-[#F9E8DE] rounded-3xl mt-6 p-8">
             <h2 className="text-xl font-bold text-[#0D556D] mb-6">
               User Details
             </h2>
-
             <div className="grid grid-cols-2 gap-x-16 gap-y-3">
               <div>
                 <p className="text-sm">
                   <span className="font-semibold">Department:</span>{" "}
                   {user.department || "Not Assigned"}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">SRM Mail:</span> {user.email}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Github Link:</span>{" "}
                   <a
@@ -147,27 +127,22 @@ export const UserProfile = () => {
                     {user.github || "Not Assigned"}
                   </a>
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Position:</span>{" "}
                   {user.position}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Duration:</span>{" "}
                   {user.duration || "Not Assigned"}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">
                     No of Project Allocated:
                   </span>{" "}
                   {user.projects?.length ?? 0}
                 </p>
-
                 <div className="mt-5">
                   <p className="font-semibold">Projects Allocated:</p>
-
                   <div className="mt-2 space-y-1">
                     {(user.projects ?? []).map((project: string) => (
                       <p
@@ -180,35 +155,29 @@ export const UserProfile = () => {
                   </div>
                 </div>
               </div>
-
               <div>
                 <p className="text-sm">
                   <span className="font-semibold">Batch Year:</span>{" "}
                   {user.batch || "Not Assigned"}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Domain:</span>{" "}
                   {user.domain || "Not Assigned"}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Current Task:</span>{" "}
                   {user.task || "Not Assigned"}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Current Project:</span>{" "}
                   {user.project || "Not Assigned"}
                 </p>
-
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Employee ID:</span>{" "}
                   {user.registration}
                 </p>
               </div>
             </div>
-
             <div className="flex justify-end gap-4 mt-10">
               {(isAdminOrManager || isOwnProfile) && (
                 <button
@@ -228,7 +197,6 @@ export const UserProfile = () => {
                   Update Profile
                 </button>
               )}
-
               <button
                 onClick={() => navigate("/teams")}
                 className="
@@ -252,5 +220,4 @@ export const UserProfile = () => {
     </div>
   );
 };
-
 export default UserProfile;
