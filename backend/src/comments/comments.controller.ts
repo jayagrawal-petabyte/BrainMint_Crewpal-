@@ -13,7 +13,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
-import type { AuthenticatedUser } from './comments.service';
+import type { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';

@@ -1,4 +1,5 @@
 import { Role } from '../common/constants/roles.constant';
+import { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import {
@@ -13,12 +14,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { randomUUID } from 'crypto';
 
-export interface AuthenticatedUser {
-  id: number;
-  email: string;
-  role_id: Role;
-  organization_id: number;
-}
+const PRIVILEGED_ROLES = new Set<Role>([
+  Role.SUPER_ADMIN,
+  Role.ORG_ADMIN,
+  Role.PROJECT_ADMIN,
+  Role.PROJECT_MANAGER,
+]);
 
 export interface ExpressFile {
   fieldname: string;
@@ -365,9 +366,9 @@ export class AttachmentsService {
       );
     }
 
-    // 3. Authorization check: Uploader OR Privileged Admins (Super Admin 1, Org Admin 2, Project Admin 3, PM 4)
+    // 3. Authorization check: Uploader OR Privileged Admins (Super Admin, Org Admin, Project Admin, PM)
     const isUploader = attachmentInfo.uploaded_by === user.id;
-    const isPrivilegedAdmin = [1, 2, 3, 4].includes(user.role_id);
+    const isPrivilegedAdmin = PRIVILEGED_ROLES.has(user.role_id);
 
     if (!isUploader && !isPrivilegedAdmin) {
       throw new ForbiddenException(
