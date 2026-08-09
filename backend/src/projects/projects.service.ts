@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   ConflictException,
   ForbiddenException,
@@ -9,6 +11,7 @@ import { Pool } from 'pg';
 
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { Role } from '../common/constants/roles.constant';
 
 const COLUMNS = `
   id,
@@ -23,24 +26,34 @@ const COLUMNS = `
 
 @Injectable()
 export class ProjectsService {
-<<<<<<< HEAD
-  create(dto: CreateProjectDto, user?: any) {
-    return { message: 'Create project', dto };
-=======
   constructor(
     @Inject('PG_CONNECTION')
     private readonly pool: Pool,
   ) {}
 
-  async create(dto: CreateProjectDto, user: any) {
-    // Ensure user belongs to the organization
-    if (user.organization_id !== dto.organizationId) {
+  private verifyOrgAccess(
+    projectOrgId: number,
+    user: { organization_id: number; role_id: Role },
+  ) {
+    if (user.role_id === Role.SUPER_ADMIN) return;
+    if (user.organization_id !== projectOrgId) {
+      throw new NotFoundException('Project not found');
+    }
+  }
+
+  async create(
+    dto: CreateProjectDto,
+    user: { id: number; organization_id: number; role_id: Role },
+  ) {
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      user.organization_id !== dto.organizationId
+    ) {
       throw new ForbiddenException(
         'You cannot create a project for another organization',
       );
     }
 
-    // Check organization exists
     const organization = await this.pool.query(
       `SELECT id
        FROM organizations
@@ -55,7 +68,6 @@ export class ProjectsService {
       );
     }
 
-    // Prevent duplicate project names inside same organization
     const existing = await this.pool.query(
       `SELECT id
        FROM projects
@@ -66,12 +78,9 @@ export class ProjectsService {
     );
 
     if (existing.rows.length > 0) {
-      throw new ConflictException(
-        'Project with this name already exists',
-      );
+      throw new ConflictException('Project with this name already exists');
     }
 
-    // Insert project
     const result = await this.pool.query(
       `INSERT INTO projects (
           organization_id,
@@ -81,30 +90,64 @@ export class ProjectsService {
       )
       VALUES ($1,$2,$3,$4)
       RETURNING ${COLUMNS}`,
-      [
-        dto.organizationId,
-        dto.name,
-        dto.description ?? null,
-        user.id,
-      ],
+      [dto.organizationId, dto.name, dto.description ?? null, user.id],
     );
 
     return result.rows[0];
->>>>>>> 4ce0f57 (feat(projects): implement project service and CRUD endpoints)
   }
 
-  async findAll() {
+  async findAll(user: { organization_id: number; role_id: Role }) {
+    if (user.role_id === Role.SUPER_ADMIN) {
+      const result = await this.pool.query(
+        `SELECT ${COLUMNS}
+         FROM projects
+         WHERE is_active = TRUE
+         ORDER BY id`,
+      );
+      return result.rows;
+    }
+
     const result = await this.pool.query(
       `SELECT ${COLUMNS}
        FROM projects
-       WHERE is_active = TRUE
+       WHERE is_active = TRUE AND organization_id = $1
        ORDER BY id`,
+      [user.organization_id],
     );
-
     return result.rows;
   }
 
-  async findOne(id: number) {
+  async searchProjects(filters: {
+    search?: string;
+    organizationId?: number;
+    isActive?: boolean;
+  }) {
+    let query = `SELECT ${COLUMNS} FROM projects WHERE 1=1`;
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (filters.organizationId !== undefined) {
+      query += ` AND organization_id = $${paramIndex++}`;
+      params.push(filters.organizationId);
+    }
+
+    if (filters.isActive !== undefined) {
+      query += ` AND is_active = $${paramIndex++}`;
+      params.push(filters.isActive);
+    }
+
+    if (filters.search) {
+      query += ` AND name ILIKE $${paramIndex++}`;
+      params.push(`%${filters.search}%`);
+    }
+
+    query += ` ORDER BY id`;
+
+    const result = await this.pool.query(query, params);
+    return result.rows;
+  }
+
+  async findOne(id: number, user?: { organization_id: number; role_id: Role }) {
     const result = await this.pool.query(
       `SELECT ${COLUMNS}
        FROM projects
@@ -114,16 +157,22 @@ export class ProjectsService {
     );
 
     if (result.rows.length === 0) {
-      throw new NotFoundException(
-        `Project ${id} not found`,
-      );
+      throw new NotFoundException('Project not found');
+    }
+
+    if (user) {
+      this.verifyOrgAccess(result.rows[0].organization_id, user);
     }
 
     return result.rows[0];
   }
 
-  async update(id: number, dto: UpdateProjectDto) {
-    await this.findOne(id);
+  async update(
+    id: number,
+    dto: UpdateProjectDto,
+    user: { organization_id: number; role_id: Role },
+  ) {
+    await this.findOne(id, user);
 
     const result = await this.pool.query(
       `UPDATE projects
@@ -133,18 +182,27 @@ export class ProjectsService {
           updated_at = NOW()
        WHERE id = $3
        RETURNING ${COLUMNS}`,
-      [
-        dto.name ?? null,
-        dto.description ?? null,
-        id,
-      ],
+      [dto.name ?? null, dto.description ?? null, id],
     );
 
     return result.rows[0];
   }
 
-  async deactivate(id: number) {
-    await this.findOne(id);
+  async deactivate(
+    id: number,
+    user?: { organization_id: number; role_id: Role },
+  ) {
+    if (user) {
+      await this.findOne(id, user);
+    } else {
+      const result = await this.pool.query(
+        `SELECT ${COLUMNS} FROM projects WHERE id = $1 AND is_active = TRUE`,
+        [id],
+      );
+      if (result.rows.length === 0) {
+        throw new NotFoundException('Project not found');
+      }
+    }
 
     const result = await this.pool.query(
       `UPDATE projects

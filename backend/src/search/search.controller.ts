@@ -1,20 +1,13 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { SearchService } from './search.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 
 @Controller('search')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class SearchController {
-  constructor(
-    private readonly searchService: SearchService,
-  ) {}
+  constructor(private readonly searchService: SearchService) {}
 
   @Get('projects')
   async searchProjects(

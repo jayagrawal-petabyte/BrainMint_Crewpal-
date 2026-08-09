@@ -14,11 +14,15 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AttachmentsService } from './attachments.service';
-import type { AuthenticatedUser, ExpressFile } from './attachments.service';
+import type { ExpressFile } from './attachments.service';
+import type { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/constants/roles.constant';
 
 @Controller()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
@@ -27,7 +31,19 @@ export class AttachmentsController {
    * Upload an attachment file to a task.
    */
   @Post('tasks/:taskId/attachments')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+    Role.TEAM_LEAD,
+    Role.DESIGNER,
+    Role.QA_TESTER,
+    Role.CLIENT,
+  )
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @HttpCode(HttpStatus.CREATED)
   async uploadAttachment(
     @Param('taskId', ParseIntPipe) taskId: number,
@@ -68,6 +84,16 @@ export class AttachmentsController {
    * Delete an attachment file.
    */
   @Delete('attachments/:id')
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+    Role.TEAM_LEAD,
+    Role.DESIGNER,
+    Role.QA_TESTER,
+    Role.CLIENT,
+  )
   @HttpCode(HttpStatus.OK)
   async deleteAttachment(
     @Param('id', ParseIntPipe) id: number,

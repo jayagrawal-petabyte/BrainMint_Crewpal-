@@ -1,6 +1,7 @@
-import { IsInt } from 'class-validator';
+import { IsEnum } from 'class-validator';
+import { Role } from '../../common/constants/roles.constant';
 
 export class UpdateProjectMemberDto {
-  @IsInt()
-  roleId: number;
+  @IsEnum(Role)
+  roleId: Role;
 }

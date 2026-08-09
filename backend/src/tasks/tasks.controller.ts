@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   Controller,
   Get,
@@ -6,70 +7,117 @@ import {
   Param,
   Patch,
   Delete,
-  Headers,
+  UseGuards,
+  Req,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
-import type { TaskItem } from './tasks.service';
 import { TasksService } from './tasks.service';
-import {
-  CreateTaskDto,
-  UpdateTaskDto,
-  TaskStatus,
-} from './dto/create-task.dto';
+import { CreateTaskDto, UpdateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { AssignTaskDto } from './dto/assign-task.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/constants/roles.constant';
 
 @Controller('tasks')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto): TaskItem {
-    return this.tasksService.create(createTaskDto);
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+    Role.TEAM_LEAD,
+    Role.DESIGNER,
+    Role.QA_TESTER,
+    Role.CLIENT,
+  )
+  create(@Body() createTaskDto: CreateTaskDto, @Req() req: any) {
+    return this.tasksService.create(createTaskDto, req.user);
   }
 
   @Get()
-  findAll(@Headers('x-organization-id') organizationId: string): TaskItem[] {
-    return this.tasksService.findAllByOrg(organizationId);
+  findAll(@Req() req: any) {
+    return this.tasksService.findAll(req.user);
+  }
+
+  @Get('search')
+  searchTasks(@Query() filters: any, @Req() req: any) {
+    return this.tasksService.searchTasks(filters, req.user);
   }
 
   @Get(':id')
-  findOne(
-    @Param('id') id: string,
-    @Headers('x-organization-id') organizationId: string,
-  ): TaskItem {
-    return this.tasksService.findOneByOrg(id, organizationId);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.tasksService.findOne(id, req.user);
   }
 
   @Patch(':id')
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+    Role.TEAM_LEAD,
+    Role.DESIGNER,
+    Role.QA_TESTER,
+    Role.CLIENT,
+  )
   update(
-    @Param('id') id: string,
-    @Headers('x-organization-id') organizationId: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
-  ): TaskItem {
-    return this.tasksService.update(id, organizationId, updateTaskDto);
+    @Req() req: any,
+  ) {
+    return this.tasksService.update(id, updateTaskDto, req.user);
   }
 
   @Patch(':id/status')
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+    Role.TEAM_LEAD,
+    Role.DESIGNER,
+    Role.QA_TESTER,
+    Role.CLIENT,
+  )
   updateStatus(
-    @Param('id') id: string,
-    @Headers('x-organization-id') organizationId: string,
-    @Body('status') status: TaskStatus,
-  ): TaskItem {
-    return this.tasksService.updateStatus(id, organizationId, status);
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateTaskStatusDto,
+    @Req() req: any,
+  ) {
+    return this.tasksService.updateStatus(id, dto, req.user);
   }
 
   @Patch(':id/assign')
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+    Role.TEAM_LEAD,
+  )
   assignUser(
-    @Param('id') id: string,
-    @Headers('x-organization-id') organizationId: string,
-    @Body('assigneeId') assigneeId: string,
-  ): TaskItem {
-    return this.tasksService.assignUser(id, organizationId, assigneeId);
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AssignTaskDto,
+    @Req() req: any,
+  ) {
+    return this.tasksService.assignUser(id, dto.assigneeId, req.user);
   }
 
   @Delete(':id')
-  remove(
-    @Param('id') id: string,
-    @Headers('x-organization-id') organizationId: string,
-  ): { message: string } {
-    return this.tasksService.remove(id, organizationId);
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+  )
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.tasksService.remove(id, req.user);
   }
 }

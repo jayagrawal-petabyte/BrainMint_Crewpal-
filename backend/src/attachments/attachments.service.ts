@@ -1,3 +1,7 @@
+import { Role } from '../common/constants/roles.constant';
+import { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   Injectable,
   Inject,
@@ -10,12 +14,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { randomUUID } from 'crypto';
 
-export interface AuthenticatedUser {
-  id: number;
-  email: string;
-  role_id: number;
-  organization_id: number;
-}
+const PRIVILEGED_ROLES = new Set<Role>([
+  Role.SUPER_ADMIN,
+  Role.ORG_ADMIN,
+  Role.PROJECT_ADMIN,
+  Role.PROJECT_MANAGER,
+]);
 
 export interface ExpressFile {
   fieldname: string;
@@ -28,7 +32,11 @@ export interface ExpressFile {
 
 @Injectable()
 export class AttachmentsService {
-  private readonly uploadDir = path.join(process.cwd(), 'uploads', 'attachments');
+  private readonly uploadDir = path.join(
+    process.cwd(),
+    'uploads',
+    'attachments',
+  );
 
   private readonly allowedMimeTypes = new Set([
     'image/jpeg',
@@ -82,7 +90,7 @@ export class AttachmentsService {
     const taskInfo = result.rows[0];
 
     // 1. Super Admin (Role 1): Allowed cross-org access
-    if (user.role_id === 1) {
+    if (user.role_id === Role.SUPER_ADMIN) {
       return taskInfo;
     }
 
@@ -93,13 +101,15 @@ export class AttachmentsService {
     }
 
     // 3. Role 2: Org Admin (all projects within their org)
-    if (user.role_id === 2) {
+    if (user.role_id === Role.ORG_ADMIN) {
       return taskInfo;
     }
 
     // 4. Roles 3-9: Must be an active member of the project
     if (!taskInfo.is_member) {
-      throw new ForbiddenException('Access denied: You are not a member of this project');
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
     }
 
     return taskInfo;
@@ -114,8 +124,10 @@ export class AttachmentsService {
     user: AuthenticatedUser,
   ) {
     // Viewer role (Role 9) cannot upload attachments
-    if (user.role_id === 9) {
-      throw new ForbiddenException('Viewer role is read-only and cannot upload attachments');
+    if (user.role_id === Role.VIEWER) {
+      throw new ForbiddenException(
+        'Viewer role is read-only and cannot upload attachments',
+      );
     }
 
     // Fail-fast: validate file existence before any DB access
@@ -136,18 +148,34 @@ export class AttachmentsService {
     }
 
     // File extension whitelist (defence against MIME spoofing — e.g. .exe renamed to .png)
-    const allowedExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp',
-      '.pdf', '.doc', '.docx', '.txt', '.zip', '.xls', '.xlsx']);
+    const allowedExtensions = new Set([
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.pdf',
+      '.doc',
+      '.docx',
+      '.txt',
+      '.zip',
+      '.xls',
+      '.xlsx',
+    ]);
     const fileExt = path.extname(file.originalname).toLowerCase();
     if (!allowedExtensions.has(fileExt)) {
-      throw new BadRequestException(`File extension '${fileExt}' is not permitted`);
+      throw new BadRequestException(
+        `File extension '${fileExt}' is not permitted`,
+      );
     }
 
     // Multi-tenant IDOR check (after file validation to fail fast on bad input)
     await this.verifyTaskAccess(taskId, user);
 
     // Sanitize original filename (prevent path traversal / malicious chars)
-    const sanitizedOriginalName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const sanitizedOriginalName = path
+      .basename(file.originalname)
+      .replace(/[^a-zA-Z0-9._-]/g, '_');
     const safeFilename = `${randomUUID()}-${sanitizedOriginalName}`;
     const targetFilePath = path.join(this.uploadDir, safeFilename);
 
@@ -242,19 +270,30 @@ export class AttachmentsService {
     const result = await this.db.query(query, [user.id, attachmentId]);
 
     if (result.rows.length === 0) {
-      throw new NotFoundException(`Attachment with ID ${attachmentId} not found`);
+      throw new NotFoundException(
+        `Attachment with ID ${attachmentId} not found`,
+      );
     }
 
     const attachmentInfo = result.rows[0];
 
     // 1. Organization check: hide resource existence from cross-tenant users
-    if (user.role_id !== 1 && attachmentInfo.organization_id !== user.organization_id) {
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      attachmentInfo.organization_id !== user.organization_id
+    ) {
       throw new NotFoundException('Resource not found');
     }
 
     // 2. Project membership check: user is in the org but not the project
-    if (user.role_id !== 1 && user.role_id !== 2 && !attachmentInfo.is_member) {
-      throw new ForbiddenException('Access denied: You are not a member of this project');
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      user.role_id !== Role.ORG_ADMIN &&
+      !attachmentInfo.is_member
+    ) {
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
     }
 
     return {
@@ -278,7 +317,7 @@ export class AttachmentsService {
     }
 
     // Viewer role (Role 9) cannot delete attachments
-    if (user.role_id === 9) {
+    if (user.role_id === Role.VIEWER) {
       throw new ForbiddenException('Viewer role cannot delete attachments');
     }
 
@@ -301,27 +340,40 @@ export class AttachmentsService {
     const result = await this.db.query(query, [user.id, attachmentId]);
 
     if (result.rows.length === 0) {
-      throw new NotFoundException(`Attachment with ID ${attachmentId} not found`);
+      throw new NotFoundException(
+        `Attachment with ID ${attachmentId} not found`,
+      );
     }
 
     const attachmentInfo = result.rows[0];
 
     // 1. Organization check: hide resource existence from cross-tenant users
-    if (user.role_id !== 1 && attachmentInfo.organization_id !== user.organization_id) {
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      attachmentInfo.organization_id !== user.organization_id
+    ) {
       throw new NotFoundException('Resource not found');
     }
 
     // 2. Project membership check: user is in the org but not the project
-    if (user.role_id !== 1 && user.role_id !== 2 && !attachmentInfo.is_member) {
-      throw new ForbiddenException('Access denied: You are not a member of this project');
+    if (
+      user.role_id !== Role.SUPER_ADMIN &&
+      user.role_id !== Role.ORG_ADMIN &&
+      !attachmentInfo.is_member
+    ) {
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
     }
 
-    // 3. Authorization check: Uploader OR Privileged Admins (Super Admin 1, Org Admin 2, Project Admin 3, PM 4)
+    // 3. Authorization check: Uploader OR Privileged Admins (Super Admin, Org Admin, Project Admin, PM)
     const isUploader = attachmentInfo.uploaded_by === user.id;
-    const isPrivilegedAdmin = [1, 2, 3, 4].includes(user.role_id);
+    const isPrivilegedAdmin = PRIVILEGED_ROLES.has(user.role_id);
 
     if (!isUploader && !isPrivilegedAdmin) {
-      throw new ForbiddenException('You can only delete your own uploaded attachments');
+      throw new ForbiddenException(
+        'You can only delete your own uploaded attachments',
+      );
     }
 
     // Remove file from disk if it exists
@@ -337,7 +389,9 @@ export class AttachmentsService {
       }
     }
 
-    await this.db.query('DELETE FROM attachments WHERE id = $1', [attachmentId]);
+    await this.db.query('DELETE FROM attachments WHERE id = $1', [
+      attachmentId,
+    ]);
 
     return {
       message: 'Attachment deleted successfully',
