@@ -194,11 +194,11 @@ export class SprintsService {
     // Layer 3 — Task must belong to the same project as the sprint
     await this.verifyTaskBelongsToSprint(taskId, sprint.project_id, user);
 
-    // Write: assign task to sprint
+    // Write: assign task to sprint (atomically enforced by id AND project_id)
     const result = await this.db.query(
       `UPDATE tasks
        SET sprint_id = $1, updated_at = NOW()
-       WHERE id = $2
+       WHERE id = $2 AND project_id = $3
        RETURNING
          id,
          project_id  AS "projectId",
@@ -207,8 +207,14 @@ export class SprintsService {
          status,
          priority,
          updated_at  AS "updatedAt"`,
-      [sprintId, taskId],
+      [sprintId, taskId, sprint.project_id],
     );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException(
+        'Task not found or no longer belongs to the same project',
+      );
+    }
 
     return {
       message: 'Task assigned to sprint successfully',
@@ -244,11 +250,11 @@ export class SprintsService {
       sprintId, // requireLinkedToSprint
     );
 
-    // Write: remove task from sprint (return to backlog)
+    // Write: remove task from sprint (return to backlog) — atomically enforced
     const result = await this.db.query(
       `UPDATE tasks
        SET sprint_id = NULL, updated_at = NOW()
-       WHERE id = $1
+       WHERE id = $1 AND project_id = $2 AND sprint_id = $3
        RETURNING
          id,
          project_id  AS "projectId",
@@ -257,8 +263,14 @@ export class SprintsService {
          status,
          priority,
          updated_at  AS "updatedAt"`,
-      [taskId],
+      [taskId, sprint.project_id, sprintId],
     );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException(
+        'Task not found or is no longer assigned to this sprint',
+      );
+    }
 
     return {
       message: 'Task removed from sprint and returned to backlog',

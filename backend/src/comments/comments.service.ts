@@ -233,6 +233,10 @@ export class CommentsService {
       commentId,
     ]);
 
+    if (updateResult.rows.length === 0) {
+      throw new NotFoundException(`Comment with ID ${commentId} not found`);
+    }
+
     return {
       message: 'Comment updated successfully',
       comment: updateResult.rows[0],
