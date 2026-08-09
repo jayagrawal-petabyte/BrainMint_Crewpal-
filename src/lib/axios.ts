@@ -16,7 +16,9 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("crewpal_token");
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    const headers = config.headers ?? {};
+    headers.Authorization = `Bearer ${token}`;
+    config.headers = headers;
   }
   return config;
 });

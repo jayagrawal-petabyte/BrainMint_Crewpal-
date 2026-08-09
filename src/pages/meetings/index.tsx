@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import {
-  Search, Plus, Play, CheckCircle2, Calendar, Clock, MapPin, Users, ChevronDown,
-  ChevronUp, Video, CalendarDays, Sparkles
+  Search,
+  Plus,
+  Play,
+  CheckCircle2,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Video,
+  CalendarDays,
+  Sparkles,
 } from 'lucide-react';
 import { useSprintStore } from '../../store/sprints/sprintStore';
 import type { Sprint, SprintStatus } from '../../types/sprint';

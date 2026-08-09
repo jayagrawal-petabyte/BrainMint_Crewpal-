@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Clock, GitBranch, MessageSquare, CheckSquare, UserPlus, Plus, Calendar, AlertCircle } from 'lucide-react';
 import { useActivityStore } from '../../store/tasks/activityStore';
 import type { ActivityEventType } from '../../types/activity';
@@ -9,7 +10,7 @@ interface ActivityTimelineProps {
 // Map each event type to icon + color
 const EVENT_CONFIG: Record<
   ActivityEventType,
-  { icon: React.ReactNode; color: string; dotColor: string }
+  { icon: ReactNode; color: string; dotColor: string }
 > = {
   task_created: {
     icon: <Plus className="w-3 h-3" />,

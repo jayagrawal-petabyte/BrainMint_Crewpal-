@@ -16,10 +16,15 @@ import { CalendarView } from '../../components/views/CalendarView';
 import { MeetingsView } from '../../components/views/MeetingsView';
 import { BottomNav } from '../../components/layout/BottomNav';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { ActivityTimeline } from '../../components/ui/ActivityTimeline';
+import { Tooltip } from '../../components/ui/Tooltip';
+import { AvatarGroup } from '../../components/ui/AvatarGroup';
+import { DataTable } from '../../components/ui/DataTable';
+import { Pagination } from '../../components/ui/Pagination';
+import { PriorityBadge, StatusBadge } from '../../components/ui/Badges';
 import { useToast } from '../../hooks/useToast';
 import { useActivityStore } from '../../store/tasks/activityStore';
 import { useTranslation } from '../../hooks/useTranslation';
-import { ActivityTimeline } from '../../components/ui/ActivityTimeline';
 import type { Task, TaskStatus, TaskPriority } from '../../types/task';
 
 // ─── Filter Dropdown Component ─────────────────────────────────────────────
@@ -145,6 +150,7 @@ export const Tasks = () => {
 
   const [newComment, setNewComment] = useState('');
   const [newSubtask, setNewSubtask] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Day 27: Search Debounce
   const [localSearch, setLocalSearch] = useState('');
@@ -183,6 +189,9 @@ export const Tasks = () => {
 
   const filteredTasks = getFilteredTasks();
   const selectedTask = selectedTaskId ? getTaskById(selectedTaskId) : null;
+  const tasksPerPage = 4;
+  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / tasksPerPage));
+  const pagedTasks = filteredTasks.slice((currentPage - 1) * tasksPerPage, currentPage * tasksPerPage);
 
   // Day 27: Initialize local search and debounce
   useEffect(() => {
@@ -195,6 +204,10 @@ export const Tasks = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [localSearch, setSearch]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filter.status, filter.priority]);
 
   // Group tasks by status
   const onTrackTasks = filteredTasks.filter((t) => t.status === 'on_track');
@@ -355,6 +368,61 @@ export const Tasks = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'tasks' && (
+        <div className="mb-4 rounded-2xl border border-cream-300 bg-[#fdf8e8] p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-forest-600">Task overview</p>
+              <h3 className="text-sm font-bold text-forest-900">Current sprint snapshot</h3>
+            </div>
+            <Tooltip content="Review task progress and assignees" position="bottom">
+              <div className="rounded-full bg-olive-100 px-2.5 py-1 text-[10px] font-semibold text-forest-700">
+                Live view
+              </div>
+            </Tooltip>
+          </div>
+
+          <DataTable
+            columns={[
+              {
+                key: 'title',
+                header: 'Task',
+                render: (task) => <div className="font-semibold text-forest-900">{task.title}</div>,
+              },
+              {
+                key: 'assignees',
+                header: 'Members',
+                render: (task) => (
+                  <AvatarGroup
+                    users={task.assignees.map((assignee) => ({
+                      id: assignee.id,
+                      name: assignee.name,
+                      initials: assignee.initials,
+                      color: assignee.avatarColor ?? 'bg-cream-50',
+                    }))}
+                    max={3}
+                  />
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (task) => <StatusBadge status={task.status} size="sm" />,
+              },
+              {
+                key: 'priority',
+                header: 'Priority',
+                render: (task) => <PriorityBadge priority={task.priority} size="sm" />,
+              },
+            ]}
+            data={pagedTasks}
+            emptyMessage="No tasks match the current filters."
+          />
+
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       )}
 
