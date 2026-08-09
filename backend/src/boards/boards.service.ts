@@ -28,10 +28,10 @@ export class BoardsService {
 
   /**
    * Verify the requesting user has access to the given board.
-   * Also validates that the board is of type 'scrum' — the type is
-   * enforced in the DB query (hard-coded), so a user cannot bypass it
-   * by crafting a different boardId.
-   *
+    * Verify the requesting user has access to the given board.
+    * Also validates that the board is of type 'scrum' — the type is checked
+    * after retrieval (hard-coded comparison), so a user cannot bypass it
+    * by crafting a different boardId.
    * Security layers:
    *  1. NotFoundException for cross-tenant access (no information leakage).
    *  2. ForbiddenException for intra-org non-member access.
