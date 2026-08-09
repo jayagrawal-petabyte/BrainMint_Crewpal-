@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 import { ProjectsService } from '../projects/projects.service';
 import { TasksService } from '../tasks/tasks.service';
 
@@ -35,8 +36,8 @@ export class SearchService {
   ) {
     return this.projectsService.searchProjects({
       search: filters.search,
-      isActive: filters.isActive,
       organizationId: user.organization_id,
+      isActive: filters.isActive,
     });
   }
 
@@ -44,9 +45,9 @@ export class SearchService {
     filters: SearchTaskFilters,
     user: SearchUser,
   ) {
-    return this.tasksService.searchTasks(
-      filters,
-      user,
-    );
+    return this.tasksService.searchTasks({
+      ...filters,
+      organizationId: user.organization_id,
+    });
   }
 }
