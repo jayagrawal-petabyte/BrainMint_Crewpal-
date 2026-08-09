@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { MoreHorizontal, Plus, Calendar, Pin, Flag, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '../../store/tasks';
+import { useActivityStore } from '../../store/tasks/activityStore';
 import type { Task, TaskStatus } from '../../types/task';
 
 // ─── Kanban Board View (Day 19) ─────────────────────────────────────────────
@@ -20,28 +21,60 @@ interface KanbanBoardProps {
 export const KanbanBoard = ({ onSelectTask, onClickMore }: KanbanBoardProps) => {
   const tasks = useTaskStore((s) => s.getFilteredTasks());
   const updateStatus = useTaskStore((s) => s.updateStatus);
+  const logEvent = useActivityStore((s) => s.logEvent);
+
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null);
+  const isDraggingRef = useRef(false);
 
-  const handleDragStart = (taskId: string) => {
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    isDraggingRef.current = true;
     setDraggedId(taskId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', taskId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedId(null);
+    setDragOverCol(null);
+    // Brief timeout to avoid triggering click on drag release
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 50);
   };
 
   const handleDragOver = (e: React.DragEvent, colStatus: TaskStatus) => {
     e.preventDefault();
-    setDragOverCol(colStatus);
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverCol !== colStatus) {
+      setDragOverCol(colStatus);
+    }
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) {
+      return;
+    }
     setDragOverCol(null);
   };
 
-  const handleDrop = (colStatus: TaskStatus) => {
-    if (draggedId) {
-      updateStatus(draggedId, colStatus);
-      setDraggedId(null);
-      setDragOverCol(null);
+  const handleDrop = (e: React.DragEvent, colStatus: TaskStatus) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData('text/plain') || draggedId;
+    if (taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task && task.status !== colStatus) {
+        updateStatus(taskId, colStatus);
+        const fromLabel = task.status.replace('_', ' ').toUpperCase();
+        const toLabel = colStatus.replace('_', ' ').toUpperCase();
+        logEvent(taskId, 'status_changed', 'You', 'ME', `Moved task "${task.title}" from ${fromLabel} to ${toLabel}`);
+      }
     }
+    setDraggedId(null);
+    setDragOverCol(null);
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 50);
   };
 
   const getColumnTasks = (status: TaskStatus) =>
@@ -56,12 +89,11 @@ export const KanbanBoard = ({ onSelectTask, onClickMore }: KanbanBoardProps) => 
         return (
           <div
             key={col.key}
-            className={`flex-1 min-w-[280px] rounded-xl p-3 border transition-all duration-300 ${col.bg} ${
-              isDropTarget ? 'ring-2 ring-forest-500 kanban-drop-active shadow-inner bg-opacity-80' : 'border-transparent'
-            }`}
+            className={`flex-1 min-w-[280px] rounded-xl p-3 border transition-all duration-300 ${col.bg} ${isDropTarget ? 'ring-2 ring-forest-500 kanban-drop-active shadow-inner bg-opacity-80' : 'border-transparent'
+              }`}
             onDragOver={(e) => handleDragOver(e, col.key)}
             onDragLeave={handleDragLeave}
-            onDrop={() => handleDrop(col.key)}
+            onDrop={(e) => handleDrop(e, col.key)}
           >
             {/* Column Header */}
             <div className="flex items-center justify-between mb-4 px-1">
@@ -84,15 +116,20 @@ export const KanbanBoard = ({ onSelectTask, onClickMore }: KanbanBoardProps) => 
                     key={task.id}
                     task={task}
                     isDragging={draggedId === task.id}
-                    onDragStart={() => handleDragStart(task.id)}
-                    onClick={() => onSelectTask(task.id)}
+                    onDragStart={(e) => handleDragStart(e, task.id)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => {
+                      if (!isDraggingRef.current) {
+                        onSelectTask(task.id);
+                      }
+                    }}
                     onClickMore={() => onClickMore(task.id)}
                   />
                 ))}
               </AnimatePresence>
 
               {colTasks.length === 0 && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="py-10 text-center text-[12px] text-[#426348]/60 font-medium rounded-xl border-2 border-dashed border-[#0b170e]/10"
@@ -113,12 +150,13 @@ export const KanbanBoard = ({ onSelectTask, onClickMore }: KanbanBoardProps) => 
 interface KanbanCardProps {
   task: Task;
   isDragging: boolean;
-  onDragStart: () => void;
+  onDragStart: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
   onClick: () => void;
   onClickMore: () => void;
 }
 
-const KanbanCard = ({ task, isDragging, onDragStart, onClick, onClickMore }: KanbanCardProps) => {
+const KanbanCard = ({ task, isDragging, onDragStart, onDragEnd, onClick, onClickMore }: KanbanCardProps) => {
   return (
     <motion.div
       layout
@@ -128,11 +166,11 @@ const KanbanCard = ({ task, isDragging, onDragStart, onClick, onClickMore }: Kan
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
       draggable
-      onDragStart={onDragStart}
+      onDragStart={onDragStart as any}
+      onDragEnd={onDragEnd as any}
       onClick={onClick}
-      className={`kanban-card bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 cursor-pointer hover:-translate-y-1 hover:shadow-lg transition-all ${
-        isDragging ? 'opacity-40 scale-95 shadow-none' : ''
-      }`}
+      className={`kanban-card bg-[#fdf8e8] border border-[#0b170e] rounded-xl p-3.5 cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:shadow-lg transition-all ${isDragging ? 'opacity-40 scale-95 shadow-none' : ''
+        }`}
     >
       {/* Drag handle + Tech Tag */}
       <div className="flex items-center justify-between mb-2">
@@ -142,9 +180,8 @@ const KanbanCard = ({ task, isDragging, onDragStart, onClick, onClickMore }: Kan
           </div>
           <p className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#0b170e]/5 text-[#426348] font-semibold">{task.techTag}</p>
         </div>
-        <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${
-          task.priority === 'high' ? 'bg-rose-500' : task.priority === 'medium' ? 'bg-olive-500' : 'bg-cream-300'
-        }`} />
+        <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${task.priority === 'high' ? 'bg-rose-500' : task.priority === 'medium' ? 'bg-olive-500' : 'bg-cream-300'
+          }`} />
       </div>
 
       {/* Title */}
@@ -183,3 +220,4 @@ const KanbanCard = ({ task, isDragging, onDragStart, onClick, onClickMore }: Kan
     </motion.div>
   );
 };
+

@@ -56,8 +56,8 @@ const FilterDropdown = ({ statusFilter, priorityFilter, onStatusChange, onPriori
       <button
         onClick={() => setOpen(!open)}
         className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-colors ${hasActive
-            ? 'bg-forest-800 text-white'
-            : 'bg-rose-200 text-forest-900 hover:bg-rose-300'
+          ? 'bg-forest-800 text-white'
+          : 'bg-rose-200 text-forest-900 hover:bg-rose-300'
           }`}
       >
         <Filter className="w-3.5 h-3.5" />
@@ -260,19 +260,18 @@ export const Tasks = () => {
 
       {/* ─── PAGE TITLE ─── */}
       <h2 className="text-3xl font-extrabold text-[#0b170e] mb-3 tracking-tight">{t.project}</h2>
- 
+
       {/* ─── NAVIGATION TABS ─── */}
       <div className="flex items-center gap-4 overflow-x-auto pb-2 mb-4 border-b border-[#0b170e]/10 no-scrollbar">
         <span className="text-sm font-semibold text-[#0b170e]/60 whitespace-nowrap cursor-pointer">{t.overview}</span>
- 
+
         <div
           onClick={() => {
             setActiveTab('tasks');
             setSelectedTaskId(null);
           }}
-          className={`flex items-center gap-1.5 pb-2 cursor-pointer whitespace-nowrap ${
-            activeTab === 'tasks' ? 'border-b-2 border-[#1e3624]' : ''
-          }`}
+          className={`flex items-center gap-1.5 pb-2 cursor-pointer whitespace-nowrap ${activeTab === 'tasks' ? 'border-b-2 border-[#1e3624]' : ''
+            }`}
         >
           <span className={`text-sm ${activeTab === 'tasks' ? 'font-extrabold text-[#1e3624]' : 'font-semibold text-[#0b170e]/60'}`}>
             {t.tasks}
@@ -281,24 +280,23 @@ export const Tasks = () => {
             {filteredTasks.length}
           </span>
         </div>
- 
+
         <div className="flex items-center gap-1.5 pb-2 cursor-pointer whitespace-nowrap">
           <span className="text-sm font-semibold text-[#0b170e]/60">{t.updates}</span>
           <span className="bg-[#e7a8a8] text-[#0b170e] text-[11px] font-bold rounded-full px-2 py-0.5">2</span>
         </div>
- 
+
         <div
           onClick={() => setActiveTab('meetings')}
-          className={`flex items-center gap-1.5 pb-2 cursor-pointer whitespace-nowrap ${
-            activeTab === 'meetings' ? 'border-b-2 border-[#1e3624]' : ''
-          }`}
+          className={`flex items-center gap-1.5 pb-2 cursor-pointer whitespace-nowrap ${activeTab === 'meetings' ? 'border-b-2 border-[#1e3624]' : ''
+            }`}
         >
           <span className={`text-sm ${activeTab === 'meetings' ? 'font-extrabold text-[#1e3624]' : 'font-semibold text-[#0b170e]/60'}`}>
             {t.meetings}
           </span>
           <span className="bg-[#e7a8a8] text-[#0b170e] text-[11px] font-bold rounded-full px-2 py-0.5">3</span>
         </div>
- 
+
         <span className="text-sm font-semibold text-[#0b170e]/60 whitespace-nowrap cursor-pointer">{t.documents}</span>
       </div>
 
@@ -319,7 +317,7 @@ export const Tasks = () => {
               />
               <ChevronDown className="w-4 h-4 text-[#426348] shrink-0" />
             </div>
- 
+
             {/* New Task Button */}
             <button
               onClick={() => setShowCreateModal(true)}
