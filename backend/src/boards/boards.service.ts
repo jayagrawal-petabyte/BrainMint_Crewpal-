@@ -131,6 +131,7 @@ export class BoardsService {
          created_at  AS "createdAt"
        FROM sprints
        WHERE project_id = $1 AND status = 'active'
+       ORDER BY start_date DESC NULLS LAST, created_at DESC, id DESC
        LIMIT 1`,
       [board.project_id],
     );
