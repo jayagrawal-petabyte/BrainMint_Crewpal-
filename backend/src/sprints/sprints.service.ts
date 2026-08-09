@@ -77,7 +77,7 @@ export class SprintsService {
   /**
    * Verify the task exists, belongs to the same project as the sprint,
    * and the requesting user has access to it.
-   * Done in a single query to prevent TOCTOU races.
+   * Done in a single query to avoid TOCTOU between task and project lookups.
    */
   private async verifyTaskBelongsToSprint(
     taskId: number,
