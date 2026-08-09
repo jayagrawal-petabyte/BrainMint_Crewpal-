@@ -13,6 +13,9 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { SearchModule } from './search/search.module';
 import { CommentsModule } from './comments/comments.module';
+import { AttachmentsModule } from './attachments/attachments.module';
+import { SprintsModule } from './sprints/sprints.module';
+import { BoardsModule } from './boards/boards.module';
 
 import { NotificationsModule } from './notifications/notifications.module';
 
@@ -40,6 +43,9 @@ import { NotificationsModule } from './notifications/notifications.module';
     SearchModule,
     CommentsModule,
     NotificationsModule,
+    AttachmentsModule,
+    SprintsModule,
+    BoardsModule,
   ],
   controllers: [],
   providers: [
