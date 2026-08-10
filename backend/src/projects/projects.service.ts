@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import {
   ConflictException,
   ForbiddenException,
@@ -24,6 +22,12 @@ const COLUMNS = `
   updated_at
 `;
 
+interface AuthUser {
+  id: number;
+  organization_id: number;
+  role_id: Role;
+}
+
 @Injectable()
 export class ProjectsService {
   constructor(
@@ -31,20 +35,49 @@ export class ProjectsService {
     private readonly pool: Pool,
   ) {}
 
-  private verifyOrgAccess(
+  private async verifyProjectAccess(
+    projectId: number,
     projectOrgId: number,
-    user: { organization_id: number; role_id: Role },
+    user: AuthUser,
   ) {
-    if (user.role_id === Role.SUPER_ADMIN) return;
+    // Super Admin can access every project
+    if (user.role_id === Role.SUPER_ADMIN) {
+      return;
+    }
+
+    // User must belong to the same organization
     if (user.organization_id !== projectOrgId) {
       throw new NotFoundException('Project not found');
+    }
+
+    // Organization Admin can access all projects
+    // inside their organization
+    if (user.role_id === Role.ORG_ADMIN) {
+      return;
+    }
+
+    // All project-level roles must be project members
+    const member = await this.pool.query(
+      `SELECT id
+       FROM project_members
+       WHERE project_id = $1
+       AND user_id = $2`,
+      [projectId, user.id],
+    );
+
+    if (member.rows.length === 0) {
+      throw new ForbiddenException(
+        'You are not a member of this project',
+      );
     }
   }
 
   async create(
     dto: CreateProjectDto,
-    user: { id: number; organization_id: number; role_id: Role },
+    user: AuthUser,
   ) {
+    // Only Super Admin can create a project
+    // for another organization.
     if (
       user.role_id !== Role.SUPER_ADMIN &&
       user.organization_id !== dto.organizationId
@@ -78,25 +111,33 @@ export class ProjectsService {
     );
 
     if (existing.rows.length > 0) {
-      throw new ConflictException('Project with this name already exists');
+      throw new ConflictException(
+        'Project with this name already exists',
+      );
     }
 
     const result = await this.pool.query(
       `INSERT INTO projects (
-          organization_id,
-          name,
-          description,
-          created_by
+        organization_id,
+        name,
+        description,
+        created_by
       )
-      VALUES ($1,$2,$3,$4)
+      VALUES ($1, $2, $3, $4)
       RETURNING ${COLUMNS}`,
-      [dto.organizationId, dto.name, dto.description ?? null, user.id],
+      [
+        dto.organizationId,
+        dto.name,
+        dto.description ?? null,
+        user.id,
+      ],
     );
 
     return result.rows[0];
   }
 
-  async findAll(user: { organization_id: number; role_id: Role }) {
+  async findAll(user: AuthUser) {
+    // Super Admin can see everything
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.pool.query(
         `SELECT ${COLUMNS}
@@ -104,27 +145,64 @@ export class ProjectsService {
          WHERE is_active = TRUE
          ORDER BY id`,
       );
+
       return result.rows;
     }
 
+    // Organization Admin can see all projects
+    // in their organization
+    if (user.role_id === Role.ORG_ADMIN) {
+      const result = await this.pool.query(
+        `SELECT ${COLUMNS}
+         FROM projects
+         WHERE is_active = TRUE
+         AND organization_id = $1
+         ORDER BY id`,
+        [user.organization_id],
+      );
+
+      return result.rows;
+    }
+
+    // Project-level roles can only see projects
+    // where they are members
     const result = await this.pool.query(
       `SELECT ${COLUMNS}
-       FROM projects
-       WHERE is_active = TRUE AND organization_id = $1
-       ORDER BY id`,
-      [user.organization_id],
+       FROM projects p
+       INNER JOIN project_members pm
+         ON pm.project_id = p.id
+       WHERE p.is_active = TRUE
+       AND p.organization_id = $1
+       AND pm.user_id = $2
+       ORDER BY p.id`,
+      [user.organization_id, user.id],
     );
+
     return result.rows;
   }
 
-  async searchProjects(filters: {
-    search?: string;
-    organizationId?: number;
-    isActive?: boolean;
-  }) {
-    let query = `SELECT ${COLUMNS} FROM projects WHERE 1=1`;
-    const params: any[] = [];
+  async searchProjects(
+    filters: {
+      search?: string;
+      organizationId?: number;
+      isActive?: boolean;
+    },
+    user?: AuthUser,
+  ) {
+    let query = `
+      SELECT ${COLUMNS}
+      FROM projects
+      WHERE 1 = 1
+    `;
+
+    const params: unknown[] = [];
     let paramIndex = 1;
+
+    // Organization restriction
+    if (user && user.role_id !== Role.SUPER_ADMIN) {
+      query += ` AND organization_id = $${paramIndex++}`;
+      params.push(user.organization_id);
+    }
 
     if (filters.organizationId !== undefined) {
       query += ` AND organization_id = $${paramIndex++}`;
@@ -143,11 +221,18 @@ export class ProjectsService {
 
     query += ` ORDER BY id`;
 
-    const result = await this.pool.query(query, params);
+    const result = await this.pool.query(
+      query,
+      params,
+    );
+
     return result.rows;
   }
 
-  async findOne(id: number, user?: { organization_id: number; role_id: Role }) {
+  async findOne(
+    id: number,
+    user: AuthUser,
+  ) {
     const result = await this.pool.query(
       `SELECT ${COLUMNS}
        FROM projects
@@ -157,12 +242,16 @@ export class ProjectsService {
     );
 
     if (result.rows.length === 0) {
-      throw new NotFoundException('Project not found');
+      throw new NotFoundException(
+        'Project not found',
+      );
     }
 
-    if (user) {
-      this.verifyOrgAccess(result.rows[0].organization_id, user);
-    }
+    await this.verifyProjectAccess(
+      id,
+      result.rows[0].organization_id,
+      user,
+    );
 
     return result.rows[0];
   }
@@ -170,19 +259,23 @@ export class ProjectsService {
   async update(
     id: number,
     dto: UpdateProjectDto,
-    user: { organization_id: number; role_id: Role },
+    user: AuthUser,
   ) {
     await this.findOne(id, user);
 
     const result = await this.pool.query(
       `UPDATE projects
        SET
-          name = COALESCE($1, name),
-          description = COALESCE($2, description),
-          updated_at = NOW()
+         name = COALESCE($1, name),
+         description = COALESCE($2, description),
+         updated_at = NOW()
        WHERE id = $3
        RETURNING ${COLUMNS}`,
-      [dto.name ?? null, dto.description ?? null, id],
+      [
+        dto.name ?? null,
+        dto.description ?? null,
+        id,
+      ],
     );
 
     return result.rows[0];
@@ -190,25 +283,15 @@ export class ProjectsService {
 
   async deactivate(
     id: number,
-    user?: { organization_id: number; role_id: Role },
+    user: AuthUser,
   ) {
-    if (user) {
-      await this.findOne(id, user);
-    } else {
-      const result = await this.pool.query(
-        `SELECT ${COLUMNS} FROM projects WHERE id = $1 AND is_active = TRUE`,
-        [id],
-      );
-      if (result.rows.length === 0) {
-        throw new NotFoundException('Project not found');
-      }
-    }
+    await this.findOne(id, user);
 
     const result = await this.pool.query(
       `UPDATE projects
        SET
-          is_active = FALSE,
-          updated_at = NOW()
+         is_active = FALSE,
+         updated_at = NOW()
        WHERE id = $1
        RETURNING id, name, is_active`,
       [id],

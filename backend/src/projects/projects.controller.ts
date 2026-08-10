@@ -19,21 +19,37 @@ import { ProjectsService } from './projects.service';
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+  ) {}
 
   @Post()
-  create(@Body() dto: CreateProjectDto, @Req() req: any) {
-    return this.projectsService.create(dto, req.user);
+  create(
+    @Body() dto: CreateProjectDto,
+    @Req() req: any,
+  ) {
+    return this.projectsService.create(
+      dto,
+      req.user,
+    );
   }
 
   @Get()
   findAll(@Req() req: any) {
-    return this.projectsService.findAll(req.user);
+    return this.projectsService.findAll(
+      req.user,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
-    return this.projectsService.findOne(id, req.user);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.projectsService.findOne(
+      id,
+      req.user,
+    );
   }
 
   @Patch(':id')
@@ -42,11 +58,21 @@ export class ProjectsController {
     @Body() dto: UpdateProjectDto,
     @Req() req: any,
   ) {
-    return this.projectsService.update(id, dto, req.user);
+    return this.projectsService.update(
+      id,
+      dto,
+      req.user,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.deactivate(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    return this.projectsService.deactivate(
+      id,
+      req.user,
+    );
   }
 }
