@@ -6,6 +6,7 @@ import Login from "../pages/login";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
+import PageLoader from "../components/loading/PageLoader";
 
 import UpdateProfile from "../pages/updateProfile";
 import AddMember from "../pages/addMember";
@@ -88,11 +89,7 @@ const Scrum = lazy(() =>
   }))
 );
 
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-cream-100">
-    <div className="w-8 h-8 border-4 border-forest-900 border-t-transparent rounded-full animate-spin"></div>
-  </div>
-);
+<Suspense fallback={<PageLoader />}></Suspense>
 
 const UnderConstruction = ({ title }: { title: string }) => (
   <div className="p-8 text-center space-y-3 bg-cream-50 rounded-2xl border border-cream-200">

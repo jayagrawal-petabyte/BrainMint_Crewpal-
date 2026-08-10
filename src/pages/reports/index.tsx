@@ -1,46 +1,107 @@
-import { useEffect, useState } from "react";
-import ReportCard from "./ReportCard";import  ReportFilters  from "./ReportFilters";
-import  ReportCharts  from "./ReportCharts";
-import  ExportButtons  from "./ExportButtons";
+import { useEffect, useMemo, useState } from "react";
+import ReportCard from "./ReportCard";
+import ReportFilters from "./ReportFilters";
+import ReportCharts from "./ReportCharts";
+import ExportButtons from "./ExportButtons";
 import reportService, { ReportData } from "../../services/reportService";
+import { exportReportPDF } from "../../utils/exportPDF";
+import { exportReportExcel } from "../../utils/exportExcel";
 
-const Reports = () => {  const [reports, setReports] = useState<ReportData | null>(null);
+const Reports = () => {
+  const [reports, setReports] = useState<ReportData | null>(null);
 
   const [search, setSearch] = useState("");
   const [project, setProject] = useState("All");
   const [status, setStatus] = useState("All");
 
   useEffect(() => {
-  void loadReports();
-}, []);
+    void loadReports();
+  }, []);
 
   const loadReports = async () => {
-    const data = await reportService.getReports();
-    setReports(data);
+    try {
+      const data = await reportService.getReports();
+      setReports(data);
+    } catch (error) {
+      console.error("Failed to load reports:", error);
+    }
   };
 
-  const exportPDF = () => {
-    alert("PDF Export will be integrated.");
+  const exportPDF = async () => {
+    try {
+      await exportReportPDF();
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      alert("Unable to export the report as PDF.");
+    }
   };
 
-  const exportExcel = () => {
-    alert("Excel Export will be integrated.");
-  };
+const exportExcel = () => {
+  try {
+    exportReportExcel(filteredProjects);
+  } catch (error) {
+    console.error("Excel export failed:", error);
+    alert("Unable to export the report as Excel.");
+  }
+};
+
+  /*
+   * Filter project progress based on:
+   * 1. Search
+   * 2. Project
+   * 3. Status
+   */
+  const filteredProjects = useMemo(() => {
+    if (!reports) {
+      return [];
+    }
+
+    return reports.projectProgress.filter((item) => {
+      // Search filter
+      const matchesSearch = item.name
+        .toLowerCase()
+        .includes(search.toLowerCase().trim());
+
+      // Project filter
+      const matchesProject =
+        project === "All" || item.name === project;
+
+      // Derive status from progress
+      let itemStatus = "Pending";
+
+      if (item.progress === 100) {
+        itemStatus = "Completed";
+      } else if (item.progress > 0) {
+        itemStatus = "Active";
+      }
+
+      // Status filter
+      const matchesStatus =
+        status === "All" || itemStatus === status;
+
+      return (
+        matchesSearch &&
+        matchesProject &&
+        matchesStatus
+      );
+    });
+  }, [reports, search, project, status]);
 
   if (!reports) {
     return (
-      <div className="flex justify-center items-center h-[70vh]">
-        <div className="flex h-[70vh] items-center justify-center">
-  <p className="text-lg text-gray-500">
-    Loading reports...
-  </p>
-</div>
+      <div className="min-h-screen bg-[#F7F3D7] flex items-center justify-center">
+        <div className="text-lg font-semibold text-[#355E3B]">
+          Loading Reports...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F3D7] p-6">
+    <div
+      id="reports-content"
+      className="min-h-screen bg-[#F7F3D7] p-6"
+    >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
@@ -60,7 +121,6 @@ const Reports = () => {  const [reports, setReports] = useState<ReportData | nul
       </div>
 
       {/* Filters */}
-
       <div className="mb-6">
         <ReportFilters
           search={search}
@@ -73,7 +133,6 @@ const Reports = () => {  const [reports, setReports] = useState<ReportData | nul
       </div>
 
       {/* Summary Cards */}
-
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <ReportCard
           title="Total Projects"
@@ -100,56 +159,103 @@ const Reports = () => {  const [reports, setReports] = useState<ReportData | nul
       </div>
 
       {/* Charts */}
+      <ReportCharts data={reports.monthlyReports} />
 
-      <ReportCharts
-        data={reports.monthlyReports}
-      />
-
-      {/* Progress Table */}
-
+      {/* Project Progress Table */}
       <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b">
           <h2 className="font-semibold text-lg">
             Project Progress
           </h2>
+
+          <p className="text-sm text-gray-500 mt-1">
+            Showing {filteredProjects.length} of{" "}
+            {reports.projectProgress.length} projects
+          </p>
         </div>
 
-        <table className="w-full">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="text-left p-4">Project</th>
-              <th className="text-left p-4">Progress</th>
-            </tr>
-          </thead>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="text-left p-4">
+                  Project
+                </th>
 
-          <tbody>
-            {reports.projectProgress.map((project) => (
-              <tr
-                key={project.name}
-                className="border-t hover:bg-gray-50"
-              >
-                <td className="p-4">
-                  {project.name}
-                </td>
+                <th className="text-left p-4">
+                  Progress
+                </th>
 
-                <td className="p-4">
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-[#355E3B] h-3 rounded-full"
-                      style={{
-                        width: `${project.progress}%`,
-                      }}
-                    />
-                  </div>
-
-                  <span className="text-sm text-gray-500">
-                    {project.progress}%
-                  </span>
-                </td>
+                <th className="text-left p-4">
+                  Status
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {filteredProjects.length > 0 ? (
+                filteredProjects.map((item) => {
+                  let itemStatus = "Pending";
+
+                  if (item.progress === 100) {
+                    itemStatus = "Completed";
+                  } else if (item.progress > 0) {
+                    itemStatus = "Active";
+                  }
+
+                  return (
+                    <tr
+                      key={item.name}
+                      className="border-t hover:bg-gray-50"
+                    >
+                      <td className="p-4 font-medium">
+                        {item.name}
+                      </td>
+
+                      <td className="p-4">
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div
+                            className="bg-[#355E3B] h-3 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${item.progress}%`,
+                            }}
+                          />
+                        </div>
+
+                        <span className="text-sm text-gray-500">
+                          {item.progress}%
+                        </span>
+                      </td>
+
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                            itemStatus === "Completed"
+                              ? "bg-[#D9E7C4] text-[#355E3B]"
+                              : itemStatus === "Active"
+                              ? "bg-[#F5D9A8] text-[#7A551F]"
+                              : "bg-[#F5C8C8] text-[#8B3030]"
+                          }`}
+                        >
+                          {itemStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="p-10 text-center text-gray-500"
+                  >
+                    No projects found matching your filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
