@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
@@ -32,7 +32,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     clearError();
     try {
-      await login({ ...values, rememberMe: values.rememberMe ?? false });
+      await login(values);
       setSuccess(true);
       setTimeout(() => navigate("/dashboard"), 900);
     } catch {
@@ -120,12 +120,13 @@ export default function LoginPage() {
                 />
                 Remember Me
               </label>
-              <Link
-                to="/forgot-password"
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
                 className="text-sm font-medium text-forest hover:underline"
               >
                 Forgot Password?
-              </Link>
+              </button>
             </div>
 
             <Button type="submit" size="lg" className="mt-2 w-full" isLoading={isLoading}>
