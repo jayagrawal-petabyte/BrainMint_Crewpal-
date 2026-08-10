@@ -10,6 +10,10 @@ interface AuthState {
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetStatus: "idle" | "loading" | "success" | "error";
+  resetError: string | null;
+  clearResetError: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -47,4 +51,24 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  resetStatus: "idle",
+  resetError: null,
+
+  requestPasswordReset: async (email: string) => {
+    set({ resetStatus: "loading", resetError: null });
+    try {
+      // Placeholder endpoint — replace with the real Crewpal password-reset API.
+      await api.post("/auth/forgot-password", { email });
+      set({ resetStatus: "success" });
+    } catch (err) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "We couldn't send the reset link. Please try again.";
+      set({ resetStatus: "error", resetError: message });
+      throw err;
+    }
+  },
+
+  clearResetError: () => set({ resetError: null }),
 }));
