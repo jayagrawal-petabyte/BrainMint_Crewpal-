@@ -164,16 +164,24 @@ INSERT INTO roles (id, name) VALUES
 ON CONFLICT (id) DO NOTHING;
 `;
 
-async function initDB() {
-  try {
-    console.log('🔄 Initializing PostgreSQL database tables & roles...');
-    await pool.query(schema);
-    console.log('✅ Database schema initialized successfully!');
-  } catch (err) {
-    console.error('❌ Database initialization failed:', err);
-    process.exit(1);
-  } finally {
-    await pool.end();
+async function initDB(retries = 5, delay = 3000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`🔄 [Attempt ${attempt}/${retries}] Initializing PostgreSQL database schema & roles...`);
+      await pool.query(schema);
+      console.log('✅ Database schema initialized successfully!');
+      await pool.end();
+      return;
+    } catch (err) {
+      console.error(`⚠️ Attempt ${attempt}/${retries} failed:`, err.message);
+      if (attempt === retries) {
+        console.error('❌ Database initialization failed after max retries:', err);
+        await pool.end();
+        process.exit(1);
+      }
+      console.log(`⏳ Retrying in ${delay / 1000} seconds...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
 }
 

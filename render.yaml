@@ -6,8 +6,8 @@ services:
     region: singapore # or oregon, frankfurt, etc.
     plan: free
     rootDir: backend
-    buildCommand: npm install --include=dev && npm run build && npm run db:init
-    startCommand: npm run start:prod
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run db:init && npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
