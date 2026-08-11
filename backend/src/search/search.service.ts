@@ -1,10 +1,14 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ProjectsService } from '../projects/projects.service';
+import { TasksService } from '../tasks/tasks.service';
 import { Role } from '../common/constants/roles.constant';
 
 @Injectable()
 export class SearchService {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly tasksService: TasksService,
+  ) {}
 
   async searchProjects(
     filters: {
@@ -26,12 +30,19 @@ export class SearchService {
   }
 
   async searchTasks(
-    filters: SearchTaskFilters,
-    user: SearchUser,
+    filters: {
+      search?: string;
+      status?: string;
+      priority?: string;
+      assigneeId?: number;
+      projectId?: number;
+    },
+    user: {
+      id: number;
+      organization_id: number;
+      role_id: Role;
+    },
   ) {
-    return this.tasksService.searchTasks({
-      ...filters,
-      organizationId: user.organization_id,
-    });
+    return this.tasksService.searchTasks(user, filters);
   }
 }
