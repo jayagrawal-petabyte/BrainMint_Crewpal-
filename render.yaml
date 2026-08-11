@@ -25,9 +25,6 @@ services:
         value: "https://brainmintcrewpal.vercel.app"
 
 databases:
-  # -------------------------------------------------------------
-  # Managed PostgreSQL Database
-  # -------------------------------------------------------------
   - name: crewpal-db
     databaseName: crewpal
     user: crewpal_user
