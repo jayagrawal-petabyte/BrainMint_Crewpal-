@@ -7,8 +7,16 @@ import { Pool } from 'pg';
     {
       provide: 'PG_CONNECTION',
       useFactory: async () => {
+        const connectionString = process.env.DATABASE_URL;
+        const isProduction = process.env.NODE_ENV === 'production';
+        const isRender = !!process.env.RENDER || !!process.env.RENDER_SERVICE_ID;
+        const hasSslMode = connectionString?.includes('sslmode=') ?? false;
+
+        const useSsl = isProduction || isRender || hasSslMode;
+
         const pool = new Pool({
-          connectionString: process.env.DATABASE_URL,
+          connectionString,
+          ssl: useSsl ? { rejectUnauthorized: false } : false,
         });
         return pool;
       },

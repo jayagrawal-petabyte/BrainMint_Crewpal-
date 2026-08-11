@@ -1,0 +1,36 @@
+services:
+  # -------------------------------------------------------------
+  # NestJS Backend Web Service
+  # -------------------------------------------------------------
+  - type: web
+    name: crewpal-backend
+    env: node
+    region: singapore # or oregon, frankfurt, etc.
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build && npm run db:init
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: crewpal-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: CORS_ORIGIN
+        value: "*"
+
+databases:
+  # -------------------------------------------------------------
+  # Managed PostgreSQL Database
+  # -------------------------------------------------------------
+  - name: crewpal-db
+    databaseName: crewpal
+    user: crewpal_user
+    plan: free
