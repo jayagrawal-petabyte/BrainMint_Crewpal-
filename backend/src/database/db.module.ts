@@ -17,7 +17,20 @@ import { Pool } from 'pg';
         const pool = new Pool({
           connectionString,
           ssl: useSsl ? { rejectUnauthorized: false } : false,
+          max: isProduction ? 10 : 5,
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 5000,
         });
+
+        // Fail fast: verify the connection is alive at startup
+        try {
+          const client = await pool.connect();
+          client.release();
+        } catch (err) {
+          console.error('❌ Failed to connect to PostgreSQL:', (err as Error).message);
+          throw err;
+        }
+
         return pool;
       },
     },
