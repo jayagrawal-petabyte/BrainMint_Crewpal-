@@ -1,5 +1,4 @@
 services:
-  # -------------------------------------------------------------
   # NestJS Backend Web Service
   - type: web
     name: crewpal-backend
@@ -7,7 +6,7 @@ services:
     region: singapore # or oregon, frankfurt, etc.
     plan: free
     rootDir: backend
-    buildCommand: npm install && npm run build && npm run db:init
+    buildCommand: npm install --include=dev && npm run build && npm run db:init
     startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
