@@ -19,6 +19,7 @@ import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { CreateOrganizationSettingsDto } from './dto/create-organization-settings.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { UpdateOrganizationSettingsDto } from './dto/update-organization-settings.dto';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { OrganizationsService } from './organizations.service';
 
 @Controller('organizations')
@@ -72,5 +73,16 @@ export class OrganizationsController {
     @Req() req: any,
   ) {
     return this.orgService.upsertSettings(id, dto, req.user);
+  }
+
+  @Patch(':organizationId/users/:userId/role')
+  @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
+  updateUserRole(
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() dto: UpdateUserRoleDto,
+    @Req() req: any,
+  ) {
+    return this.orgService.updateUserRole(organizationId, userId, dto, req.user);
   }
 }
