@@ -7,7 +7,18 @@ import { Pool } from 'pg';
     {
       provide: 'PG_CONNECTION',
       useFactory: async () => {
-        const connectionString = process.env.DATABASE_URL;
+        let connectionString = process.env.DATABASE_URL;
+
+        if (connectionString) {
+          connectionString = connectionString.replace(/@([a-z0-9-]+)(\/|:|\?|$)/i, (match, host, rest) => {
+            if (host.startsWith('dpg-') && !host.includes('.')) {
+              const region = process.env.RENDER_REGION || 'singapore';
+              return `@${host}.${region}-postgres.render.com${rest}`;
+            }
+            return match;
+          });
+        }
+
         const isProduction = process.env.NODE_ENV === 'production';
         const isRender = !!process.env.RENDER || !!process.env.RENDER_SERVICE_ID;
         const hasSslMode = connectionString?.includes('sslmode=') ?? false;
