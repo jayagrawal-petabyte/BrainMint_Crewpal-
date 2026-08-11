@@ -40,7 +40,12 @@ const DEMO_ACCOUNTS: Record<string, DemoAccount> = {
 class AuthService {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      return await api.post<LoginResponse>('/auth/login', credentials);
+      const res = await api.post<{ access_token?: string; token?: string; user: User }>('/auth/login', credentials);
+      const token = res.access_token || res.token || '';
+      if (token) {
+        window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      }
+      return { token, user: res.user };
     } catch {
       return this.mockLogin(credentials);
     }
