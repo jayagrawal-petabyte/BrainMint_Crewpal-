@@ -79,7 +79,7 @@ export class TasksService {
   }
 
   async searchTasks(user: any, queryParams: any) {
-    const { search, status, priority, assigneeId, projectId } = queryParams;
+    const { search, status, priority, assigneeId, projectId, isClosed } = queryParams;
 
     let query = `
       SELECT t.* FROM tasks t
