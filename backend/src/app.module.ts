@@ -18,6 +18,7 @@ import { SprintsModule } from './sprints/sprints.module';
 import { BoardsModule } from './boards/boards.module';
 
 import { NotificationsModule } from './notifications/notifications.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -47,7 +48,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     SprintsModule,
     BoardsModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_GUARD,
