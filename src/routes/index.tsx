@@ -3,7 +3,9 @@ import { Suspense, lazy } from "react";
 
 import { MainLayout } from "../components/layout/MainLayout";
 import LandingPage from "../pages/landing/LandingPage";
-import Login from "../pages/login";
+import LoginPage from "../pages/Auth/LoginPage";
+import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
+import DashboardPage from "../pages/Auth/DashboardPage";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
@@ -102,18 +104,33 @@ const UnderConstruction = ({ title }: { title: string }) => (
 );
 
 export const router = createBrowserRouter([
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/403",
-    element: <Forbidden />,
-  },
+
   {
   path: "/",
   element: <LandingPage />,
 },
+
+
+ {
+  path: "/login",
+  element: <LoginPage />,
+},
+
+{
+  path: "/forgot-password",
+  element: <ForgotPasswordPage />,
+},
+
+{
+  path: "/dashboard",
+  element: <DashboardPage />,
+},
+
+  {
+    path: "/403",
+    element: <Forbidden />,
+  },
+  
 
 {
   element: (
