@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 
 import { MainLayout } from "../components/layout/MainLayout";
+import LandingPage from "../pages/landing/LandingPage";
 import Login from "../pages/login";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -89,7 +90,7 @@ const Scrum = lazy(() =>
   }))
 );
 
-<Suspense fallback={<PageLoader />}></Suspense>
+
 
 const UnderConstruction = ({ title }: { title: string }) => (
   <div className="p-8 text-center space-y-3 bg-cream-50 rounded-2xl border border-cream-200">
@@ -110,23 +111,23 @@ export const router = createBrowserRouter([
     element: <Forbidden />,
   },
   {
-    path: "/",
-    element: (
-      <ProtectedRoute
-        allowedRoles={[
-          UserRole.ADMIN,
-          UserRole.MANAGER,
-          UserRole.EMPLOYEE,
-        ]}
-      >
-        <MainLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: <Navigate to="/dashboard" replace />,
-      },
+  path: "/",
+  element: <LandingPage />,
+},
+
+{
+  element: (
+    <ProtectedRoute
+      allowedRoles={[
+        UserRole.ADMIN,
+        UserRole.MANAGER,
+        UserRole.EMPLOYEE,
+      ]}
+    >
+      <MainLayout />
+    </ProtectedRoute>
+  ),
+  children: [
 
       {
         path: "dashboard",
