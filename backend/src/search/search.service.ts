@@ -36,6 +36,7 @@ export class SearchService {
       priority?: string;
       assigneeId?: number;
       projectId?: number;
+      isClosed?: boolean;
     },
     user: {
       id: number;
