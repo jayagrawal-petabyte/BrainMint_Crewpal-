@@ -26,20 +26,12 @@ export class SearchService {
   }
 
   async searchTasks(
-    /* eslint-disable @typescript-eslint/no-unused-vars */ filters: {
-      search?: string;
-      status?: string;
-      priority?: string;
-      projectId?: number;
-      assigneeId?: number;
-      isClosed?: boolean;
-    },
-    /* eslint-disable @typescript-eslint/no-unused-vars */ user: {
-      id: number;
-      organization_id: number;
-      role_id: Role;
-    },
+    filters: SearchTaskFilters,
+    user: SearchUser,
   ) {
-    throw new NotImplementedException('Task search is not implemented yet.');
+    return this.tasksService.searchTasks({
+      ...filters,
+      organizationId: user.organization_id,
+    });
   }
 }
