@@ -1,7 +1,6 @@
 services:
   # -------------------------------------------------------------
   # NestJS Backend Web Service
-  # -------------------------------------------------------------
   - type: web
     name: crewpal-backend
     env: node
@@ -24,7 +23,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 1d
       - key: CORS_ORIGIN # Update this to your frontend Render URL after deploying frontend
-        value: "https://your-frontend.onrender.com"
+        value: "https://brainmintcrewpal.vercel.app"
 
 databases:
   # -------------------------------------------------------------
