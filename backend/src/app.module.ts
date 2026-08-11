@@ -17,6 +17,8 @@ import { AttachmentsModule } from './attachments/attachments.module';
 import { SprintsModule } from './sprints/sprints.module';
 import { BoardsModule } from './boards/boards.module';
 
+import { NotificationsModule } from './notifications/notifications.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,6 +42,7 @@ import { BoardsModule } from './boards/boards.module';
     AuditLogsModule,
     SearchModule,
     CommentsModule,
+    NotificationsModule,
     AttachmentsModule,
     SprintsModule,
     BoardsModule,
