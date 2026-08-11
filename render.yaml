@@ -23,8 +23,7 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 1d
-      - key: CORS_ORIGIN
-        sync: false # Set this to your frontend Render URL after deploying frontend
+      - key: CORS_ORIGIN # Update this to your frontend Render URL after deploying frontend
         value: "https://your-frontend.onrender.com"
 
 databases:
