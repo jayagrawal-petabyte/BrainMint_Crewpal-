@@ -188,7 +188,7 @@ INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VAL
   (7, 1, 7, 'QA Tester User', 'qa@crewpal.com', '$2b$10$CXpkqdGIdVvpdP0onzQL3.uAWWN3Udtf/xPo7yjyrdoaKTriqrD3a'),
   (8, 1, 8, 'Client User', 'client@crewpal.com', '$2b$10$R2KOYzT01fFdzQOFnKxskeDP.yQps4FTMFF/vHLqqplRyocbzpBh2'),
   (9, 1, 9, 'Viewer User', 'viewer@crewpal.com', '$2b$10$FQ8rIQ56cN5TBfyvgl8Mn.Nl3/dByccwouaztwsxOIKEpC89LIR66')
-ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash;
+ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_active = TRUE;
 
 -- Seed default project, board, sprint, and task
 INSERT INTO projects (id, organization_id, name, description, created_by) VALUES

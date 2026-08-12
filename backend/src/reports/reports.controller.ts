@@ -5,18 +5,17 @@ import {
   ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ReportsService } from './reports.service';
 
 @Controller('reports')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(JwtAuthGuard)
 export class ReportsController {
   constructor(
     private readonly reportsService: ReportsService,
   ) {}
 
-  @Get('projects/:projectId')
+  @Get(['projects/:projectId', 'project-progress/:projectId'])
   async getProjectReport(
     @Param('projectId', ParseIntPipe) projectId: number,
   ) {
@@ -30,7 +29,7 @@ export class ReportsController {
     };
   }
 
-  @Get('sprints/:sprintId')
+  @Get(['sprints/:sprintId', 'sprint-progress/:sprintId'])
   async getSprintReport(
     @Param('sprintId', ParseIntPipe) sprintId: number,
   ) {
