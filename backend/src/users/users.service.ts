@@ -35,13 +35,16 @@ export class UsersService {
     dto: CreateUserDto,
     user: { organization_id: number; role_id: Role },
   ) {
-    if (user.role_id !== Role.SUPER_ADMIN) {
-      if (dto.organizationId !== user.organization_id) {
+    const userRole = Number(user?.role_id);
+    const userOrg = Number(user?.organization_id);
+
+    if (userRole !== Role.SUPER_ADMIN) {
+      if (Number(dto.organizationId) !== userOrg) {
         throw new ForbiddenException(
           'Cannot create users in another organization',
         );
       }
-      if (dto.roleId === Role.SUPER_ADMIN) {
+      if (Number(dto.roleId) === Role.SUPER_ADMIN) {
         throw new ForbiddenException('Cannot assign SUPER_ADMIN role');
       }
     }

@@ -47,6 +47,7 @@ import { AppController } from './app.controller';
     AttachmentsModule,
     SprintsModule,
     BoardsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [
