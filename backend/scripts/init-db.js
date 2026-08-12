@@ -171,6 +171,53 @@ INSERT INTO roles (id, name) VALUES
   (8, 'Client'),
   (9, 'Viewer')
 ON CONFLICT (id) DO NOTHING;
+
+-- Seed default Organization
+INSERT INTO organizations (id, name) VALUES
+  (1, 'Acme Corp')
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed default test users for all 9 roles (Password: Password123!)
+INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VALUES
+  (1, 1, 1, 'Super Admin User', 'superadmin@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (2, 1, 2, 'Org Admin User', 'orgadmin@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (3, 1, 3, 'Project Admin User', 'projectadmin@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (4, 1, 4, 'Project Manager User', 'manager@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (5, 1, 5, 'Team Lead User', 'teamlead@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (6, 1, 6, 'Designer User', 'designer@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (7, 1, 7, 'QA Tester User', 'qa@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (8, 1, 8, 'Client User', 'client@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
+  (9, 1, 9, 'Viewer User', 'viewer@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW')
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed default project, board, sprint, and task
+INSERT INTO projects (id, organization_id, name, description, created_by) VALUES
+  (1, 1, 'Default Project', 'Initial testing project for WorkTrack', 1)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO project_members (id, project_id, user_id, role_id) VALUES
+  (1, 1, 1, 1),
+  (2, 1, 2, 2),
+  (3, 1, 3, 3),
+  (4, 1, 4, 4),
+  (5, 1, 5, 5),
+  (6, 1, 6, 6),
+  (7, 1, 7, 7),
+  (8, 1, 8, 8),
+  (9, 1, 9, 9)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO boards (id, project_id, name, type) VALUES
+  (1, 1, 'Default Scrum Board', 'scrum')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO sprints (id, project_id, name, status) VALUES
+  (1, 1, 'Sprint 1', 'active')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO tasks (id, project_id, sprint_id, board_id, created_by, title, description, status) VALUES
+  (1, 1, 1, 1, 1, 'Initial Setup Task', 'First task for testing comments and attachments', 'to_do')
+ON CONFLICT (id) DO NOTHING;
 `;
 
 async function initDB(retries = 5, delay = 3000) {
