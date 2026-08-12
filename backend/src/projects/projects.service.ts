@@ -78,9 +78,12 @@ export class ProjectsService {
   ) {
     // Only Super Admin can create a project
     // for another organization.
+    const userRole = Number(user?.role_id);
+    const userOrg = Number(user?.organization_id);
+
     if (
-      user.role_id !== Role.SUPER_ADMIN &&
-      user.organization_id !== dto.organizationId
+      userRole !== Role.SUPER_ADMIN &&
+      userOrg !== Number(dto.organizationId)
     ) {
       throw new ForbiddenException(
         'You cannot create a project for another organization',
