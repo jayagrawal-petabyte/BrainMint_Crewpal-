@@ -2,6 +2,8 @@
 import {
   Injectable,
   Inject,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Pool } from 'pg';
@@ -11,6 +13,7 @@ import { AssignTaskDto } from './dto/assign-task.dto';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
   constructor(
     @Inject('PG_CONNECTION') private readonly pool: Pool,
   ) {}
@@ -48,14 +51,26 @@ export class TasksService {
 
     await this.verifyProjectAccess(user, projectId);
 
-    const result = await this.pool.query(
-      `INSERT INTO tasks (title, description, status, priority, project_id, assignee_id)
-       VALUES ($1, $2, 'to_do', $3, $4, $5)
-       RETURNING *`,
-      [title, description, priority, projectId, assigneeId],
-    );
+    const userId = user?.id ?? user?.sub;
 
-    return result.rows[0];
+    try {
+      const result = await this.pool.query(
+        `INSERT INTO tasks (title, description, status, priority, project_id, assignee_id, created_by)
+         VALUES ($1, $2, 'to_do', $3, $4, $5, $6)
+         RETURNING *`,
+        [title, description ?? null, priority ?? 'medium', projectId, assigneeId ?? null, userId],
+      );
+
+      return result.rows[0];
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to create task: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        `Task creation failed: ${error.message}`,
+      );
+    }
   }
 
   async findAll(user: any, projectId?: string | number) {

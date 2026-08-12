@@ -48,9 +48,59 @@ export class ReportsService {
   async getSprintReport(
     sprintId: number,
   ): Promise<SprintReport> {
-    throw new NotFoundException(
-      `Sprint ${sprintId} reporting is not available yet.`,
+    const sprintResult = await this.db.query(
+      `SELECT id, project_id, name, start_date, end_date, status
+       FROM sprints
+       WHERE id = $1`,
+      [sprintId],
     );
+
+    if (sprintResult.rows.length === 0) {
+      throw new NotFoundException(
+        `Sprint ${sprintId} not found`,
+      );
+    }
+
+    const sprint = sprintResult.rows[0];
+
+    const taskStatsResult = await this.db.query(
+      `SELECT
+         COUNT(*) AS "totalTasks",
+         COUNT(*) FILTER (WHERE status = 'to_do') AS "todo",
+         COUNT(*) FILTER (WHERE status = 'in_progress') AS "inProgress",
+         COUNT(*) FILTER (WHERE status = 'in_review') AS "inReview",
+         COUNT(*) FILTER (WHERE status = 'testing') AS "testing",
+         COUNT(*) FILTER (WHERE status = 'done') AS "done"
+       FROM tasks
+       WHERE sprint_id = $1`,
+      [sprintId],
+    );
+
+    const stats = {
+      totalTasks: Number(taskStatsResult.rows[0].totalTasks),
+      todo: Number(taskStatsResult.rows[0].todo),
+      inProgress: Number(taskStatsResult.rows[0].inProgress),
+      inReview: Number(taskStatsResult.rows[0].inReview),
+      testing: Number(taskStatsResult.rows[0].testing),
+      done: Number(taskStatsResult.rows[0].done),
+    };
+
+    const completionPercentage =
+      this.calculateCompletionPercentage(
+        stats.done,
+        stats.totalTasks,
+      );
+
+    return {
+      sprint,
+      summary: {
+        totalTasks: stats.totalTasks,
+        completedTasks: stats.done,
+        remainingTasks: stats.totalTasks - stats.done,
+        completionPercentage,
+      },
+      taskStatus: stats,
+    };
   }
 
   private async getProject(projectId: number) {

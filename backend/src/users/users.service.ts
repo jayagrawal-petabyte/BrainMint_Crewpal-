@@ -6,6 +6,8 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Pool } from 'pg';
@@ -19,6 +21,7 @@ const SAFE_COLUMNS =
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
 
   private verifyOrgAccess(
@@ -58,12 +61,30 @@ export class UsersService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    const result = await this.pool.query(
-      `INSERT INTO users (organization_id, role_id, name, email, password_hash)
-       VALUES ($1, $2, $3, $4, $5) RETURNING ${SAFE_COLUMNS}`,
-      [dto.organizationId, dto.roleId, dto.name, dto.email, passwordHash],
-    );
-    return result.rows[0];
+    try {
+      const result = await this.pool.query(
+        `INSERT INTO users (organization_id, role_id, name, email, password_hash)
+         VALUES ($1, $2, $3, $4, $5) RETURNING ${SAFE_COLUMNS}`,
+        [dto.organizationId, dto.roleId, dto.name, dto.email, passwordHash],
+      );
+      return result.rows[0];
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to create user: ${error.message}`,
+        error.stack,
+      );
+      if (error.code === '23505') {
+        throw new ConflictException('Email already in use');
+      }
+      if (error.code === '23503') {
+        throw new NotFoundException(
+          `Invalid reference: ${error.detail || error.message}`,
+        );
+      }
+      throw new InternalServerErrorException(
+        `User creation failed: ${error.message}`,
+      );
+    }
   }
 
   async findAll(user: { organization_id: number; role_id: Role }) {
