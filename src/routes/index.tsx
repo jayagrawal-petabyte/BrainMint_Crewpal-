@@ -85,6 +85,11 @@ const Settings = lazy(() =>
     default: module.Settings,
   }))
 );
+const Notifications = lazy(() =>
+  import("../pages/notifications").then((module) => ({
+    default: module.default,
+  }))
+);
 
 const Scrum = lazy(() =>
   import("../pages/scrum").then((module) => ({
@@ -266,21 +271,21 @@ export const router = createBrowserRouter([
       },
 
       {
-  path: "user-dashboard",
-  element: (
-    <ProtectedRoute
-      allowedRoles={[
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-        UserRole.EMPLOYEE,
-      ]}
-    >
-      <Suspense fallback={<PageLoader />}>
-        <UserDashboard />
-      </Suspense>
-    </ProtectedRoute>
-  ),
-},
+        path: "user-dashboard",
+        element: (
+          <ProtectedRoute
+            allowedRoles={[
+              UserRole.ADMIN,
+              UserRole.MANAGER,
+              UserRole.EMPLOYEE,
+            ]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <UserDashboard />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
 
       {
         path: "change-password/:id",
@@ -311,7 +316,9 @@ export const router = createBrowserRouter([
       {
         path: "notifications",
         element: (
-          <UnderConstruction title="Notifications Center" />
+          <Suspense fallback={<PageLoader />}>
+            <Notifications />
+          </Suspense>
         ),
       },
 
