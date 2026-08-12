@@ -50,7 +50,7 @@ export class TasksService {
 
     const result = await this.pool.query(
       `INSERT INTO tasks (title, description, status, priority, project_id, assignee_id)
-       VALUES ($1, $2, 'TODO', $3, $4, $5)
+       VALUES ($1, $2, 'to_do', $3, $4, $5)
        RETURNING *`,
       [title, description, priority, projectId, assigneeId],
     );
