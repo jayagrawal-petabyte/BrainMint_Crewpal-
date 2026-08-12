@@ -177,18 +177,18 @@ INSERT INTO organizations (id, name) VALUES
   (1, 'Acme Corp')
 ON CONFLICT (id) DO NOTHING;
 
--- Seed default test users for all 9 roles (Password: Password123!)
+-- Seed default test users for all 9 roles with distinct simple passwords
 INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VALUES
-  (1, 1, 1, 'Super Admin User', 'superadmin@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (2, 1, 2, 'Org Admin User', 'orgadmin@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (3, 1, 3, 'Project Admin User', 'projectadmin@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (4, 1, 4, 'Project Manager User', 'manager@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (5, 1, 5, 'Team Lead User', 'teamlead@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (6, 1, 6, 'Designer User', 'designer@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (7, 1, 7, 'QA Tester User', 'qa@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (8, 1, 8, 'Client User', 'client@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW'),
-  (9, 1, 9, 'Viewer User', 'viewer@crewpal.com', '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW')
-ON CONFLICT (id) DO NOTHING;
+  (1, 1, 1, 'Super Admin User', 'superadmin@crewpal.com', '$2b$10$G1uQOuA6a.8/kEN2N4oRauEQozjfIlrlITxhLu.BC0ykN5q5iprYO'),
+  (2, 1, 2, 'Org Admin User', 'orgadmin@crewpal.com', '$2b$10$pTdPgw0IuRXAZp/du6V.ZOgxvjpMFr5rK/NRvndn6qXBF1WsgyRA6'),
+  (3, 1, 3, 'Project Admin User', 'projectadmin@crewpal.com', '$2b$10$f56S8xjGuF.PcmYqE92FD.CimWT/ig9/JFQDqbkAOZX1UUYe3pJ6y'),
+  (4, 1, 4, 'Project Manager User', 'manager@crewpal.com', '$2b$10$u2gPfSpuqdWOQs1t4JQiq.rqWBouThPeeUgAj3HUYAxZ2ElYAQ/xK'),
+  (5, 1, 5, 'Team Lead User', 'teamlead@crewpal.com', '$2b$10$gieeZvkwhBSYWWWU5VV/gO./LMtOcpqeZHNGGsPsoaLo.YN3/BJzi'),
+  (6, 1, 6, 'Designer User', 'designer@crewpal.com', '$2b$10$th/GwvSgiwZuYTrOnMCgmu6OY86fA2pDrvi1/nCrbktuTWHzszKkK'),
+  (7, 1, 7, 'QA Tester User', 'qa@crewpal.com', '$2b$10$CXpkqdGIdVvpdP0onzQL3.uAWWN3Udtf/xPo7yjyrdoaKTriqrD3a'),
+  (8, 1, 8, 'Client User', 'client@crewpal.com', '$2b$10$R2KOYzT01fFdzQOFnKxskeDP.yQps4FTMFF/vHLqqplRyocbzpBh2'),
+  (9, 1, 9, 'Viewer User', 'viewer@crewpal.com', '$2b$10$FQ8rIQ56cN5TBfyvgl8Mn.Nl3/dByccwouaztwsxOIKEpC89LIR66')
+ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 -- Seed default project, board, sprint, and task
 INSERT INTO projects (id, organization_id, name, description, created_by) VALUES
