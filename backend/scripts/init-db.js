@@ -177,7 +177,7 @@ INSERT INTO organizations (id, name) VALUES
   (1, 'Acme Corp')
 ON CONFLICT (id) DO NOTHING;
 
--- Seed default test users for all 9 roles with distinct simple passwords
+-- Seed default test users for all 9 roles with distinct passwords
 INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VALUES
   (1, 1, 1, 'Super Admin User', 'superadmin@crewpal.com', '$2b$10$G1uQOuA6a.8/kEN2N4oRauEQozjfIlrlITxhLu.BC0ykN5q5iprYO'),
   (2, 1, 2, 'Org Admin User', 'orgadmin@crewpal.com', '$2b$10$pTdPgw0IuRXAZp/du6V.ZOgxvjpMFr5rK/NRvndn6qXBF1WsgyRA6'),
