@@ -25,8 +25,10 @@ export const MainLayout = () => {
     <div className="min-h-screen flex bg-Beige">
       <Sidebar />
 
-      <main className="flex-1 overflow-auto">
-        <PageTransition />
+      <main className="flex-1 overflow-auto p-6 md:p-8 lg:p-10 min-h-screen">
+        <div className="max-w-7xl mx-auto w-full">
+          <PageTransition />
+        </div>
       </main>
 
       <ToastContainer />
