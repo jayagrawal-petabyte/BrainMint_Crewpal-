@@ -6,7 +6,6 @@ import ToastContainer from "./components/ui/Toast";
 
 export const App = () => {
   return (
-<<<<<<< HEAD
     <>
       <ErrorBoundary>
         <SessionExpiredHandler />
@@ -15,13 +14,6 @@ export const App = () => {
 
       <ToastContainer />
     </>
-=======
-    <ErrorBoundary>
-      <SessionExpiredHandler />
-      <RouterProvider router={router} />
-      <ToastContainer />
-    </ErrorBoundary>
->>>>>>> d4c0e86 (feat: add notification center)
   );
 };
 
