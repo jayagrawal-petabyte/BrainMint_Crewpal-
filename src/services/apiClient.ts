@@ -1,7 +1,7 @@
 import { ApiError, createApiError } from './apiErrors';
 
 export const API_BASE_URL: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api';
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'https://brainmintcrewpal.onrender.com';
 
 export const TOKEN_STORAGE_KEY = 'crewpal_access_token';
 

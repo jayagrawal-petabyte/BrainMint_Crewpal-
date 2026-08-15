@@ -25,16 +25,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload: LoginPayload) => {
     set({ status: "loading", error: null });
     try {
-      // Try backend endpoint first
       const { data } = await api.post<AuthResponse>("/auth/login", payload);
+      const authToken = (data as { access_token?: string; token?: string }).access_token || data.token || "";
 
       if (payload.rememberMe) {
-        localStorage.setItem("crewpal_token", data.token);
+        localStorage.setItem("crewpal_token", authToken);
       } else {
-        sessionStorage.setItem("crewpal_token", data.token);
+        sessionStorage.setItem("crewpal_token", authToken);
       }
 
-      set({ user: data.user, token: data.token, status: "success", error: null });
+      set({ user: data.user, token: authToken, status: "success", error: null });
     } catch (err) {
       // Mock fallback for demo accounts when backend API is offline/unavailable
       const emailLower = payload.email.trim().toLowerCase();
