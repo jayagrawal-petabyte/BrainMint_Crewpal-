@@ -15,7 +15,7 @@ export const AddMember = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState(9);
-  const [organizationId, setOrganizationId] = useState(1);
+  const [organizationId] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [errors, setErrors] = useState({

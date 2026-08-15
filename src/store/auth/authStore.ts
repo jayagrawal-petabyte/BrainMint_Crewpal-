@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload: LoginPayload) => {
     set({ status: "loading", error: null });
     try {
-      // Placeholder endpoint — replace with the real Crewpal auth API.
+      // Try backend endpoint first
       const { data } = await api.post<AuthResponse>("/auth/login", payload);
 
       if (payload.rememberMe) {
@@ -36,6 +36,35 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({ user: data.user, token: data.token, status: "success", error: null });
     } catch (err) {
+      // Mock fallback for demo accounts when backend API is offline/unavailable
+      const emailLower = payload.email.trim().toLowerCase();
+      const demoUsers: Record<string, { password: string; user: User }> = {
+        "admin@brainmint.com": {
+          password: "admin123",
+          user: { id: "demo-admin", name: "Admin User", email: "admin@brainmint.com", role: "admin" },
+        },
+        "manager@brainmint.com": {
+          password: "manager123",
+          user: { id: "demo-manager", name: "Manager User", email: "manager@brainmint.com", role: "manager" },
+        },
+        "employee@brainmint.com": {
+          password: "employee123",
+          user: { id: "demo-employee", name: "Employee User", email: "employee@brainmint.com", role: "intern" },
+        },
+      };
+
+      const demo = demoUsers[emailLower];
+      if (demo && demo.password === payload.password) {
+        const fakeToken = `demo-token-${demo.user.role}-${Date.now()}`;
+        if (payload.rememberMe) {
+          localStorage.setItem("crewpal_token", fakeToken);
+        } else {
+          sessionStorage.setItem("crewpal_token", fakeToken);
+        }
+        set({ user: demo.user, token: fakeToken, status: "success", error: null });
+        return;
+      }
+
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         "We couldn't log you in. Check your credentials and try again.";

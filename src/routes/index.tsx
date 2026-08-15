@@ -5,7 +5,6 @@ import { MainLayout } from "../components/layout/MainLayout";
 import LandingPage from "../pages/landing/LandingPage";
 import LoginPage from "../pages/Auth/LoginPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
-import DashboardPage from "../pages/Auth/DashboardPage";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { UserRole } from "../types/roles";
@@ -99,14 +98,7 @@ const Scrum = lazy(() =>
 
 
 
-const UnderConstruction = ({ title }: { title: string }) => (
-  <div className="p-8 text-center space-y-3 bg-cream-50 rounded-2xl border border-cream-200">
-    <h2 className="text-xl font-bold text-forest-800">{title}</h2>
-    <p className="text-sm text-forest-500">
-      This page is under maintenance. Please navigate to Task Management.
-    </p>
-  </div>
-);
+
 
 export const router = createBrowserRouter([
 
@@ -124,11 +116,6 @@ export const router = createBrowserRouter([
 {
   path: "/forgot-password",
   element: <ForgotPasswordPage />,
-},
-
-{
-  path: "/dashboard",
-  element: <DashboardPage />,
 },
 
   {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Save,
@@ -13,7 +13,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { teamsService } from "../../services/teamsService";
 export const UpdateProfile = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
   const { user, login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,8 +43,11 @@ export const UpdateProfile = () => {
         ...user,
         name: response.name ?? formData.name,
         email: response.email ?? formData.email,
+        department: formData.department,
+        project: formData.project,
+        joiningDate: formData.joiningDate,
       };
-      login(updatedUser, localStorage.getItem("crewpal_access_token") || "");
+      login(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
       navigate("/user-dashboard");
     } catch (error) {
@@ -295,6 +297,7 @@ export const UpdateProfile = () => {
           {}
           <button
             onClick={handleSubmit}
+            disabled={loading}
             className="
             mt-10
             flex
@@ -309,10 +312,11 @@ export const UpdateProfile = () => {
             font-semibold
             hover:bg-[#0D556D]
             transition
+            disabled:opacity-50
             "
           >
             <Save size={18} />
-            Save Changes
+            {loading ? "Saving Changes..." : "Save Changes"}
           </button>
         </div>
       </div>

@@ -8,7 +8,7 @@ export interface User {
 export interface LoginPayload {
   email: string;
   password: string;
-  rememberMe: boolean;
+  rememberMe?: boolean;
 }
 
 export interface AuthResponse {

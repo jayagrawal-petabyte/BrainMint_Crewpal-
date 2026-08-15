@@ -11,9 +11,13 @@ import { Button } from "@/components/ui/Button";
 import { loginSchema, type LoginFormValues } from "@/schemas/auth.schema";
 import { useAuthStore } from "@/store/authStore";
 
+import { useAuth } from "../../contexts/AuthContext";
+import { UserRole } from "../../types/roles";
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login, status, error, clearError } = useAuthStore();
+  const { login: contextLogin } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -33,6 +37,27 @@ export default function LoginPage() {
     clearError();
     try {
       await login(values);
+      
+      // Determine user role for AuthContext
+      const emailLower = values.email.trim().toLowerCase();
+      let role: UserRole = UserRole.EMPLOYEE;
+      let name = "User";
+
+      if (emailLower.includes("admin")) {
+        role = UserRole.ADMIN;
+        name = "Admin User";
+      } else if (emailLower.includes("manager")) {
+        role = UserRole.MANAGER;
+        name = "Manager User";
+      }
+
+      contextLogin({
+        id: `user-${Date.now()}`,
+        name,
+        email: values.email,
+        role,
+      });
+
       setSuccess(true);
       setTimeout(() => navigate("/dashboard"), 900);
     } catch {

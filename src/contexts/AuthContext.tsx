@@ -11,6 +11,9 @@ export type User = {
   name: string;
   email: string;
   role: UserRole;
+  department?: string;
+  project?: string;
+  joiningDate?: string;
 };
 
 type AuthContextType = {

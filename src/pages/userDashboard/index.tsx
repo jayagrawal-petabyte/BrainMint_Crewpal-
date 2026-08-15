@@ -4,7 +4,7 @@ import { api } from "../../services/apiClient";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types/roles";
-export const UserProfile = () => {
+export const UserDashboard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user: loggedInUser } = useAuth();
@@ -220,4 +220,4 @@ export const UserProfile = () => {
     </div>
   );
 };
-export default UserProfile;
+export default UserDashboard;
