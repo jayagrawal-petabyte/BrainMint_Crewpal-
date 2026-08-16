@@ -32,6 +32,12 @@ const Dashboard = lazy(() =>
   }))
 );
 
+const Calendar = lazy(() =>
+  import("../pages/calendar").then((module) => ({
+    default: module.Calendar,
+  }))
+);
+
 const Teams = lazy(() =>
   import("../pages/teams").then((module) => ({
     default: module.Teams,
@@ -156,6 +162,14 @@ export const router = createBrowserRouter([
         ),
       },
 
+      {
+        path: "calendar",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Calendar />
+          </Suspense>
+        ),
+      },
       {
         path: "tasks",
         element: (
