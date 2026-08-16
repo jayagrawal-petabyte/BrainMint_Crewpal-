@@ -174,8 +174,21 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      <div className={`pt-4 border-t border-forest-700/60 flex items-center gap-3 px-2 ${isCollapsed ? "justify-center" : ""}`}>
-        <div className="w-8 h-8 rounded-full bg-olive-300 text-forest-900 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer hover:bg-olive-200 transition-colors">
+      <NavLink
+        to={user ? "/user-dashboard" : "/login"}
+        end
+        className={({ isActive }) =>
+          `group pt-4 border-t border-forest-700/60 flex items-center gap-3 px-2 rounded-lg cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-olive-500 active:scale-[0.98] ${
+            isCollapsed ? "justify-center" : ""
+          } ${
+            isActive
+              ? "bg-forest-700/70 outline outline-1 outline-olive-300/70 shadow-sm"
+              : "hover:bg-forest-700/70 hover:outline hover:outline-1 hover:outline-olive-300/60 hover:shadow-sm"
+          }`
+        }
+        aria-label="View profile"
+      >
+        <div className="w-8 h-8 rounded-full bg-olive-300 text-forest-900 flex items-center justify-center font-bold text-xs shrink-0 transition-colors group-hover:bg-olive-200">
           {user?.name?.charAt(0) ?? "U"}
         </div>
 
@@ -196,7 +209,7 @@ export const Sidebar = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </NavLink>
     </aside>
   );
 };
