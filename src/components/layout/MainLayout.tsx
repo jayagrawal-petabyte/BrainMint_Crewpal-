@@ -40,7 +40,7 @@ export const MainLayout = () => {
 
       <button
         onClick={() => setIsSearchOpen(true)}
-        className="fixed bottom-24 right-6 z-40 bg-rose-300 hover:scale-105 border border-rose-400 text-forest-900 hover:shadow-lg transition-all duration-200 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer"
+        className="fixed bottom-6 right-6 z-40 bg-rose-300 hover:scale-105 border border-rose-400 text-forest-900 hover:shadow-lg transition-all duration-200 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer"
         title="Global Search (Ctrl+K)"
       >
         <Search className="w-5 h-5" />
