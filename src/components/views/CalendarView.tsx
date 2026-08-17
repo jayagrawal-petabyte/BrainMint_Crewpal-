@@ -1,102 +1,169 @@
-import { useTaskStore } from '../../store/tasks';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import type { Task } from '../../types/task';
+import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 
-// ─── Simple Monthly Calendar View ───────────────────────────────────────────
+interface CalendarViewProps {
+  onSelectTask: (id: string) => void;
+}
 
-export const CalendarView = ({ onSelectTask }: { onSelectTask: (id: string) => void }) => {
-  const tasks = useTaskStore((s) => s.getFilteredTasks());
-  
-  // Basic date math
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 6, 1)); // Default to July 2026 for mock data
-  
-  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
 
-  const daysInMonth = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
-  const firstDay = getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth());
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
 
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const CalendarView = ({ onSelectTask }: CalendarViewProps) => {
+  const today = new Date();
 
-  // Group tasks by day
-  const tasksByDay: Record<number, Task[]> = {};
-  tasks.forEach(task => {
-    const taskDate = new Date(task.dueDate);
-    if (taskDate.getMonth() === currentDate.getMonth() && taskDate.getFullYear() === currentDate.getFullYear()) {
-      const day = taskDate.getDate();
-      if (!tasksByDay[day]) tasksByDay[day] = [];
-      tasksByDay[day].push(task);
+  const [currentDate, setCurrentDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+  const goToPrevMonth = () =>
+    setCurrentDate(new Date(year, month - 1, 1));
+
+  const goToNextMonth = () =>
+    setCurrentDate(new Date(year, month + 1, 1));
+
+  const goToToday = () => {
+    const now = new Date();
+    setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    setSelectedDate(now);
+  };
+
+  const handleSelectDay = (day: number) => {
+    setSelectedDate(new Date(year, month, day));
+  };
+
+  const handleViewInTasks = () => {
+    if (selectedDate) {
+      onSelectTask(selectedDate.toISOString());
     }
-  });
+  };
 
   return (
-    <div className="bg-[#fdf8e8] rounded-xl border border-forest-900/20 p-4 space-y-4 shadow-sm animate-in fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-cream-200 p-2 rounded-lg border border-cream-300">
-        <button onClick={prevMonth} className="p-1 hover:bg-cream-300 rounded text-forest-900">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <h3 className="font-extrabold text-forest-900 text-sm">
-          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </h3>
-        <button onClick={nextMonth} className="p-1 hover:bg-cream-300 rounded text-forest-900">
-          <ChevronRight className="w-5 h-5" />
+    <div className="bg-[#fdf8e8] rounded-xl border border-forest-900/20 p-4 space-y-4 shadow-sm">
+      {/* ─── Header: Month/Year + Navigation ─── */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-cream-200 p-2.5 rounded-lg border border-cream-300">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={goToPrevMonth}
+            className="p-1.5 hover:bg-cream-300 rounded-lg text-forest-900 transition-colors"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          <h3 className="font-extrabold text-forest-900 text-sm min-w-[140px] text-center">
+            {MONTH_NAMES[month]} {year}
+          </h3>
+
+          <button
+            onClick={goToNextMonth}
+            className="p-1.5 hover:bg-cream-300 rounded-lg text-forest-900 transition-colors"
+            aria-label="Next month"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        <button
+          onClick={goToToday}
+          className="flex items-center gap-1.5 bg-forest-800 hover:bg-forest-900 text-cream-50 px-4 py-2 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95"
+        >
+          <CalendarDays className="w-3.5 h-3.5" />
+          Today
         </button>
       </div>
 
-      {/* Grid */}
+      {/* ─── Day-of-week labels ─── */}
       <div className="grid grid-cols-7 gap-1">
-        {dayNames.map(day => (
-          <div key={day} className="text-center text-[10px] font-bold text-forest-900/60 pb-2">
+        {DAY_NAMES.map((day) => (
+          <div
+            key={day}
+            className="text-center text-[10px] font-bold text-forest-900/60 pb-1"
+          >
             {day}
           </div>
         ))}
 
-        {/* Empty slots */}
-        {Array.from({ length: firstDay }).map((_, i) => (
-          <div key={`empty-${i}`} className="min-h-[80px] bg-transparent border border-transparent rounded-lg"></div>
+        {/* ─── Empty leading cells ─── */}
+        {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+          <div key={`empty-${i}`} className="min-h-[56px] sm:min-h-[72px]" />
         ))}
 
-        {/* Days */}
+        {/* ─── Day cells ─── */}
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1;
-          const dayTasks = tasksByDay[day] || [];
-          
+          const cellDate = new Date(year, month, day);
+          const isToday = isSameDay(cellDate, today);
+          const isSelected = selectedDate ? isSameDay(cellDate, selectedDate) : false;
+
           return (
-            <div 
-              key={day} 
-              className={`min-h-[80px] p-1 border rounded-lg flex flex-col ${
-                dayTasks.length > 0 ? 'bg-white border-cream-300 shadow-sm' : 'bg-white/40 border-cream-200'
+            <button
+              key={day}
+              onClick={() => handleSelectDay(day)}
+              className={`min-h-[56px] sm:min-h-[72px] p-1.5 border rounded-lg flex flex-col items-center justify-start transition-colors ${
+                isSelected
+                  ? 'bg-rose-200 border-rose-400 shadow-sm'
+                  : isToday
+                  ? 'bg-olive-400 border-olive-500 shadow-sm'
+                  : 'bg-white border-cream-300 hover:bg-cream-100'
               }`}
             >
-              <span className={`text-[10px] font-bold mb-1 ${dayTasks.length > 0 ? 'text-forest-900' : 'text-forest-900/40'}`}>
+              <span
+                className={`text-xs font-bold ${
+                  isSelected
+                    ? 'text-rose-900'
+                    : isToday
+                    ? 'text-forest-900'
+                    : 'text-forest-900/70'
+                }`}
+              >
                 {day}
               </span>
-              <div className="space-y-1 flex-1 overflow-y-auto no-scrollbar">
-                {dayTasks.map(task => (
-                  <div 
-                    key={task.id} 
-                    onClick={() => onSelectTask(task.id)}
-                    className={`text-[9px] font-bold px-1 py-0.5 rounded cursor-pointer truncate ${
-                      task.priority === 'high' ? 'bg-rose-200 text-rose-900' :
-                      task.priority === 'medium' ? 'bg-olive-200 text-olive-900' :
-                      'bg-cream-200 text-forest-900'
-                    }`}
-                    title={task.title}
-                  >
-                    {task.title}
-                  </div>
-                ))}
-              </div>
-            </div>
+              {isToday && (
+                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-forest-900" />
+              )}
+            </button>
           );
         })}
       </div>
+
+      {/* ─── Selected date footer action ─── */}
+      {selectedDate && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-cream-300">
+          <p className="text-xs font-semibold text-forest-900">
+            Selected:{' '}
+            {selectedDate.toLocaleDateString(undefined, {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </p>
+          <button
+            onClick={handleViewInTasks}
+            className="px-4 py-2 bg-[#1e3624] hover:bg-[#142619] text-white rounded-full text-xs font-bold shadow-sm transition-all active:scale-95"
+          >
+            View Tasks
+          </button>
+        </div>
+      )}
     </div>
   );
 };
+
+export default CalendarView;

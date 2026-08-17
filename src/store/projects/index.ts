@@ -4,6 +4,7 @@ import type { Project, ProjectFilter, ProjectSortKey } from '../../types/project
 const SEED_PROJECTS: Project[] = [
   {
     id: 'proj-001',
+    memberIds: ['u1', 'u2', 'u3'],
     name: 'School Mobile App',
     owner: 'Jay Agarwal',
     status: 'on_track',
@@ -11,9 +12,12 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-12T09:00:00Z',
     description: 'Mobile application development for School portals.',
     category: 'Development',
+    techStack: 'React Native',
+    progress: 75,
   },
   {
     id: 'proj-002',
+    memberIds: ['u2', 'u4'],
     name: 'Management Project',
     owner: 'Jay Agarwal',
     status: 'delayed',
@@ -21,9 +25,12 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-10T10:00:00Z',
     description: 'Internal task and workspace management portal.',
     category: 'Management',
+    techStack: 'React + Node',
+    progress: 45,
   },
   {
     id: 'proj-003',
+    memberIds: ['u1', 'u3', 'u5'],
     name: 'School ERP Project',
     owner: 'Jay Agarwal',
     status: 'on_track',
@@ -31,9 +38,12 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-15T11:00:00Z',
     description: 'Enterprise Resource Planning system for schools.',
     category: 'Development',
+    techStack: 'Next.js + PostgreSQL',
+    progress: 60,
   },
   {
     id: 'proj-004',
+    memberIds: ['u4', 'u5'],
     name: 'Intern Management Project',
     owner: 'Jay Agarwal',
     status: 'completed',
@@ -41,6 +51,8 @@ const SEED_PROJECTS: Project[] = [
     createdAt: '2026-07-08T08:00:00Z',
     description: 'Zustand-powered onboarding & task manager for interns.',
     category: 'HR / Management',
+    techStack: 'React + Zustand',
+    progress: 100,
   },
 ];
 
@@ -53,6 +65,7 @@ interface ProjectState {
   toggleStarProject: (id: string) => void;
   deleteProject: (id: string) => void;
   updateProject: (id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>) => void;
+  updateProjectMembers: (projectId: string, memberIds: string[]) => void;
 
   // Filters & Sorting
   setSearch: (search: string) => void;
@@ -80,6 +93,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       id: `proj-${Date.now()}`,
       isStarred: false,
       createdAt: new Date().toISOString(),
+      techStack: projData.techStack || 'React + Node',
+      progress: projData.progress || 0,
     };
     set((state) => ({ projects: [newProj, ...state.projects] }));
   },
@@ -100,6 +115,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === id ? { ...p, ...updates } : p
+      ),
+    }));
+  },
+
+  updateProjectMembers: (projectId, memberIds) => {
+    set((state) => ({
+      projects: state.projects.map((project) =>
+        project.id === projectId ? { ...project, memberIds } : project
       ),
     }));
   },

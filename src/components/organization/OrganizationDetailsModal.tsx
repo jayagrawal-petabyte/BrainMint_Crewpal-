@@ -9,6 +9,8 @@ import {
   Calendar,
   Mail,
   Hash,
+  UserPlus,
+  Settings,
 } from 'lucide-react';
 import type { Organization } from '../../types/organization';
 import { Button } from '../common/Button';
@@ -17,12 +19,16 @@ interface OrganizationDetailsModalProps {
   organization: Organization | null;
   onClose: () => void;
   onToggleStatus: (id: string) => void;
+  onOpenInviteModal?: (id: string) => void;
+  onOpenSettings?: (id: string) => void;
 }
 
 export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> = ({
   organization,
   onClose,
   onToggleStatus,
+  onOpenInviteModal,
+  onOpenSettings,
 }) => {
   if (!organization) return null;
 
@@ -174,16 +180,41 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-cream-100 border-t border-cream-200 flex items-center justify-between">
-          <Button
-            variant={organization.is_active ? 'secondary' : 'primary'}
-            size="sm"
-            onClick={() => {
-              onToggleStatus(organization.id);
-            }}
-          >
-            {organization.is_active ? 'Deactivate Workspace' : 'Activate Workspace'}
-          </Button>
+        <div className="p-4 bg-cream-100 border-t border-cream-200 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={organization.is_active ? 'secondary' : 'primary'}
+              size="sm"
+              onClick={() => {
+                onToggleStatus(organization.id);
+              }}
+            >
+              {organization.is_active ? 'Deactivate Workspace' : 'Activate Workspace'}
+            </Button>
+            {onOpenInviteModal && (
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<UserPlus className="w-4 h-4" />}
+                onClick={() => onOpenInviteModal(organization.id)}
+              >
+                Invite Member
+              </Button>
+            )}
+            {onOpenSettings && (
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Settings className="w-4 h-4" />}
+                onClick={() => {
+                  onOpenSettings(organization.id);
+                  onClose();
+                }}
+              >
+                Settings
+              </Button>
+            )}
+          </div>
 
           <Button variant="ghost" size="sm" onClick={onClose}>
             Close Overview
@@ -193,3 +224,4 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
     </div>
   );
 };
+

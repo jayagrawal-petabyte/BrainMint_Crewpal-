@@ -42,6 +42,7 @@ export const useToastStore = create<ToastState>((set) => ({
 export const useToast = () => {
   const addToast = useToastStore((s) => s.addToast);
   return {
+    addToast,
     success: (msg: string) => addToast(msg, 'success'),
     error: (msg: string) => addToast(msg, 'error'),
     info: (msg: string) => addToast(msg, 'info'),

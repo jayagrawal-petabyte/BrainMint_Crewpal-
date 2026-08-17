@@ -53,7 +53,7 @@
 //     setDueDate(new Date().toISOString().split('T')[0]);
 //     setSelectedAssignees([]);
 //     onClose();
-    
+
 //     toast.success('Task created successfully');
 //   };
 
@@ -227,7 +227,7 @@ import { Modal } from '../ui/Modal';
 import { FormGroup } from '../common/FormGroup';
 import { Textarea } from '../common/Textarea';
 import { Select } from '../common/Select';
-// Assuming you have an Input component similar to Textarea based on the folder structure
+
 // ─── Form Validation Helper (Security Rule 5: UX Only) ──────────────────────
 const validateTaskForm = (data: { title: string; description: string }) => {
   const errors: Record<string, string> = {};
@@ -258,7 +258,7 @@ export const CreateTaskModal = ({ isOpen, onClose }: CreateTaskModalProps) => {
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
-  
+
   // New State for Validation
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -302,7 +302,7 @@ export const CreateTaskModal = ({ isOpen, onClose }: CreateTaskModalProps) => {
     setDueDate(new Date().toISOString().split('T')[0]);
     setSelectedAssignees([]);
     onClose();
-    
+
     toast.success('Task created successfully');
   };
 
@@ -348,9 +348,8 @@ export const CreateTaskModal = ({ isOpen, onClose }: CreateTaskModalProps) => {
               if (errors.title) setErrors((prev) => ({ ...prev, title: '' }));
             }}
             placeholder="Enter task title..."
-            className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm text-forest-800 placeholder:text-forest-400 outline-none transition-colors ${
-              errors.title ? 'border-red-600 focus:border-red-600' : 'border-cream-200 focus:border-forest-400'
-            }`}
+            className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm text-forest-800 placeholder:text-forest-400 outline-none transition-colors ${errors.title ? 'border-red-600 focus:border-red-600' : 'border-cream-200 focus:border-forest-400'
+              }`}
           />
         </FormGroup>
 
@@ -396,7 +395,7 @@ export const CreateTaskModal = ({ isOpen, onClose }: CreateTaskModalProps) => {
               ]}
             />
           </FormGroup>
-          
+
           <FormGroup label="Priority" id="priority">
             <Select
               id="priority"
@@ -432,15 +431,13 @@ export const CreateTaskModal = ({ isOpen, onClose }: CreateTaskModalProps) => {
                   type="button"
                   key={member.id}
                   onClick={() => toggleAssignee(member)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    isSelected
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${isSelected
                       ? 'bg-forest-700 text-white shadow-sm'
                       : 'bg-white border border-cream-200 text-forest-600 hover:border-forest-400'
-                  }`}
+                    }`}
                 >
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${
-                    isSelected ? 'bg-white/20 text-white' : `${member.avatarColor ?? 'bg-olive-300'} text-forest-800`
-                  }`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${isSelected ? 'bg-white/20 text-white' : `${member.avatarColor ?? 'bg-olive-300'} text-forest-800`
+                    }`}>
                     {member.initials}
                   </div>
                   {member.name}

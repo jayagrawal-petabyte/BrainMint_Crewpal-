@@ -1,15 +1,19 @@
 import React from 'react';
-import { Plus, Building2, ShieldCheck } from 'lucide-react';
+import { Plus, UserPlus, Building2, ShieldCheck, Settings } from 'lucide-react';
 import { Button } from '../common/Button';
 
 interface OrganizationHeaderProps {
   onOpenCreateModal: () => void;
+  onOpenInviteModal?: () => void;
+  onOpenSettings?: () => void;
   activeCount: number;
   totalCount: number;
 }
 
 export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
   onOpenCreateModal,
+  onOpenInviteModal,
+  onOpenSettings,
   activeCount,
   totalCount,
 }) => {
@@ -37,16 +41,38 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex flex-wrap items-center gap-3 shrink-0">
         <div className="hidden lg:flex items-center gap-2 px-3.5 py-2 bg-cream-100 rounded-xl border border-cream-200 text-xs text-forest-800">
           <span className="font-semibold">{activeCount} of {totalCount} Active</span>
         </div>
+
+        {onOpenSettings && (
+          <Button
+            variant="secondary"
+            leftIcon={<Settings className="w-4 h-4" />}
+            onClick={onOpenSettings}
+            className="shadow-sm hover:shadow-md transition-all cursor-pointer"
+          >
+            Org Settings
+          </Button>
+        )}
+
+        {onOpenInviteModal && (
+          <Button
+            variant="secondary"
+            leftIcon={<UserPlus className="w-4 h-4" />}
+            onClick={onOpenInviteModal}
+            className="shadow-sm hover:shadow-md transition-all cursor-pointer"
+          >
+            Invite Member
+          </Button>
+        )}
 
         <Button
           variant="primary"
           leftIcon={<Plus className="w-4 h-4" />}
           onClick={onOpenCreateModal}
-          className="shadow-md hover:shadow-lg transition-all"
+          className="shadow-md hover:shadow-lg transition-all cursor-pointer"
         >
           New Organization
         </Button>
@@ -54,3 +80,5 @@ export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
     </div>
   );
 };
+
+
