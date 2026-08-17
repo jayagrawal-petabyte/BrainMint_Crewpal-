@@ -5,14 +5,17 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:pointer-events-none disabled:opacity-60",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-all duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100 disabled:pointer-events-none disabled:opacity-60",
   {
     variants: {
       variant: {
-        primary: "bg-forest text-cream hover:bg-forest-light shadow-soft",
-        outline: "border border-forest/20 bg-transparent text-forest hover:bg-forest/5",
-        ghost: "bg-transparent text-forest hover:bg-forest/5",
-        link: "bg-transparent text-forest underline-offset-4 hover:underline p-0 h-auto active:scale-100",
+        primary:
+          "bg-forest-700 text-cream-100 shadow-md hover:bg-forest-600 active:bg-forest-800 focus-visible:ring-forest-500",
+        outline:
+          "border-2 border-forest-700 bg-transparent text-forest-700 hover:bg-forest-700 hover:text-cream-100 active:bg-forest-800 active:border-forest-800 active:text-cream-100",
+        ghost:
+          "bg-transparent text-forest-700 hover:bg-forest-100 active:bg-forest-200",
+        link: "bg-transparent text-forest-700 underline-offset-4 hover:underline p-0 h-auto active:scale-100",
       },
       size: {
         default: "h-12 px-6",

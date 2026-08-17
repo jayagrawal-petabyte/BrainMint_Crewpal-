@@ -30,8 +30,8 @@ export function Navbar() {
           <Logo />
         </div>
 
-        <div className="hidden items-center gap-8 md:flex">
-          <Button variant="ghost" size="default">
+        <div className="hidden items-center gap-6 md:flex">
+          <Button variant="outline" size="default">
             Contact Us
           </Button>
           <Button variant="primary" size="default" onClick={() => navigate("/login")}>

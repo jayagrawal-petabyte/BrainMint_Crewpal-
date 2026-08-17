@@ -14,7 +14,6 @@ import { SortDropdown } from '../../components/ui/SortDropdown';
 import { KanbanBoard } from '../../components/views/KanbanBoard';
 import { CalendarView } from '../../components/views/CalendarView';
 import { MeetingsView } from '../../components/views/MeetingsView';
-import { BottomNav } from '../../components/layout/BottomNav';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ActivityTimeline } from '../../components/ui/ActivityTimeline';
 import { Tooltip } from '../../components/ui/Tooltip';
@@ -896,9 +895,6 @@ export const Tasks = () => {
           </div>
         </div>
       )}
-
-      {/* ─── FLOATING BOTTOM NAVIGATION BAR ─── */}
-      <BottomNav />
 
       {/* Modals */}
       <CreateTaskModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />

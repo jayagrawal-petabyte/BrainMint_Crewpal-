@@ -2,11 +2,12 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 
 import { MainLayout } from "../components/layout/MainLayout";
-import LandingPage from "../pages/landing/LandingPage";
+import Landing from "../pages/landing";
 import LoginPage from "../pages/Auth/LoginPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
+import { useAuth } from "../contexts/AuthContext";
 import { UserRole } from "../types/roles";
 import PageLoader from "../components/loading/PageLoader";
 
@@ -28,6 +29,12 @@ const Projects = lazy(() =>
 const Dashboard = lazy(() =>
   import("../pages/dashboard").then((module) => ({
     default: module.Dashboard,
+  }))
+);
+
+const Calendar = lazy(() =>
+  import("../pages/calendar").then((module) => ({
+    default: module.Calendar,
   }))
 );
 
@@ -84,6 +91,7 @@ const Settings = lazy(() =>
     default: module.Settings,
   }))
 );
+
 const Notifications = lazy(() =>
   import("../pages/notifications").then((module) => ({
     default: module.default,
@@ -96,48 +104,55 @@ const Scrum = lazy(() =>
   }))
 );
 
+const Home = () => {
+  const { user } = useAuth();
 
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-
+  return <Landing />;
+};
 
 export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Home />,
+  },
 
   {
-  path: "/",
-  element: <LandingPage />,
-},
+    path: "/landing",
+    element: <Landing />,
+  },
 
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
 
- {
-  path: "/login",
-  element: <LoginPage />,
-},
-
-{
-  path: "/forgot-password",
-  element: <ForgotPasswordPage />,
-},
+  {
+    path: "/forgot-password",
+    element: <ForgotPasswordPage />,
+  },
 
   {
     path: "/403",
     element: <Forbidden />,
   },
-  
 
-{
-  element: (
-    <ProtectedRoute
-      allowedRoles={[
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-        UserRole.EMPLOYEE,
-      ]}
-    >
-      <MainLayout />
-    </ProtectedRoute>
-  ),
-  children: [
-
+  {
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.EMPLOYEE,
+        ]}
+      >
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
       {
         path: "dashboard",
         element: (
@@ -147,6 +162,14 @@ export const router = createBrowserRouter([
         ),
       },
 
+      {
+        path: "calendar",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <Calendar />
+          </Suspense>
+        ),
+      },
       {
         path: "tasks",
         element: (
@@ -214,10 +237,7 @@ export const router = createBrowserRouter([
         path: "teams/:id",
         element: (
           <ProtectedRoute
-            allowedRoles={[
-              UserRole.ADMIN,
-              UserRole.MANAGER,
-            ]}
+            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
           >
             <Suspense fallback={<PageLoader />}>
               <UserProfile />
@@ -230,10 +250,7 @@ export const router = createBrowserRouter([
         path: "add-member",
         element: (
           <ProtectedRoute
-            allowedRoles={[
-              UserRole.ADMIN,
-              UserRole.MANAGER,
-            ]}
+            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
           >
             <AddMember />
           </ProtectedRoute>
@@ -332,5 +349,10 @@ export const router = createBrowserRouter([
         element: <Navigate to="/dashboard" replace />,
       },
     ],
+  },
+
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
   },
 ]);

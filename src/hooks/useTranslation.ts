@@ -4,6 +4,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   en: {
     // Nav / Sidebar
     dashboard: "Dashboard",
+    calendar: "Calendar",
     tasks: "Tasks",
     projects: "Projects",
     organization: "Organization",
@@ -84,6 +85,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   hi: {
     dashboard: "डैशबोर्ड",
+    calendar: "कैलेंडर",
     tasks: "कार्य",
     projects: "परियोजनाएं",
     organization: "संगठन",
@@ -159,6 +161,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   es: {
     dashboard: "Tablero",
+    calendar: "Calendario",
     tasks: "Tareas",
     projects: "Proyectos",
     organization: "Organización",
@@ -234,6 +237,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   fr: {
     dashboard: "Tableau de Bord",
+    calendar: "Calendrier",
     tasks: "Tâches",
     projects: "Projets",
     organization: "Organisation",
@@ -309,6 +313,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   de: {
     dashboard: "Dashboard",
+    calendar: "Kalender",
     tasks: "Aufgaben",
     projects: "Projekte",
     organization: "Organisation",
@@ -384,6 +389,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   ja: {
     dashboard: "ダッシュボード",
+    calendar: "カレンダー",
     tasks: "タスク",
     projects: "プロジェクト",
     organization: "組織",
@@ -459,6 +465,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   },
   zh: {
     dashboard: "仪表板",
+    calendar: "日历",
     tasks: "任务",
     projects: "项目",
     organization: "组织",

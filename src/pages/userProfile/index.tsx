@@ -9,24 +9,61 @@ export const UserProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user: loggedInUser } = useAuth();
+  const authenticatedProfile = loggedInUser
+    ? {
+        id: loggedInUser.id,
+        name: loggedInUser.name,
+        email: loggedInUser.email,
+        department: loggedInUser.department,
+        project: loggedInUser.project,
+      }
+    : null;
 
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
+      if (!id && !loggedInUser?.email) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await api.get(`/users/${id}`);
-        setUser(response);
+        if (id) {
+          const response = await api.get(`/users/${id}`);
+          setUser(response);
+          return;
+        }
+
+        const response = await api.get<any>("/users");
+        const users = Array.isArray(response)
+          ? response
+          : response.users ?? response.data ?? [];
+        const ownUser = users.find(
+          (candidate: any) =>
+            candidate.email?.toLowerCase() === loggedInUser?.email.toLowerCase(),
+        );
+        setUser(ownUser ?? authenticatedProfile);
       } catch (error) {
         console.error("Failed to fetch user", error);
+        if (!id) {
+          setUser(authenticatedProfile);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUser();
-  }, [id]);
+  }, [
+    id,
+    loggedInUser?.id,
+    loggedInUser?.name,
+    loggedInUser?.email,
+    loggedInUser?.department,
+    loggedInUser?.project,
+  ]);
 
   const isAdminOrManager =
     loggedInUser?.role === UserRole.ADMIN ||
