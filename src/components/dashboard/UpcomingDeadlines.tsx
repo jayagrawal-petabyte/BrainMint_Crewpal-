@@ -9,10 +9,11 @@ interface UpcomingDeadlinesProps {
   title: string;
   emptyTitle: string;
   emptyDescription: string;
+  onViewAll?: () => void;
 }
 
 export const UpcomingDeadlines = memo(
-  ({ deadlines, title, emptyTitle, emptyDescription }: UpcomingDeadlinesProps) => {
+  ({ deadlines, title, emptyTitle, emptyDescription, onViewAll }: UpcomingDeadlinesProps) => {
     const getDeadlineLabel = (item: DeadlineItem): string => {
       if (item.overdue) return 'Overdue';
       if (item.daysLeft === 0) return 'Due today';
@@ -24,7 +25,17 @@ export const UpcomingDeadlines = memo(
       <div className="space-y-2.5 card-animate" style={{ animationDelay: '400ms' }}>
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-forest-900">{title}</h3>
-          <CalendarClock className="w-4 h-4 text-forest-700" />
+          <div className="flex items-center gap-2">
+            {onViewAll && (
+              <button
+                onClick={onViewAll}
+                className="text-xs font-semibold text-forest-700 hover:text-forest-900 transition-colors cursor-pointer"
+              >
+                View All
+              </button>
+            )}
+            <CalendarClock className="w-4 h-4 text-forest-700" />
+          </div>
         </div>
 
         {deadlines.length === 0 ? (
