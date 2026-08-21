@@ -3,21 +3,39 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Button } from "@/components/ui/Button";
-import { loginSchema, type LoginFormValues } from "@/schemas/auth.schema";
-import { useAuthStore } from "@/store/authStore";
+import {
+  loginSchema,
+  type LoginFormValues,
+} from "@/schemas/auth.schema";
 
+import { useAuthStore } from "@/store/authStore";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types/roles";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, status, error, clearError } = useAuthStore();
+
+  const {
+    login,
+    status,
+    error,
+    clearError,
+  } = useAuthStore();
+
   const { login: contextLogin } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -28,69 +46,141 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "", rememberMe: false },
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
   });
 
   const isLoading = status === "loading";
 
   const onSubmit = async (values: LoginFormValues) => {
     clearError();
-    try {
-      await login(values);
-      
-      // Determine user role for AuthContext
-      const emailLower = values.email.trim().toLowerCase();
-      let role: UserRole = UserRole.EMPLOYEE;
-      let name = "User";
 
-      if (emailLower.includes("admin")) {
-        role = UserRole.ADMIN;
-        name = "Admin User";
-      } else if (emailLower.includes("manager")) {
-        role = UserRole.MANAGER;
-        name = "Manager User";
+    try {
+      /*
+       * Authenticate using the backend.
+       *
+       * IMPORTANT:
+       * The user's role must come from the authenticated
+       * backend response. We never determine the role
+       * from the email address.
+       */
+      await login(values);
+
+      const backendUser = useAuthStore.getState().user;
+
+      if (!backendUser) {
+        throw new Error(
+          "Login succeeded, but no user information was returned."
+        );
       }
 
+      /*
+       * Convert the backend role to the frontend
+       * UserRole format used by AuthContext/RBAC.
+       */
+      let role: UserRole;
+
+      switch (String(backendUser.role).trim().toLowerCase()) {
+        case "admin":
+          role = UserRole.ADMIN;
+          break;
+
+        case "manager":
+          role = UserRole.MANAGER;
+          break;
+
+        case "employee":
+        case "intern":
+          role = UserRole.EMPLOYEE;
+          break;
+
+        default:
+          throw new Error(
+            "Login succeeded, but the user role is invalid."
+          );
+      }
+
+      /*
+       * Use the authenticated backend user.
+       *
+       * DO NOT determine role from:
+       * values.email.includes("admin")
+       * values.email.includes("manager")
+       */
       contextLogin({
-        id: `user-${Date.now()}`,
-        name,
-        email: values.email,
+        id: backendUser.id,
+        name: backendUser.name,
+        email: backendUser.email,
         role,
       });
 
       setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 900);
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 900);
     } catch {
-      // error state is already set in the store; nothing else to do here.
+      /*
+       * API errors are already handled by useAuthStore.
+       * Do not override the backend authentication error here.
+       */
     }
   };
 
   return (
     <AuthLayout>
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-forest md:text-3xl">Welcome Back</h1>
-        <p className="mt-2 text-sm text-forest/60">Please log in to continue.</p>
+        <h1 className="text-2xl font-semibold text-forest md:text-3xl">
+          Welcome Back
+        </h1>
+
+        <p className="mt-2 text-sm text-forest/60">
+          Please log in to continue.
+        </p>
       </div>
 
       <AnimatePresence mode="wait">
         {success ? (
           <motion.div
             key="success"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
+            initial={{
+              opacity: 0,
+              y: 8,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            exit={{
+              opacity: 0,
+            }}
             className="flex flex-col items-center gap-3 py-10 text-center"
           >
             <CheckCircle2 className="h-12 w-12 text-tag-tasks-text" />
-            <p className="font-medium text-forest">Logged in successfully</p>
-            <p className="text-sm text-forest/60">Taking you to your dashboard&hellip;</p>
+
+            <p className="font-medium text-forest">
+              Logged in successfully
+            </p>
+
+            <p className="text-sm text-forest/60">
+              Taking you to your dashboard&hellip;
+            </p>
           </motion.div>
         ) : (
           <motion.form
             key="form"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            exit={{
+              opacity: 0,
+            }}
             onSubmit={handleSubmit(onSubmit)}
             noValidate
             className="space-y-5"
@@ -101,6 +191,7 @@ export default function LoginPage() {
                 className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
               >
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+
                 <span>{error}</span>
               </div>
             )}
@@ -124,11 +215,21 @@ export default function LoginPage() {
               trailingAction={
                 <button
                   type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() =>
+                    setShowPassword((value) => !value)
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
                   className="text-forest/40 transition-colors hover:text-forest"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               }
               {...register("password")}
@@ -140,21 +241,33 @@ export default function LoginPage() {
                   name="rememberMe"
                   control={control}
                   render={({ field }) => (
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   )}
                 />
+
                 Remember Me
               </label>
+
               <button
                 type="button"
-                onClick={() => navigate("/forgot-password")}
+                onClick={() =>
+                  navigate("/forgot-password")
+                }
                 className="text-sm font-medium text-forest hover:underline"
               >
                 Forgot Password?
               </button>
             </div>
 
-            <Button type="submit" size="lg" className="mt-2 w-full" isLoading={isLoading}>
+            <Button
+              type="submit"
+              size="lg"
+              className="mt-2 w-full"
+              isLoading={isLoading}
+            >
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </motion.form>
