@@ -37,9 +37,6 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     langRegion: "Language & Region",
     dispLang: "Display Language",
     chooseLang: "Choose the language for the app interface",
-    appearance: "Appearance",
-    darkMode: "Dark Mode",
-    darkModeDesc: "Switch between light and dark theme",
 
     // Dashboard / Pages Headers & content
     overview: "Overview",
@@ -147,9 +144,6 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     langRegion: "भाषा और क्षेत्र",
     dispLang: "भाषा प्रदर्शित करें",
     chooseLang: "ऐप इंटरफ़ेस के लिए भाषा चुनें",
-    appearance: "दिखावट",
-    darkMode: "डार्क मोड",
-    darkModeDesc: "लाइट और डार्क थीम के बीच स्विच करें",
 
     activeSprint: "सक्रिय स्प्रिंट",
     assigned: "सौंपा गया",
@@ -223,9 +217,6 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     langRegion: "Idioma y Región",
     dispLang: "Idioma de Pantalla",
     chooseLang: "Elige el idioma de la aplicación",
-    appearance: "Apariencia",
-    darkMode: "Modo Oscuro",
-    darkModeDesc: "Cambiar entre tema claro y oscuro",
 
     activeSprint: "Sprint Activo",
     assigned: "Asignado",
@@ -299,9 +290,6 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     langRegion: "Langue & Région",
     dispLang: "Langue d'affichage",
     chooseLang: "Choisissez la langue de l'interface",
-    appearance: "Apparence",
-    darkMode: "Mode Sombre",
-    darkModeDesc: "Basculez entre le thème clair et sombre",
 
     activeSprint: "Sprint Actif",
     assigned: "Assigné",
@@ -375,9 +363,6 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     langRegion: "Sprache & Region",
     dispLang: "Anzeigesprache",
     chooseLang: "Sprache für die App-Oberfläche wählen",
-    appearance: "Erscheinungsbild",
-    darkMode: "Dunkelmodus",
-    darkModeDesc: "Zwischen hellem und dunklem Design wechseln",
 
     activeSprint: "Sprint Aktiv",
     assigned: "Zugewiesen",
@@ -451,9 +436,6 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     langRegion: "言語と地域",
     dispLang: "表示言語",
     chooseLang: "アプリ画面の言語を選択",
-    appearance: "外観",
-    darkMode: "ダークモード",
-    darkModeDesc: "ライトテーマとダークテーマの切り替え",
 
     activeSprint: "スプリント実施中",
     assigned: "担当タスク",
@@ -527,9 +509,6 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     langRegion: "语言与地区",
     dispLang: "显示语言",
     chooseLang: "选择应用界面语言",
-    appearance: "外观",
-    darkMode: "暗黑模式",
-    darkModeDesc: "切换亮色与暗色主题",
 
     activeSprint: "活跃 Sprint",
     assigned: "已分配",

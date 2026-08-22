@@ -25,7 +25,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload: LoginPayload) => {
     set({ status: "loading", error: null });
     try {
-      const { data } = await api.post<AuthResponse>("/auth/login", payload);
+      const { rememberMe, ...loginCredentials } = payload;
+      const { data } = await api.post<AuthResponse>("/auth/login", loginCredentials);
       const authToken = (data as { access_token?: string; token?: string }).access_token || data.token || "";
 
       if (payload.rememberMe) {

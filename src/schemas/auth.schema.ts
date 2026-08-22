@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-// SRM institutional email addresses or BrainMint demo accounts
-const ALLOWED_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(srmist\.edu\.in|brainmint\.com)$/;
+// SRM institutional email addresses, CrewPal emails, or BrainMint demo accounts
+const ALLOWED_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(srmist\.edu\.in|brainmint\.com|crewpal\.com)$/;
 
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
     .min(1, "Mail ID is required")
     .email("Enter a valid email address")
-    .regex(ALLOWED_EMAIL_REGEX, "Use your SRM Mail ID or BrainMint credentials"),
+    .regex(ALLOWED_EMAIL_REGEX, "Use your valid CrewPal, SRM, or BrainMint email"),
 });
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
@@ -18,7 +18,7 @@ export const loginSchema = z.object({
     .string()
     .min(1, "Mail ID is required")
     .email("Enter a valid email address")
-    .regex(ALLOWED_EMAIL_REGEX, "Use your SRM Mail ID or BrainMint credentials"),
+    .regex(ALLOWED_EMAIL_REGEX, "Use your valid CrewPal, SRM, or BrainMint email"),
   password: z
     .string()
     .min(1, "Password is required")

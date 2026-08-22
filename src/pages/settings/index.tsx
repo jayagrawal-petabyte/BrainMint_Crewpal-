@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Bell, Moon, Sun, Volume2, VolumeX,
+  Bell, Volume2, VolumeX,
   Mail, MessageSquare, Smartphone, Check, ChevronDown, Globe
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -93,8 +93,6 @@ export const Settings = () => {
   const [langOpen, setLangOpen]         = useState(false);
 
   // Appearance
-  const [darkMode, setDarkMode]         = useState(false);
-
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
@@ -250,22 +248,6 @@ export const Settings = () => {
                   ))}
                 </div>
               </div>
-            </div>
-          </SectionCard>
-
-          {/* Appearance Card */}
-          <SectionCard title={t.appearance}>
-            <div className="flex items-center justify-between px-6 py-5">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-cream-100 flex items-center justify-center text-forest-700 shrink-0">
-                  {darkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-forest-900">{t.darkMode}</p>
-                  <p className="text-xs text-forest-500 mt-0.5">{t.darkModeDesc}</p>
-                </div>
-              </div>
-              <Toggle enabled={darkMode} onChange={() => setDarkMode(!darkMode)} />
             </div>
           </SectionCard>
 
