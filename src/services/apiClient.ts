@@ -1,9 +1,9 @@
 import { ApiError, createApiError } from './apiErrors';
 
 export const API_BASE_URL: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'https://brainmintcrewpal.onrender.com';
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'https://crewpal-backend.onrender.com';
 
-export const TOKEN_STORAGE_KEY = 'crewpal_access_token';
+export const TOKEN_STORAGE_KEY = 'crewpal_token';
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
@@ -69,8 +69,8 @@ export const apiRequest = async <T>(
 ): Promise<T> => {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const token =
-    window.localStorage.getItem(TOKEN_STORAGE_KEY) ||
     window.localStorage.getItem('crewpal_token') ||
+    window.localStorage.getItem('crewpal_access_token') ||
     window.sessionStorage.getItem('crewpal_token');
 
   const controller = new AbortController();
@@ -95,8 +95,9 @@ export const apiRequest = async <T>(
       signal: controller.signal,
     });
 
-    if (response.status === 401) {
-      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    if (response.status === 401 && path.includes('/auth/')) {
+      window.localStorage.removeItem('crewpal_token');
+      window.localStorage.removeItem('crewpal_access_token');
       emitUnauthorized();
     }
 

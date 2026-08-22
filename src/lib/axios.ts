@@ -6,7 +6,7 @@ import axios from "axios";
  * and wire up interceptors for auth tokens / refresh flow.
  */
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? "https://crewpal-backend-yu75.onrender.com",
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "https://crewpal-backend.onrender.com",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
