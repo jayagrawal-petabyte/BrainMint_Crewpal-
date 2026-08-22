@@ -7,6 +7,7 @@ import LoginPage from "../pages/Auth/LoginPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
 import Forbidden from "../pages/errors/Forbidden";
 import ProtectedRoute from "../components/ProtectedRoute";
+import SelfOnlyRoute from "../components/SelfOnlyRoute";
 import { useAuth } from "../contexts/AuthContext";
 import { UserRole } from "../types/roles";
 import PageLoader from "../components/loading/PageLoader";
@@ -209,18 +210,26 @@ export const router = createBrowserRouter([
       {
         path: "organization",
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <OrganizationManagement />
-          </Suspense>
+          <ProtectedRoute
+            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <OrganizationManagement />
+            </Suspense>
+          </ProtectedRoute>
         ),
       },
 
       {
         path: "organization/settings",
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <OrganizationSettings />
-          </Suspense>
+          <ProtectedRoute
+            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <OrganizationSettings />
+            </Suspense>
+          </ProtectedRoute>
         ),
       },
 
@@ -267,9 +276,11 @@ export const router = createBrowserRouter([
               UserRole.EMPLOYEE,
             ]}
           >
-            <Suspense fallback={<PageLoader />}>
-              <UpdateProfile />
-            </Suspense>
+            <SelfOnlyRoute>
+              <Suspense fallback={<PageLoader />}>
+                <UpdateProfile />
+              </Suspense>
+            </SelfOnlyRoute>
           </ProtectedRoute>
         ),
       },
@@ -301,9 +312,11 @@ export const router = createBrowserRouter([
               UserRole.EMPLOYEE,
             ]}
           >
-            <Suspense fallback={<PageLoader />}>
-              <ChangePassword />
-            </Suspense>
+            <SelfOnlyRoute>
+              <Suspense fallback={<PageLoader />}>
+                <ChangePassword />
+              </Suspense>
+            </SelfOnlyRoute>
           </ProtectedRoute>
         ),
       },
@@ -311,9 +324,13 @@ export const router = createBrowserRouter([
       {
         path: "reports",
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <Reports />
-          </Suspense>
+          <ProtectedRoute
+            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <Reports />
+            </Suspense>
+          </ProtectedRoute>
         ),
       },
 
@@ -329,9 +346,13 @@ export const router = createBrowserRouter([
       {
         path: "settings",
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <Settings />
-          </Suspense>
+          <ProtectedRoute
+            allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <Settings />
+            </Suspense>
+          </ProtectedRoute>
         ),
       },
 
