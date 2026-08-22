@@ -16,12 +16,7 @@ const roleFromRoleId = (roleId: number): User["role"] => {
   };
 
   const role = roleMap[roleId];
-
-  if (!role) {
-    throw new Error("Login succeeded, but the user role is invalid.");
-  }
-
-  return role;
+  return role || "intern";
 };
 
 interface AuthState {

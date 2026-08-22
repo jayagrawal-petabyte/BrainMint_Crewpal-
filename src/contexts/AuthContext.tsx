@@ -29,14 +29,29 @@ export function AuthProvider({
 }: {
   children: ReactNode;
 }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const savedUser = localStorage.getItem("crewpal_user");
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const login = (userData: User) => {
     setUser(userData);
+    try {
+      localStorage.setItem("crewpal_user", JSON.stringify(userData));
+    } catch (e) {
+      console.error("Failed to save user in localStorage", e);
+    }
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("crewpal_user");
+    localStorage.removeItem("crewpal_token");
+    sessionStorage.removeItem("crewpal_token");
   };
 
   return (

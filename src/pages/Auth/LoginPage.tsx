@@ -81,39 +81,34 @@ export default function LoginPage() {
        * Convert the backend role to the frontend
        * UserRole format used by AuthContext/RBAC.
        */
-      let role: UserRole;
+      let role: UserRole = UserRole.EMPLOYEE;
+      const rawRole = String(backendUser.role || "").trim().toLowerCase();
 
-      switch (String(backendUser.role).trim().toLowerCase()) {
-        case "admin":
-          role = UserRole.ADMIN;
-          break;
-
-        case "manager":
-          role = UserRole.MANAGER;
-          break;
-
-        case "employee":
-        case "intern":
-          role = UserRole.EMPLOYEE;
-          break;
-
-        default:
-          throw new Error(
-            "Login succeeded, but the user role is invalid."
-          );
+      if (
+        rawRole.includes("admin") ||
+        rawRole === "1" ||
+        rawRole === "2" ||
+        rawRole === "3"
+      ) {
+        role = UserRole.ADMIN;
+      } else if (
+        rawRole.includes("manager") ||
+        rawRole.includes("lead") ||
+        rawRole === "4" ||
+        rawRole === "5"
+      ) {
+        role = UserRole.MANAGER;
+      } else {
+        role = UserRole.EMPLOYEE;
       }
 
       /*
        * Use the authenticated backend user.
-       *
-       * DO NOT determine role from:
-       * values.email.includes("admin")
-       * values.email.includes("manager")
        */
       contextLogin({
-        id: backendUser.id,
-        name: backendUser.name,
-        email: backendUser.email,
+        id: String(backendUser.id),
+        name: backendUser.name || "User",
+        email: backendUser.email || values.email,
         role,
       });
 
@@ -121,12 +116,9 @@ export default function LoginPage() {
 
       setTimeout(() => {
         navigate("/dashboard");
-      }, 900);
-    } catch {
-      /*
-       * API errors are already handled by useAuthStore.
-       * Do not override the backend authentication error here.
-       */
+      }, 400);
+    } catch (err) {
+      console.error("Login navigation error:", err);
     }
   };
 
