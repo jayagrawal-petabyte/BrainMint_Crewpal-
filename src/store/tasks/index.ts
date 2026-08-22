@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Task, TaskStatus, TaskPriority, TaskFilter, Assignee } from '../../types/task';
+import { taskService } from '../../services/taskService';
 
 // ─── Mock Team Members ───────────────────────────────────────────────────────
 
@@ -18,141 +19,19 @@ export type SortOrder = 'asc' | 'desc';
 
 const PRIORITY_RANK: Record<TaskPriority, number> = { high: 3, medium: 2, low: 1 };
 
-// ─── Initial Seed Data ────────────────────────────────────────────────────────
-
-const SEED_TASKS: Task[] = [
-  {
-    id: 'task-1',
-    projectId: 'proj-001',
-    title: 'Design Task Management Architecture',
-    description: 'Structure components, store, and state flow for CREWPAL Task module.',
-    techTag: 'React + Node',
-    status: 'on_track',
-    priority: 'high',
-    dueDate: '2026-08-05',
-    assignees: [MOCK_TEAM_MEMBERS[0], MOCK_TEAM_MEMBERS[1]],
-    comments: [],
-    subtasks: [],
-    createdAt: '2026-07-15T10:00:00Z',
-    updatedAt: '2026-07-15T10:00:00Z',
-  },
-  {
-    id: 'task-2',
-    projectId: 'proj-001',
-    title: 'Implement Reusable Task Cards',
-    description: 'Extract TaskCard component with hover effects, priority dot, and actions.',
-    techTag: 'React + Tailwind',
-    status: 'on_track',
-    priority: 'medium',
-    dueDate: '2026-08-08',
-    assignees: [MOCK_TEAM_MEMBERS[1], MOCK_TEAM_MEMBERS[2]],
-    comments: [],
-    subtasks: [],
-    createdAt: '2026-07-16T11:00:00Z',
-    updatedAt: '2026-07-16T11:00:00Z',
-  },
-  {
-    id: 'task-3',
-    projectId: 'proj-002',
-    title: 'Build Filter & Search System',
-    description: 'Multi-criteria filter dropdown for status and priority with real-time search.',
-    techTag: 'Zustand + React',
-    status: 'delayed',
-    priority: 'high',
-    dueDate: '2026-07-25',
-    assignees: [MOCK_TEAM_MEMBERS[0], MOCK_TEAM_MEMBERS[3]],
-    comments: [
-      { id: 'c1', authorId: 'u1', authorName: 'Jay Agrawal', authorInitials: 'JA', text: 'We need to finalize filter combinations.', createdAt: '2026-07-18T14:00:00Z' },
-    ],
-    subtasks: [
-      { id: 'st1', title: 'Search by name', completed: true },
-      { id: 'st2', title: 'Filter by status', completed: true },
-      { id: 'st3', title: 'Filter by priority', completed: false },
-    ],
-    createdAt: '2026-07-14T09:00:00Z',
-    updatedAt: '2026-07-18T14:00:00Z',
-  },
-  {
-    id: 'task-4',
-    projectId: 'proj-002',
-    title: 'Create Task & Edit Task Modals',
-    description: 'Interactive popup forms with assignee selection and full validation.',
-    techTag: 'React Modal',
-    status: 'completed',
-    priority: 'medium',
-    dueDate: '2026-07-20',
-    assignees: [MOCK_TEAM_MEMBERS[2], MOCK_TEAM_MEMBERS[4]],
-    comments: [
-      { id: 'c2', authorId: 'u3', authorName: 'Ananya Sharma', authorInitials: 'AS', text: 'Both modals working great, merged!', createdAt: '2026-07-14T17:00:00Z' },
-    ],
-    subtasks: [
-      { id: 'st4', title: 'Create modal', completed: true },
-      { id: 'st5', title: 'Edit modal', completed: true },
-      { id: 'st6', title: 'Form validation', completed: true },
-    ],
-    createdAt: '2026-07-10T09:00:00Z',
-    updatedAt: '2026-07-14T17:00:00Z',
-  },
-  {
-    id: 'task-5',
-    projectId: 'proj-003',
-    title: 'Setup CI/CD Pipeline',
-    description: 'Configure GitHub Actions for lint, build, and deploy to staging.',
-    techTag: 'Node.js',
-    status: 'on_track',
-    priority: 'low',
-    dueDate: '2026-08-12',
-    assignees: [MOCK_TEAM_MEMBERS[3]],
-    comments: [],
-    subtasks: [],
-    createdAt: '2026-07-20T10:00:00Z',
-    updatedAt: '2026-07-20T10:00:00Z',
-  },
-  {
-    id: 'task-6',
-    projectId: 'proj-003',
-    title: 'Responsive Layout & Mobile View',
-    description: 'Ensure all pages work on 375px through 1440px screens.',
-    techTag: 'React + Tailwind',
-    status: 'delayed',
-    priority: 'medium',
-    dueDate: '2026-07-28',
-    assignees: [MOCK_TEAM_MEMBERS[1], MOCK_TEAM_MEMBERS[4]],
-    comments: [],
-    subtasks: [
-      { id: 'st7', title: 'Mobile task list', completed: false },
-      { id: 'st8', title: 'Tablet layout', completed: false },
-    ],
-    createdAt: '2026-07-18T09:00:00Z',
-    updatedAt: '2026-07-22T11:00:00Z',
-  },
-  {
-    id: 'task-7',
-    projectId: 'proj-004',
-    title: 'Dashboard Stats & Charts',
-    description: 'Build overview cards showing task metrics and priority distribution.',
-    techTag: 'React',
-    status: 'on_track',
-    priority: 'high',
-    dueDate: '2026-08-02',
-    assignees: [MOCK_TEAM_MEMBERS[0], MOCK_TEAM_MEMBERS[2]],
-    comments: [],
-    subtasks: [],
-    createdAt: '2026-07-22T09:00:00Z',
-    updatedAt: '2026-07-22T09:00:00Z',
-  },
-];
-
 // ─── Store Interface ─────────────────────────────────────────────────────────
 
 interface TaskState {
   tasks: Task[];
+  isLoading: boolean;
+  error: string | null;
   filter: TaskFilter;
   sortBy: SortBy;
   sortOrder: SortOrder;
   viewMode: 'list' | 'kanban' | 'calendar';
 
   // Actions
+  fetchTasks: () => Promise<void>;
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'subtasks'>) => void;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
   deleteTask: (id: string) => void;
@@ -192,7 +71,9 @@ interface TaskState {
 // ─── Store Implementation ────────────────────────────────────────────────────
 
 export const useTaskStore = create<TaskState>((set, get) => ({
-  tasks: SEED_TASKS,
+  tasks: [],
+  isLoading: false,
+  error: null,
   filter: {
     search: '',
     status: 'all',
@@ -201,6 +82,19 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   sortBy: 'createdAt',
   sortOrder: 'desc',
   viewMode: 'list',
+
+  fetchTasks: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const tasks = await taskService.getTasks();
+      set({ tasks: Array.isArray(tasks) ? tasks : [], isLoading: false });
+    } catch (err: any) {
+      set({
+        error: err.message || 'Failed to retrieve tasks from backend API.',
+        isLoading: false,
+      });
+    }
+  },
 
   addTask: (newTaskData) => {
     const now = new Date().toISOString();

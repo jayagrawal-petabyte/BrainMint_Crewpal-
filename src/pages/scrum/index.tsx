@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Zap, Calendar, CheckCircle2, Clock, ChevronRight,
   Plus, X, Target, TrendingDown, Users,
@@ -248,9 +248,13 @@ type Tab = (typeof TABS)[number]['id'];
 // ─── Main Scrum Page ───────────────────────────────────────────────────────
  
 export const Scrum = () => {
-  const { sprints, startSprint, completeSprint } = useSprintStore();
+  const { sprints, fetchSprints, startSprint, completeSprint } = useSprintStore();
   const tasks = useTaskStore((s) => s.tasks);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    fetchSprints();
+  }, [fetchSprints]);
  
   // Tab Bar Definitions with Translations
   const tabs = [

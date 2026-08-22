@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../../components/common/Button';
@@ -47,9 +47,11 @@ export const Projects = () => {
   const [reviewApproval, setReviewApproval] = useState<PendingApproval | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
-  // Subscribe to `projects` directly so any isStarred mutation triggers a re-render.
-  // getFilteredProjects reads from get() internally, so we call it fresh each render.
+  // Store bindings
   const projects = useProjectStore((s) => s.projects);
+  const isLoading = useProjectStore((s) => s.isLoading);
+  const error = useProjectStore((s) => s.error);
+  const fetchProjects = useProjectStore((s) => s.fetchProjects);
   const getFilteredProjects = useProjectStore((s) => s.getFilteredProjects);
 
   const {
@@ -62,6 +64,10 @@ export const Projects = () => {
     deleteProject,
     resetFilter,
   } = useProjectStore();
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const toast = useToast();
   // Re-computed on every render; will reflect latest projects + filter state.
@@ -141,6 +147,17 @@ export const Projects = () => {
 
   return (
     <div className="space-y-5">
+      {error && (
+        <div role="alert" className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold">
+          {error}
+        </div>
+      )}
+      {isLoading && (
+        <div className="py-8 text-center text-xs text-forest-600 font-medium animate-pulse">
+          Loading project data from backend...
+        </div>
+      )}
+
       {/* Page Title + New Project Button */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-extrabold text-forest-900">Projects</h1>

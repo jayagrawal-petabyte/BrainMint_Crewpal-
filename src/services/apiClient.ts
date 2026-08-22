@@ -68,7 +68,10 @@ export const apiRequest = async <T>(
   options: ApiRequestOptions = {}
 ): Promise<T> => {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const token = window.localStorage.getItem(TOKEN_STORAGE_KEY);
+  const token =
+    window.localStorage.getItem(TOKEN_STORAGE_KEY) ||
+    window.localStorage.getItem('crewpal_token') ||
+    window.sessionStorage.getItem('crewpal_token');
 
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);

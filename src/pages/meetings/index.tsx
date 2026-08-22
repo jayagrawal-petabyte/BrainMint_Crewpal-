@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Plus,
@@ -19,8 +19,12 @@ import type { Sprint, SprintStatus } from '../../types/sprint';
 import { useToast } from '../../hooks/useToast';
 
 export const Meetings: React.FC = () => {
-  const { sprints, createSprint, startSprint, completeSprint, addMeetingToSprint } = useSprintStore();
+  const { sprints, fetchSprints, isLoading, error, createSprint, startSprint, completeSprint, addMeetingToSprint } = useSprintStore();
   const toast = useToast();
+
+  useEffect(() => {
+    fetchSprints();
+  }, [fetchSprints]);
 
   const [search, setSearch] = useState('');
   const [filterStatus] = useState<SprintStatus | 'all'>('all');
@@ -125,6 +129,17 @@ export const Meetings: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {error && (
+        <div role="alert" className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold">
+          {error}
+        </div>
+      )}
+      {isLoading && (
+        <div className="py-8 text-center text-xs text-forest-600 font-medium animate-pulse">
+          Loading meeting and sprint data from backend...
+        </div>
+      )}
+
       {/* ─── HEADER & TAB BAR (Matching Figma Design Node 38:2737) ─── */}
       <div className="space-y-4">
         {/* Title */}

@@ -1,3 +1,4 @@
+import { api } from './apiClient';
 import type { Project } from '../types/project';
 import type { ProjectProgress } from '../types/dashboard';
 
@@ -12,6 +13,22 @@ const DEFAULT_PROGRESS: Record<
 };
 
 class ProjectService {
+  async getProjects(): Promise<Project[]> {
+    return api.get<Project[]>('/projects');
+  }
+
+  async createProject(project: Omit<Project, 'id' | 'createdAt' | 'isStarred'>): Promise<Project> {
+    return api.post<Project>('/projects', project);
+  }
+
+  async updateProject(id: string, updates: Partial<Project>): Promise<Project> {
+    return api.patch<Project>(`/projects/${id}`, updates);
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await api.delete(`/projects/${id}`);
+  }
+
   async getProjectProgress(projects: Project[]): Promise<ProjectProgress[]> {
     return projects.map((project) => {
       if (project.status === 'completed') {

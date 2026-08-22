@@ -155,6 +155,9 @@ export const Tasks = () => {
   const [localSearch, setLocalSearch] = useState('');
 
   // Store bindings
+  const isLoading = useTaskStore((state) => state.isLoading);
+  const error = useTaskStore((state) => state.error);
+  const fetchTasks = useTaskStore((state) => state.fetchTasks);
   const search = useTaskStore((state) => state.filter.search);
   const filter = useTaskStore((state) => state.filter);
   const viewMode = useTaskStore((state) => state.viewMode);
@@ -177,6 +180,11 @@ export const Tasks = () => {
   const addAttachment = useTaskStore((state) => state.addAttachment);
   const deleteAttachment = useTaskStore((state) => state.deleteAttachment);
   const logEvent = useActivityStore((state) => state.logEvent);
+
+  // Fetch backend tasks on component mount
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   // Local state for attachment preview
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -223,6 +231,17 @@ export const Tasks = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {error && (
+        <div role="alert" className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold">
+          {error}
+        </div>
+      )}
+      {isLoading && (
+        <div className="py-8 text-center text-xs text-forest-600 font-medium animate-pulse">
+          Loading task data from backend...
+        </div>
+      )}
+
       {/* ─── DESKTOP PAGE HEADER ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

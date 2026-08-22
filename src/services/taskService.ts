@@ -1,8 +1,27 @@
+import { api } from './apiClient';
 import type { Task } from '../types/task';
 import type { AssignedTask, DeadlineItem, DashboardUser } from '../types/dashboard';
 import { daysUntil, isOverdue, normalizeText } from '../utils/format';
 
 class TaskService {
+  async getTasks(): Promise<Task[]> {
+    return api.get<Task[]>('/tasks');
+  }
+
+  async createTask(
+    taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'subtasks'>
+  ): Promise<Task> {
+    return api.post<Task>('/tasks', taskData);
+  }
+
+  async updateTask(id: string, updates: Partial<Task>): Promise<Task> {
+    return api.patch<Task>(`/tasks/${id}`, updates);
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    await api.delete(`/tasks/${id}`);
+  }
+
   async getAssignedTasks(
     tasks: Task[],
     user: DashboardUser | null

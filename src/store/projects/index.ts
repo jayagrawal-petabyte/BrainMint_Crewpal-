@@ -1,66 +1,15 @@
 import { create } from 'zustand';
 import type { Project, ProjectFilter, ProjectSortKey } from '../../types/project';
-
-const SEED_PROJECTS: Project[] = [
-  {
-    id: 'proj-001',
-    memberIds: ['u1', 'u2', 'u3'],
-    name: 'School Mobile App',
-    owner: 'Jay Agarwal',
-    status: 'on_track',
-    isStarred: true,
-    createdAt: '2026-07-12T09:00:00Z',
-    description: 'Mobile application development for School portals.',
-    category: 'Development',
-    techStack: 'React Native',
-    progress: 75,
-  },
-  {
-    id: 'proj-002',
-    memberIds: ['u2', 'u4'],
-    name: 'Management Project',
-    owner: 'Jay Agarwal',
-    status: 'delayed',
-    isStarred: false,
-    createdAt: '2026-07-10T10:00:00Z',
-    description: 'Internal task and workspace management portal.',
-    category: 'Management',
-    techStack: 'React + Node',
-    progress: 45,
-  },
-  {
-    id: 'proj-003',
-    memberIds: ['u1', 'u3', 'u5'],
-    name: 'School ERP Project',
-    owner: 'Jay Agarwal',
-    status: 'on_track',
-    isStarred: false,
-    createdAt: '2026-07-15T11:00:00Z',
-    description: 'Enterprise Resource Planning system for schools.',
-    category: 'Development',
-    techStack: 'Next.js + PostgreSQL',
-    progress: 60,
-  },
-  {
-    id: 'proj-004',
-    memberIds: ['u4', 'u5'],
-    name: 'Intern Management Project',
-    owner: 'Jay Agarwal',
-    status: 'completed',
-    isStarred: true,
-    createdAt: '2026-07-08T08:00:00Z',
-    description: 'Zustand-powered onboarding & task manager for interns.',
-    category: 'HR / Management',
-    techStack: 'React + Zustand',
-    progress: 100,
-  },
-];
+import { projectService } from '../../services/projectService';
 
 interface ProjectState {
   projects: Project[];
+  isLoading: boolean;
+  error: string | null;
   filter: ProjectFilter;
 
   // Actions
+  fetchProjects: () => Promise<void>;
   addProject: (project: Omit<Project, 'id' | 'createdAt' | 'isStarred'>) => void;
   toggleStarProject: (id: string) => void;
   deleteProject: (id: string) => void;
@@ -79,12 +28,27 @@ interface ProjectState {
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
-  projects: SEED_PROJECTS,
+  projects: [],
+  isLoading: false,
+  error: null,
   filter: {
     search: '',
     status: 'all',
     starredOnly: false,
     sortBy: 'name_asc',
+  },
+
+  fetchProjects: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const projects = await projectService.getProjects();
+      set({ projects: Array.isArray(projects) ? projects : [], isLoading: false });
+    } catch (err: any) {
+      set({
+        error: err.message || 'Failed to retrieve projects from backend API.',
+        isLoading: false,
+      });
+    }
   },
 
   addProject: (projData) => {
