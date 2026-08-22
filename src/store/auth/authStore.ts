@@ -54,10 +54,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         loginCredentials
       );
 
-      const authToken =
-        (data as { access_token?: string; token?: string }).access_token ||
-        data.token ||
-        "";
+      const authToken = data.access_token;
 
       const user: User = {
         id: String(data.user.id),
