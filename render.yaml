@@ -21,8 +21,8 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 1d
-      - key: CORS_ORIGIN # Update this to your frontend Render URL after deploying frontend
-        value: "https://brain-mint-crewpal.vercel.app"
+      - key: CORS_ORIGIN
+        value: "https://brain-mint-crewpal.vercel.app,https://brainmintcrewpal.vercel.app"
 
 databases:
   - name: crewpal-db
