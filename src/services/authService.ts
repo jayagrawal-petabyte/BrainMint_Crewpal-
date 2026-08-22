@@ -1,7 +1,5 @@
 import { api, TOKEN_STORAGE_KEY } from './apiClient';
-import { ApiError } from './apiErrors';
 import type { User } from '../contexts/AuthContext';
-import { UserRole } from '../types/roles';
 
 export interface LoginCredentials {
   email: string;
@@ -9,41 +7,37 @@ export interface LoginCredentials {
 }
 
 export interface LoginResponse {
-  token: string;
+  access_token: string;
   user: User;
 }
 
-interface DemoAccount {
-  password: string;
-  role: UserRole;
-  name: string;
-}
-
-const DEMO_ACCOUNTS: Record<string, DemoAccount> = {
-  'admin@brainmint.com': {
-    password: 'admin123',
-    role: UserRole.ADMIN,
-    name: 'Admin User',
-  },
-  'manager@brainmint.com': {
-    password: 'manager123',
-    role: UserRole.MANAGER,
-    name: 'Manager User',
-  },
-  'employee@brainmint.com': {
-    password: 'employee123',
-    role: UserRole.EMPLOYEE,
-    name: 'Employee User',
-  },
-};
-
 class AuthService {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    try {
-      return await api.post<LoginResponse>('/auth/login', credentials);
-    } catch {
-      return this.mockLogin(credentials);
-    }
+    const response = await api.post<{
+      access_token: string;
+      user: {
+        id: number;
+        name: string;
+        email: string;
+        role_id: number;
+      };
+    }>('/auth/login', credentials);
+
+    window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+
+    return {
+      access_token: response.access_token,
+      user: {
+        id: String(response.user.id),
+        name: response.user.name,
+        email: response.user.email,
+        role: response.user.role_id <= 3
+          ? 'ADMIN'
+          : response.user.role_id <= 5
+            ? 'MANAGER'
+            : 'EMPLOYEE',
+      },
+    };
   }
 
   async logout(): Promise<void> {
@@ -62,35 +56,6 @@ class AuthService {
     } catch {
       return null;
     }
-  }
-
-  private async mockLogin(
-    credentials: LoginCredentials
-  ): Promise<LoginResponse> {
-    const account = DEMO_ACCOUNTS[credentials.email.trim().toLowerCase()];
-
-    if (!account || account.password !== credentials.password) {
-      throw new ApiError(
-        'unauthorized',
-        'Invalid email or password.',
-        401
-      );
-    }
-
-    const user: User = {
-      id:
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : Math.random().toString(36).substring(2),
-      name: account.name,
-      email: credentials.email.trim(),
-      role: account.role,
-    };
-
-    const token = `mock-token-${user.id}`;
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
-
-    return { token, user };
   }
 }
 

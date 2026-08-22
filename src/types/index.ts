@@ -12,8 +12,14 @@ export interface LoginPayload {
 }
 
 export interface AuthResponse {
-  user: User;
-  token: string;
+  access_token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role_id: number;
+    organization_id: number;
+  };
 }
 
 export * from './organization';

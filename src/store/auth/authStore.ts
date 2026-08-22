@@ -2,6 +2,28 @@ import { create } from "zustand";
 import { api } from "@/lib/axios";
 import type { AuthResponse, LoginPayload, User } from "@/types";
 
+const roleFromRoleId = (roleId: number): User["role"] => {
+  const roleMap: Record<number, User["role"]> = {
+    1: "admin",
+    2: "admin",
+    3: "admin",
+    4: "manager",
+    5: "manager",
+    6: "intern",
+    7: "intern",
+    8: "intern",
+    9: "intern",
+  };
+
+  const role = roleMap[roleId];
+
+  if (!role) {
+    throw new Error("Login succeeded, but the user role is invalid.");
+  }
+
+  return role;
+};
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -25,9 +47,25 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload: LoginPayload) => {
     set({ status: "loading", error: null });
     try {
-      const { rememberMe, ...loginCredentials } = payload;
-      const { data } = await api.post<AuthResponse>("/auth/login", loginCredentials);
-      const authToken = (data as { access_token?: string; token?: string }).access_token || data.token || "";
+
+            const { rememberMe, ...loginCredentials } = payload;
+      const { data } = await api.post<AuthResponse>(
+        "/auth/login",
+        loginCredentials
+      );
+
+      const authToken =
+        (data as { access_token?: string; token?: string }).access_token ||
+        data.token ||
+        "";
+
+      const user: User = {
+        id: String(data.user.id),
+        name: data.user.name,
+        email: data.user.email,
+        role: roleFromRoleId(data.user.role_id),
+      };
+
 
       if (payload.rememberMe) {
         localStorage.setItem("crewpal_token", authToken);
@@ -35,37 +73,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         sessionStorage.setItem("crewpal_token", authToken);
       }
 
-      set({ user: data.user, token: authToken, status: "success", error: null });
+      set({ user, token: authToken, status: "success", error: null });
     } catch (err) {
-      // Mock fallback for demo accounts when backend API is offline/unavailable
-      const emailLower = payload.email.trim().toLowerCase();
-      const demoUsers: Record<string, { password: string; user: User }> = {
-        "admin@brainmint.com": {
-          password: "admin123",
-          user: { id: "demo-admin", name: "Admin User", email: "admin@brainmint.com", role: "admin" },
-        },
-        "manager@brainmint.com": {
-          password: "manager123",
-          user: { id: "demo-manager", name: "Manager User", email: "manager@brainmint.com", role: "manager" },
-        },
-        "employee@brainmint.com": {
-          password: "employee123",
-          user: { id: "demo-employee", name: "Employee User", email: "employee@brainmint.com", role: "intern" },
-        },
-      };
-
-      const demo = demoUsers[emailLower];
-      if (demo && demo.password === payload.password) {
-        const fakeToken = `demo-token-${demo.user.role}-${Date.now()}`;
-        if (payload.rememberMe) {
-          localStorage.setItem("crewpal_token", fakeToken);
-        } else {
-          sessionStorage.setItem("crewpal_token", fakeToken);
-        }
-        set({ user: demo.user, token: fakeToken, status: "success", error: null });
-        return;
-      }
-
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         "We couldn't log you in. Check your credentials and try again.";

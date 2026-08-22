@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { UserRole } from "../../types/roles";
+import { authService } from "../../services/authService";
 
 const Login = () => {
 const { login, user } = useAuth();
@@ -41,55 +41,19 @@ const { login, user } = useAuth();
     return valid;
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) return;
 
-    let role: UserRole;
-    let name: string;
-
-    switch (email.trim().toLowerCase()) {
-      case "admin@brainmint.com":
-        if (password !== "admin123") {
-          alert("Invalid password");
-          return;
-        }
-        role = UserRole.ADMIN;
-        name = "Admin User";
-        break;
-
-      case "manager@brainmint.com":
-        if (password !== "manager123") {
-          alert("Invalid password");
-          return;
-        }
-        role = UserRole.MANAGER;
-        name = "Manager User";
-        break;
-
-      case "employee@brainmint.com":
-        if (password !== "employee123") {
-          alert("Invalid password");
-          return;
-        }
-        role = UserRole.EMPLOYEE;
-        name = "Employee User";
-        break;
-
-      default:
-        alert("Invalid email");
-        return;
+    try {
+      const response = await authService.login({ email: email.trim(), password });
+      login(response.user);
+      navigate("/dashboard");
+    } catch {
+      alert("Invalid email or password");
     }
-
-    login({
-      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
-      name,
-      email: email.trim(),
-      role,
-    });
-
-navigate("/dashboard");  };
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F3F4E8] px-4">
