@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-// users/users.controller.ts
 import {
   Body,
   Controller,
@@ -54,6 +52,12 @@ export class UsersController {
   @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
   deactivate(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.usersService.deactivate(id, req.user);
+  }
+
+  @Patch(':id/reactivate')
+  @Roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
+  reactivate(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.usersService.reactivate(id, req.user);
   }
 
   @Patch(':id/role')

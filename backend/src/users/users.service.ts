@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
-// users/users.service.ts
 import {
   ConflictException,
   ForbiddenException,
@@ -164,6 +161,23 @@ export class UsersService {
     );
     return result.rows[0];
   }
+
+  async reactivate(
+  id: number,
+  user: { organization_id: number; role_id: Role },
+) {
+  await this.findOne(id, user);
+
+  const result = await this.pool.query(
+    `UPDATE users
+     SET is_active = TRUE, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, name, email, is_active`,
+    [id],
+  );
+
+  return result.rows[0];
+}
 
   async updateRole(
     id: number,
