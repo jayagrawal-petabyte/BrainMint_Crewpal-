@@ -12,8 +12,13 @@ export const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchUser = async () => {
+      const targetId = id || loggedInUser?.id;
+      if (!targetId) {
+        setLoading(false);
+        return;
+      }
       try {
-        const response = await api.get(`/users/${id}`);
+        const response = await api.get(`/users/${targetId}`);
         setUser(response);
       } catch (error) {
         console.error("Failed to fetch user", error);
@@ -22,7 +27,7 @@ export const UserDashboard = () => {
       }
     };
     fetchUser();
-  }, [id]);
+  }, [id, loggedInUser?.id]);
   const isAdminOrManager =
     loggedInUser?.role === UserRole.ADMIN ||
     loggedInUser?.role === UserRole.MANAGER;
