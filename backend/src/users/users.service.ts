@@ -35,6 +35,17 @@ export class UsersService {
     dto: CreateUserDto,
     user: { organization_id: number; role_id: Role },
   ) {
+    const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN;
+
+    if (
+      allowedDomain &&
+      !dto.email.toLowerCase().endsWith(`@${allowedDomain.toLowerCase()}`)
+    ) {
+      throw new ForbiddenException(
+        `Only ${allowedDomain} email addresses are allowed`,
+      );
+    }
+
     const userRole = Number(user?.role_id);
     const userOrg = Number(user?.organization_id);
 
@@ -74,8 +85,11 @@ export class UsersService {
         throw new ConflictException('Email already in use');
       }
       if (error.code === '23503') {
-        throw new NotFoundException(
-          `Invalid reference: ${error.detail || error.message}`,
+        this.logger.error(
+          `Duplicate constraint: ${error.constraint}, detail: ${error.detail}`,
+        );
+        throw new ConflictException(
+          `Duplicate value: ${error.detail || 'unique constraint violation'}`,
         );
       }
       throw new InternalServerErrorException(
@@ -136,6 +150,10 @@ export class UsersService {
     if (dto.organizationId !== undefined) {
       fields.push(`organization_id = $${i++}`);
       values.push(dto.organizationId);
+    }
+    if (dto.is_active !== undefined) {
+      fields.push(`is_active = $${i++}`);
+      values.push(dto.is_active);
     }
     if (fields.length === 0) return target;
 

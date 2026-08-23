@@ -177,6 +177,12 @@ INSERT INTO organizations (id, name) VALUES
   (1, 'Acme Corp')
 ON CONFLICT (id) DO NOTHING;
 
+SELECT setval(
+  pg_get_serial_sequence('organizations', 'id'),
+  COALESCE((SELECT MAX(id) FROM organizations), 1),
+  true
+);
+
 -- Seed default test users for all 9 roles with distinct passwords
 INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VALUES
   (1, 1, 1, 'Super Admin User', 'superadmin@crewpal.com', '$2b$10$G1uQOuA6a.8/kEN2N4oRauEQozjfIlrlITxhLu.BC0ykN5q5iprYO'),
