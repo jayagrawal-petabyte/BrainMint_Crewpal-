@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Inject,
@@ -21,6 +22,30 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
 
+  private validateEmailDomain(email: string) {
+    const rawAllowed =
+      process.env.ALLOWED_EMAIL_DOMAINS ||
+      process.env.ALLOWED_EMAIL_DOMAIN ||
+      'crewpal.com,srmist.edu.in';
+
+    const allowedDomains = rawAllowed
+      .split(',')
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean);
+
+    const parts = email.toLowerCase().trim().split('@');
+    const emailDomain = parts[1];
+
+    if (
+      allowedDomains.length > 0 &&
+      (!emailDomain || !allowedDomains.includes(emailDomain))
+    ) {
+      throw new BadRequestException(
+        `Only organizational email addresses (${allowedDomains.map((d) => '@' + d).join(', ')}) are allowed`,
+      );
+    }
+  }
+
   private verifyOrgAccess(
     targetOrgId: number,
     user: { organization_id: number; role_id: Role },
@@ -35,16 +60,7 @@ export class UsersService {
     dto: CreateUserDto,
     user: { organization_id: number; role_id: Role },
   ) {
-    const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN;
-
-    if (
-      allowedDomain &&
-      !dto.email.toLowerCase().endsWith(`@${allowedDomain.toLowerCase()}`)
-    ) {
-      throw new ForbiddenException(
-        `Only ${allowedDomain} email addresses are allowed`,
-      );
-    }
+    this.validateEmailDomain(dto.email);
 
     const userRole = Number(user?.role_id);
     const userOrg = Number(user?.organization_id);
@@ -144,6 +160,14 @@ export class UsersService {
       values.push(dto.name);
     }
     if (dto.email !== undefined) {
+      this.validateEmailDomain(dto.email);
+      const existing = await this.pool.query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [dto.email, id],
+      );
+      if (existing.rows.length > 0) {
+        throw new ConflictException('Email already in use');
+      }
       fields.push(`email = $${i++}`);
       values.push(dto.email);
     }
