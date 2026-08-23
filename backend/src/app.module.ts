@@ -18,6 +18,7 @@ import { SprintsModule } from './sprints/sprints.module';
 import { BoardsModule } from './boards/boards.module';
 
 import { NotificationsModule } from './notifications/notifications.module';
+import { CalendarModule } from './calendar/calendar.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -48,6 +49,7 @@ import { AppController } from './app.controller';
     SprintsModule,
     BoardsModule,
     ReportsModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [
