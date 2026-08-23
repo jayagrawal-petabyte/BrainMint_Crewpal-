@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 @Injectable()
@@ -61,6 +62,33 @@ export class AuthService {
         role_id: user.role_id,
         organization_id: user.organization_id,
       },
+    };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const { email } = forgotPasswordDto;
+
+    const result = await this.db.query(
+      'SELECT id, name, email, is_active FROM users WHERE email = $1 AND is_active = true',
+      [email],
+    );
+
+    const user = result.rows[0];
+
+    if (user) {
+      await this.auditLogsService.recordSafely({
+        userId: user.id,
+        action: 'FORGOT_PASSWORD_REQUEST',
+        entityType: 'auth',
+        entityId: user.id,
+        details: { email: user.email },
+      });
+    }
+
+    // Security: Anti-user enumeration neutral response
+    return {
+      message:
+        'If an account with that email exists, password reset instructions have been sent.',
     };
   }
 
