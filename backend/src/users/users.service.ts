@@ -56,6 +56,28 @@ export class UsersService {
     }
   }
 
+  private verifyRoleHierarchy(
+    target: { id: number; role_id: Role },
+    caller: { id?: number; role_id: Role },
+    action: string = 'modify',
+  ) {
+    if (caller.role_id === Role.SUPER_ADMIN) return;
+
+    // A non-superadmin cannot modify a Super Admin account
+    if (target.role_id === Role.SUPER_ADMIN) {
+      throw new ForbiddenException(
+        `Cannot ${action} a Super Admin account`,
+      );
+    }
+
+    // A non-superadmin cannot modify users with equal or higher role privilege unless updating own profile
+    if (target.role_id <= caller.role_id && target.id !== caller.id) {
+      throw new ForbiddenException(
+        `Cannot ${action} a user with equal or higher role privilege`,
+      );
+    }
+  }
+
   async create(
     dto: CreateUserDto,
     user: { organization_id: number; role_id: Role },
@@ -71,8 +93,10 @@ export class UsersService {
           'Cannot create users in another organization',
         );
       }
-      if (Number(dto.roleId) === Role.SUPER_ADMIN) {
-        throw new ForbiddenException('Cannot assign SUPER_ADMIN role');
+      if (Number(dto.roleId) <= userRole) {
+        throw new ForbiddenException(
+          'Cannot create a user with equal or higher role privilege than your own',
+        );
       }
     }
 
@@ -143,9 +167,10 @@ export class UsersService {
   async update(
     id: number,
     dto: UpdateUserDto,
-    user: { organization_id: number; role_id: Role },
+    user: { id?: number; organization_id: number; role_id: Role },
   ) {
     const target = await this.findOne(id, user);
+    this.verifyRoleHierarchy(target, user, 'modify');
 
     if (dto.organizationId !== undefined && user.role_id !== Role.SUPER_ADMIN) {
       throw new ForbiddenException('Cannot change user organization');
@@ -193,9 +218,13 @@ export class UsersService {
 
   async deactivate(
     id: number,
-    user: { organization_id: number; role_id: Role },
+    user: { id?: number; organization_id: number; role_id: Role },
   ) {
-    await this.findOne(id, user);
+    const target = await this.findOne(id, user);
+    if (target.id === user.id) {
+      throw new ForbiddenException('You cannot deactivate your own account');
+    }
+    this.verifyRoleHierarchy(target, user, 'deactivate');
 
     const result = await this.pool.query(
       `UPDATE users SET is_active = FALSE, updated_at = NOW() WHERE id = $1 RETURNING id, name, email, is_active`,
@@ -205,31 +234,39 @@ export class UsersService {
   }
 
   async reactivate(
-  id: number,
-  user: { organization_id: number; role_id: Role },
-) {
-  await this.findOne(id, user);
+    id: number,
+    user: { id?: number; organization_id: number; role_id: Role },
+  ) {
+    const target = await this.findOne(id, user);
+    this.verifyRoleHierarchy(target, user, 'reactivate');
 
-  const result = await this.pool.query(
-    `UPDATE users
-     SET is_active = TRUE, updated_at = NOW()
-     WHERE id = $1
-     RETURNING id, name, email, is_active`,
-    [id],
-  );
+    const result = await this.pool.query(
+      `UPDATE users
+       SET is_active = TRUE, updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, name, email, is_active`,
+      [id],
+    );
 
-  return result.rows[0];
-}
+    return result.rows[0];
+  }
 
   async updateRole(
     id: number,
     roleId: Role,
-    user: { organization_id: number; role_id: Role },
+    user: { id?: number; organization_id: number; role_id: Role },
   ) {
-    if (user.role_id !== Role.SUPER_ADMIN && roleId === Role.SUPER_ADMIN) {
-      throw new ForbiddenException(
-        'Only SUPER_ADMIN can assign SUPER_ADMIN role',
-      );
+    if (user.role_id !== Role.SUPER_ADMIN) {
+      if (roleId === Role.SUPER_ADMIN) {
+        throw new ForbiddenException(
+          'Only SUPER_ADMIN can assign SUPER_ADMIN role',
+        );
+      }
+      if (roleId <= user.role_id) {
+        throw new ForbiddenException(
+          'Cannot assign a role with equal or higher privilege than your own',
+        );
+      }
     }
 
     const role = await this.pool.query('SELECT id FROM roles WHERE id = $1', [
@@ -238,7 +275,11 @@ export class UsersService {
     if (role.rows.length === 0)
       throw new NotFoundException(`Role ${roleId} not found`);
 
-    await this.findOne(id, user);
+    const target = await this.findOne(id, user);
+    if (target.id === user.id) {
+      throw new ForbiddenException('You cannot change your own role');
+    }
+    this.verifyRoleHierarchy(target, user, 'change the role of');
 
     const result = await this.pool.query(
       `UPDATE users SET role_id = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, role_id`,
