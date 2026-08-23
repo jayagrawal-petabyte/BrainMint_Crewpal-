@@ -231,6 +231,21 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO tasks (id, project_id, sprint_id, board_id, created_by, title, description, status) VALUES
   (1, 1, 1, 1, 1, 'Initial Setup Task', 'First task for testing comments and attachments', 'to_do')
 ON CONFLICT (id) DO UPDATE SET status = 'to_do';
+
+-- Reset sequences for all seeded and operational tables so auto-increment does not collide with seed IDs
+SELECT setval(pg_get_serial_sequence('roles', 'id'), COALESCE((SELECT MAX(id) FROM roles), 1), true);
+SELECT setval(pg_get_serial_sequence('organizations', 'id'), COALESCE((SELECT MAX(id) FROM organizations), 1), true);
+SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 1), true);
+SELECT setval(pg_get_serial_sequence('projects', 'id'), COALESCE((SELECT MAX(id) FROM projects), 1), true);
+SELECT setval(pg_get_serial_sequence('project_members', 'id'), COALESCE((SELECT MAX(id) FROM project_members), 1), true);
+SELECT setval(pg_get_serial_sequence('boards', 'id'), COALESCE((SELECT MAX(id) FROM boards), 1), true);
+SELECT setval(pg_get_serial_sequence('sprints', 'id'), COALESCE((SELECT MAX(id) FROM sprints), 1), true);
+SELECT setval(pg_get_serial_sequence('tasks', 'id'), COALESCE((SELECT MAX(id) FROM tasks), 1), true);
+SELECT setval(pg_get_serial_sequence('comments', 'id'), COALESCE((SELECT MAX(id) FROM comments), 1), true);
+SELECT setval(pg_get_serial_sequence('attachments', 'id'), COALESCE((SELECT MAX(id) FROM attachments), 1), true);
+SELECT setval(pg_get_serial_sequence('notifications', 'id'), COALESCE((SELECT MAX(id) FROM notifications), 1), true);
+SELECT setval(pg_get_serial_sequence('audit_logs', 'id'), COALESCE((SELECT MAX(id) FROM audit_logs), 1), true);
+SELECT setval(pg_get_serial_sequence('organization_settings', 'id'), COALESCE((SELECT MAX(id) FROM organization_settings), 1), true);
 `;
 
 async function initDB(retries = 5, delay = 3000) {
