@@ -20,10 +20,11 @@ connectionString = connectionString.replace(/@([a-z0-9-]+)(\/|:|\?|$)/i, (match,
 const isProduction = process.env.NODE_ENV === 'production';
 const isRender = !!process.env.RENDER || !!process.env.RENDER_SERVICE_ID;
 const hasSslMode = connectionString.includes('sslmode=');
+const isRemoteDb = connectionString.includes('render.com') || connectionString.includes('dpg-') || hasSslMode;
 
 const pool = new Pool({
   connectionString,
-  ssl: (isProduction || isRender || hasSslMode) ? { rejectUnauthorized: false } : false,
+  ssl: (isProduction || isRender || isRemoteDb) ? { rejectUnauthorized: false } : false,
 });
 
 const schema = `
@@ -57,11 +58,14 @@ CREATE TABLE IF NOT EXISTS projects (
   organization_id INTEGER NOT NULL REFERENCES organizations(id),
   name VARCHAR(255) NOT NULL,
   description TEXT,
+  status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'planning', 'in_progress', 'completed', 'archived')),
   created_by INTEGER NOT NULL REFERENCES users(id),
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
 
 CREATE TABLE IF NOT EXISTS project_members (
   id SERIAL PRIMARY KEY,
@@ -197,9 +201,9 @@ INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VAL
 ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_active = TRUE;
 
 -- Seed default project, board, sprint, and task
-INSERT INTO projects (id, organization_id, name, description, created_by) VALUES
-  (1, 1, 'Default Project', 'Initial testing project for WorkTrack', 1)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO projects (id, organization_id, name, description, status, created_by) VALUES
+  (1, 1, 'Default Project', 'Initial testing project for WorkTrack', 'active', 1)
+ON CONFLICT (id) DO UPDATE SET status = 'active';
 
 INSERT INTO project_members (id, project_id, user_id, role_id) VALUES
   (1, 1, 1, 1),

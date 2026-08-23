@@ -1,4 +1,5 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ProjectStatus } from './create-project.dto';
 
 export class UpdateProjectDto {
   @IsOptional()
@@ -10,4 +11,8 @@ export class UpdateProjectDto {
   @IsString()
   @MaxLength(10000)
   description?: string;
+
+  @IsOptional()
+  @IsEnum(ProjectStatus)
+  status?: ProjectStatus;
 }

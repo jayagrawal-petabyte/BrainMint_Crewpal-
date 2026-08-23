@@ -16,6 +16,7 @@ const COLUMNS = `
   organization_id,
   name,
   description,
+  status,
   created_by,
   is_active,
   created_at,
@@ -124,14 +125,16 @@ export class ProjectsService {
         organization_id,
         name,
         description,
+        status,
         created_by
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING ${COLUMNS}`,
       [
         dto.organizationId,
         dto.name,
         dto.description ?? null,
+        dto.status ?? 'active',
         user.id,
       ],
     );
@@ -271,12 +274,14 @@ export class ProjectsService {
        SET
          name = COALESCE($1, name),
          description = COALESCE($2, description),
+         status = COALESCE($3, status),
          updated_at = NOW()
-       WHERE id = $3
+       WHERE id = $4
        RETURNING ${COLUMNS}`,
       [
         dto.name ?? null,
         dto.description ?? null,
+        dto.status ?? null,
         id,
       ],
     );

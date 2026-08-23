@@ -22,8 +22,8 @@ import { Pool } from 'pg';
         const isProduction = process.env.NODE_ENV === 'production';
         const isRender = !!process.env.RENDER || !!process.env.RENDER_SERVICE_ID;
         const hasSslMode = connectionString?.includes('sslmode=') ?? false;
-
-        const useSsl = isProduction || isRender || hasSslMode;
+        const isRemote = (connectionString?.includes('render.com') || connectionString?.includes('dpg-')) ?? false;
+        const useSsl = isProduction || isRender || hasSslMode || isRemote;
 
         const pool = new Pool({
           connectionString,
