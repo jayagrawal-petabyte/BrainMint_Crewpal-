@@ -35,7 +35,6 @@ export class TasksController {
     Role.TEAM_LEAD,
     Role.DESIGNER,
     Role.QA_TESTER,
-    Role.CLIENT,
   )
   create(@Body() createTaskDto: CreateTaskDto, @Req() req: any) {
     return this.tasksService.create(createTaskDto, req.user);
@@ -65,7 +64,6 @@ export class TasksController {
     Role.TEAM_LEAD,
     Role.DESIGNER,
     Role.QA_TESTER,
-    Role.CLIENT,
   )
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -84,7 +82,6 @@ export class TasksController {
     Role.TEAM_LEAD,
     Role.DESIGNER,
     Role.QA_TESTER,
-    Role.CLIENT,
   )
   updateStatus(
     @Param('id', ParseIntPipe) id: number,

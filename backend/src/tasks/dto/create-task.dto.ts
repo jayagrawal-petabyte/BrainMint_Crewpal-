@@ -68,8 +68,17 @@ export class UpdateTaskDto {
   description?: string;
 
   @IsOptional()
+  @IsEnum(TaskStatus)
+  status?: TaskStatus;
+
+  @IsOptional()
   @IsEnum(TaskPriority)
   priority?: TaskPriority;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  assigneeId?: number;
 
   @IsOptional()
   @IsInt()

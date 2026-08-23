@@ -230,7 +230,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO tasks (id, project_id, sprint_id, board_id, created_by, title, description, status) VALUES
   (1, 1, 1, 1, 1, 'Initial Setup Task', 'First task for testing comments and attachments', 'to_do')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET status = 'to_do';
 `;
 
 async function initDB(retries = 5, delay = 3000) {
