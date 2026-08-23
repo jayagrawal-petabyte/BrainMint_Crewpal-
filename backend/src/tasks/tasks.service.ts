@@ -18,6 +18,42 @@ export class TasksService {
   private readonly logger = new Logger(TasksService.name);
   constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
 
+  private formatTask(row: any) {
+    if (!row) return row;
+
+    const assignees = row.assignee_name
+      ? [
+          {
+            id: String(row.assignee_id),
+            name: row.assignee_name,
+            initials: row.assignee_name
+              .split(' ')
+              .map((n: string) => n[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2),
+            avatarColor: 'bg-olive-300',
+          },
+        ]
+      : [];
+
+    return {
+      ...row,
+      id: String(row.id),
+      projectId: row.project_id ? String(row.project_id) : undefined,
+      sprintId: row.sprint_id ? String(row.sprint_id) : undefined,
+      assigneeId: row.assignee_id ? String(row.assignee_id) : undefined,
+      assignees,
+      subtasks: [],
+      comments: [],
+      attachments: [],
+      techTag: row.project_name || 'General',
+      dueDate: row.created_at || new Date().toISOString(),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  }
+
   private async verifyProjectAccess(user: any, projectId: string | number) {
     const result = await this.pool.query(
       `SELECT p.id, p.organization_id,
@@ -34,7 +70,7 @@ export class TasksService {
 
     const projectInfo = result.rows[0];
 
-    // Check super admin status safely
+    // Super Admin access
     if (
       user?.role === 'SUPER_ADMIN' ||
       user?.role_id === 1 ||
@@ -80,7 +116,7 @@ export class TasksService {
         ],
       );
 
-      return result.rows[0];
+      return this.findOne(result.rows[0].id, user);
     } catch (error: any) {
       this.logger.error(
         `Failed to create task: ${error.message}`,
@@ -96,20 +132,27 @@ export class TasksService {
     if (projectId) {
       await this.verifyProjectAccess(user, projectId);
       const result = await this.pool.query(
-        `SELECT * FROM tasks WHERE project_id = $1 ORDER BY created_at DESC`,
+        `SELECT t.*, u.name AS assignee_name, u.email AS assignee_email, p.name AS project_name
+         FROM tasks t
+         LEFT JOIN users u ON t.assignee_id = u.id
+         LEFT JOIN projects p ON t.project_id = p.id
+         WHERE t.project_id = $1
+         ORDER BY t.created_at DESC`,
         [projectId],
       );
-      return result.rows;
+      return result.rows.map((r) => this.formatTask(r));
     }
 
     const result = await this.pool.query(
-      `SELECT t.* FROM tasks t
+      `SELECT t.*, u.name AS assignee_name, u.email AS assignee_email, p.name AS project_name
+       FROM tasks t
+       LEFT JOIN users u ON t.assignee_id = u.id
        JOIN projects p ON t.project_id = p.id
        WHERE p.organization_id = $1
        ORDER BY t.created_at DESC`,
       [user?.organization_id],
     );
-    return result.rows;
+    return result.rows.map((r) => this.formatTask(r));
   }
 
   async searchTasks(user: any, queryParams: any) {
@@ -117,7 +160,9 @@ export class TasksService {
       queryParams;
 
     let query = `
-      SELECT t.* FROM tasks t
+      SELECT t.*, u.name AS assignee_name, u.email AS assignee_email, p.name AS project_name
+      FROM tasks t
+      LEFT JOIN users u ON t.assignee_id = u.id
       JOIN projects p ON t.project_id = p.id
       WHERE p.organization_id = $1
     `;
@@ -151,20 +196,25 @@ export class TasksService {
     query += ` ORDER BY t.created_at DESC`;
 
     const result = await this.pool.query(query, params);
-    return result.rows;
+    return result.rows.map((r) => this.formatTask(r));
   }
 
   async findOne(id: string | number, user: any) {
-    const result = await this.pool.query(`SELECT * FROM tasks WHERE id = $1`, [
-      id,
-    ]);
+    const result = await this.pool.query(
+      `SELECT t.*, u.name AS assignee_name, u.email AS assignee_email, p.name AS project_name
+       FROM tasks t
+       LEFT JOIN users u ON t.assignee_id = u.id
+       LEFT JOIN projects p ON t.project_id = p.id
+       WHERE t.id = $1`,
+      [id],
+    );
     if (result.rows.length === 0) {
       throw new NotFoundException('Task not found');
     }
 
     const task = result.rows[0];
     await this.verifyProjectAccess(user, task.project_id);
-    return task;
+    return this.formatTask(task);
   }
 
   async update(
@@ -217,12 +267,12 @@ export class TasksService {
     fields.push('updated_at = NOW()');
     values.push(task.id);
 
-    const result = await this.pool.query(
-      `UPDATE tasks SET ${fields.join(', ')} WHERE id = $${i} RETURNING *`,
+    await this.pool.query(
+      `UPDATE tasks SET ${fields.join(', ')} WHERE id = $${i}`,
       values,
     );
 
-    return result.rows[0];
+    return this.findOne(id, user);
   }
 
   async updateStatus(
@@ -239,12 +289,12 @@ export class TasksService {
 
     const task = await this.findOne(id, user);
 
-    const result = await this.pool.query(
-      `UPDATE tasks SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+    await this.pool.query(
+      `UPDATE tasks SET status = $1, updated_at = NOW() WHERE id = $2`,
       [updateTaskStatusDto.status, task.id],
     );
 
-    return result.rows[0];
+    return this.findOne(id, user);
   }
 
   async assign(id: string | number, assignTaskDto: AssignTaskDto, user: any) {
@@ -257,12 +307,12 @@ export class TasksService {
 
     const task = await this.findOne(id, user);
 
-    const result = await this.pool.query(
-      `UPDATE tasks SET assignee_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+    await this.pool.query(
+      `UPDATE tasks SET assignee_id = $1, updated_at = NOW() WHERE id = $2`,
       [assignTaskDto.assigneeId, task.id],
     );
 
-    return result.rows[0];
+    return this.findOne(id, user);
   }
 
   // Alias for tasks.controller.ts calling .assignUser()

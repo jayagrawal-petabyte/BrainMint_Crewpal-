@@ -8,10 +8,12 @@ import {
 } from 'class-validator';
 
 export enum ProjectStatus {
+  ON_TRACK = 'on_track',
+  DELAYED = 'delayed',
+  COMPLETED = 'completed',
   ACTIVE = 'active',
   PLANNING = 'planning',
   IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
   ARCHIVED = 'archived',
 }
 

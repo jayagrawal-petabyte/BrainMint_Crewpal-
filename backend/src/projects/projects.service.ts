@@ -36,28 +36,44 @@ export class ProjectsService {
     private readonly pool: Pool,
   ) {}
 
+  private formatProject(row: any) {
+    if (!row) return row;
+    let status = row.status ?? 'on_track';
+    if (
+      status === 'active' ||
+      status === 'in_progress' ||
+      status === 'planning'
+    ) {
+      status = 'on_track';
+    }
+    return {
+      ...row,
+      id: String(row.id),
+      status,
+      memberIds: [],
+      owner: row.created_by ? String(row.created_by) : '1',
+      isStarred: false,
+      createdAt: row.created_at,
+    };
+  }
+
   private async verifyProjectAccess(
     projectId: number,
     projectOrgId: number,
     user: AuthUser,
   ) {
-    // Super Admin can access every project
     if (user.role_id === Role.SUPER_ADMIN) {
       return;
     }
 
-    // User must belong to the same organization
     if (user.organization_id !== projectOrgId) {
       throw new NotFoundException('Project not found');
     }
 
-    // Organization Admin can access all projects
-    // inside their organization
     if (user.role_id === Role.ORG_ADMIN) {
       return;
     }
 
-    // All project-level roles must be project members
     const member = await this.pool.query(
       `SELECT id
        FROM project_members
@@ -77,8 +93,6 @@ export class ProjectsService {
     dto: CreateProjectDto,
     user: AuthUser,
   ) {
-    // Only Super Admin can create a project
-    // for another organization.
     const userRole = Number(user?.role_id);
     const userOrg = Number(user?.organization_id);
 
@@ -120,6 +134,8 @@ export class ProjectsService {
       );
     }
 
+    const initialStatus = dto.status ?? 'on_track';
+
     const result = await this.pool.query(
       `INSERT INTO projects (
         organization_id,
@@ -134,16 +150,15 @@ export class ProjectsService {
         dto.organizationId,
         dto.name,
         dto.description ?? null,
-        dto.status ?? 'active',
+        initialStatus,
         user.id,
       ],
     );
 
-    return result.rows[0];
+    return this.formatProject(result.rows[0]);
   }
 
   async findAll(user: AuthUser) {
-    // Super Admin can see everything
     if (user.role_id === Role.SUPER_ADMIN) {
       const result = await this.pool.query(
         `SELECT ${COLUMNS}
@@ -152,11 +167,9 @@ export class ProjectsService {
          ORDER BY id`,
       );
 
-      return result.rows;
+      return result.rows.map((row) => this.formatProject(row));
     }
 
-    // Organization Admin can see all projects
-    // in their organization
     if (user.role_id === Role.ORG_ADMIN) {
       const result = await this.pool.query(
         `SELECT ${COLUMNS}
@@ -167,11 +180,9 @@ export class ProjectsService {
         [user.organization_id],
       );
 
-      return result.rows;
+      return result.rows.map((row) => this.formatProject(row));
     }
 
-    // Project-level roles can only see projects
-    // where they are members
     const result = await this.pool.query(
       `SELECT ${COLUMNS}
        FROM projects p
@@ -184,7 +195,7 @@ export class ProjectsService {
       [user.organization_id, user.id],
     );
 
-    return result.rows;
+    return result.rows.map((row) => this.formatProject(row));
   }
 
   async searchProjects(
@@ -204,7 +215,6 @@ export class ProjectsService {
     const params: unknown[] = [];
     let paramIndex = 1;
 
-    // Organization restriction
     if (user && user.role_id !== Role.SUPER_ADMIN) {
       query += ` AND organization_id = $${paramIndex++}`;
       params.push(user.organization_id);
@@ -232,7 +242,7 @@ export class ProjectsService {
       params,
     );
 
-    return result.rows;
+    return result.rows.map((row) => this.formatProject(row));
   }
 
   async findOne(
@@ -259,7 +269,7 @@ export class ProjectsService {
       user,
     );
 
-    return result.rows[0];
+    return this.formatProject(result.rows[0]);
   }
 
   async update(
@@ -286,7 +296,7 @@ export class ProjectsService {
       ],
     );
 
-    return result.rows[0];
+    return this.formatProject(result.rows[0]);
   }
 
   async deactivate(

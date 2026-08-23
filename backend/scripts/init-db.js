@@ -58,14 +58,16 @@ CREATE TABLE IF NOT EXISTS projects (
   organization_id INTEGER NOT NULL REFERENCES organizations(id),
   name VARCHAR(255) NOT NULL,
   description TEXT,
-  status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'planning', 'in_progress', 'completed', 'archived')),
+  status VARCHAR(20) DEFAULT 'on_track',
   created_by INTEGER NOT NULL REFERENCES users(id),
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'on_track';
+ALTER TABLE projects DROP CONSTRAINT IF EXISTS projects_status_check;
+ALTER TABLE projects ADD CONSTRAINT projects_status_check CHECK (status IN ('on_track', 'delayed', 'completed', 'active', 'planning', 'in_progress', 'archived'));
 
 CREATE TABLE IF NOT EXISTS project_members (
   id SERIAL PRIMARY KEY,
@@ -205,8 +207,8 @@ ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_active
 
 -- Seed default project, board, sprint, and task
 INSERT INTO projects (id, organization_id, name, description, status, created_by) VALUES
-  (1, 1, 'Default Project', 'Initial testing project for WorkTrack', 'active', 1)
-ON CONFLICT (id) DO UPDATE SET status = 'active';
+  (1, 1, 'Default Project', 'Initial testing project for WorkTrack', 'on_track', 1)
+ON CONFLICT (id) DO UPDATE SET status = 'on_track';
 
 INSERT INTO project_members (id, project_id, user_id, role_id) VALUES
   (1, 1, 1, 1),
