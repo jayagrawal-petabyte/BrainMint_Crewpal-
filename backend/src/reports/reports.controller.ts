@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -11,16 +12,24 @@ import { ReportsService } from './reports.service';
 @Controller('reports')
 @UseGuards(JwtAuthGuard)
 export class ReportsController {
-  constructor(
-    private readonly reportsService: ReportsService,
-  ) {}
+  constructor(private readonly reportsService: ReportsService) {}
+
+  @Get()
+  async getOverviewReport(@Req() req: any) {
+    const report = await this.reportsService.getOrganizationReport(req.user);
+
+    return {
+      success: true,
+      message: 'Reports overview generated successfully',
+      data: report,
+    };
+  }
 
   @Get(['projects/:projectId', 'project-progress/:projectId'])
   async getProjectReport(
     @Param('projectId', ParseIntPipe) projectId: number,
   ) {
-    const report =
-      await this.reportsService.getProjectReport(projectId);
+    const report = await this.reportsService.getProjectReport(projectId);
 
     return {
       success: true,
@@ -33,8 +42,7 @@ export class ReportsController {
   async getSprintReport(
     @Param('sprintId', ParseIntPipe) sprintId: number,
   ) {
-    const report =
-      await this.reportsService.getSprintReport(sprintId);
+    const report = await this.reportsService.getSprintReport(sprintId);
 
     return {
       success: true,

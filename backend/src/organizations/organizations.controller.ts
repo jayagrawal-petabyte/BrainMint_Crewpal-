@@ -22,7 +22,7 @@ import { UpdateOrganizationSettingsDto } from './dto/update-organization-setting
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { OrganizationsService } from './organizations.service';
 
-@Controller('organizations')
+@Controller(['organizations', 'organization'])
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrganizationsController {
   constructor(private readonly orgService: OrganizationsService) {}
