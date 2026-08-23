@@ -8,20 +8,23 @@ import {
 import { Pool } from 'pg';
 import { Role } from '../common/constants/roles.constant';
 import { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
+import { CreateSprintDto } from './dto/create-sprint.dto';
+import { UpdateSprintDto } from './dto/update-sprint.dto';
 
 @Injectable()
 export class SprintsService {
-  constructor(@Inject('PG_CONNECTION') private readonly db: Pool) { }
+  constructor(@Inject('PG_CONNECTION') private readonly db: Pool) {}
 
-  // PRIVATE HELPERS
+  // ─────────────────────────────────────────────────────────────
+  // PRIVATE HELPERS (Security & Scope Gates)
+  // ─────────────────────────────────────────────────────────────
 
   /**
    * Verify the requesting user has access to the given sprint.
    *
-   * Security layers:
-   *  1. NotFoundException for cross-tenant access (no information leakage).
-   *  2. ForbiddenException for intra-org non-member access (user already
-   *     knows they're in the org).
+   * Defense-in-depth:
+   *  1. NotFoundException for cross-tenant access (prevent resource enumeration).
+   *  2. ForbiddenException for non-member access on project-level roles (3–9).
    */
   private async verifySprintAccess(sprintId: number, user: AuthenticatedUser) {
     if (!sprintId || isNaN(sprintId)) {
@@ -49,22 +52,22 @@ export class SprintsService {
 
     const sprint = result.rows[0];
 
-    // Layer 1 — Super Admin: cross-org access permitted
+    // Layer 1 — Super Admin: org-wide access
     if (user.role_id === Role.SUPER_ADMIN) {
       return sprint;
     }
 
-    // Layer 1 — Org isolation: NotFoundException to avoid resource enumeration
+    // Layer 1 — Tenant isolation
     if (sprint.organization_id !== user.organization_id) {
       throw new NotFoundException('Sprint not found');
     }
 
-    // Layer 2 — Org Admin: full access within their org
+    // Layer 2 — Org Admin: full access within org
     if (user.role_id === Role.ORG_ADMIN) {
       return sprint;
     }
 
-    // Layer 2 — Project membership gate (Roles 3–9)
+    // Layer 2 — Project membership check (Roles 3–9)
     if (!sprint.is_member) {
       throw new ForbiddenException(
         'Access denied: You are not a member of this project',
@@ -75,9 +78,49 @@ export class SprintsService {
   }
 
   /**
-   * Verify the task exists, belongs to the same project as the sprint,
-   * and the requesting user has access to it.
-   * Done in a single query to avoid TOCTOU between task and project lookups.
+   * Verify access to a specific project.
+   */
+  private async verifyProjectAccess(projectId: number, user: AuthenticatedUser) {
+    if (!projectId || isNaN(projectId)) {
+      throw new BadRequestException('Invalid project ID');
+    }
+
+    const result = await this.db.query(
+      `SELECT
+         p.id,
+         p.organization_id,
+         (pm.user_id IS NOT NULL) AS is_member
+       FROM projects p
+       LEFT JOIN project_members pm
+         ON pm.project_id = p.id AND pm.user_id = $1
+       WHERE p.id = $2 AND p.is_active = TRUE`,
+      [user.id, projectId],
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const project = result.rows[0];
+
+    if (user.role_id === Role.SUPER_ADMIN) return project;
+    if (project.organization_id !== user.organization_id) {
+      throw new NotFoundException('Project not found');
+    }
+    if (user.role_id === Role.ORG_ADMIN) return project;
+
+    if (!project.is_member) {
+      throw new ForbiddenException(
+        'Access denied: You are not a member of this project',
+      );
+    }
+
+    return project;
+  }
+
+  /**
+   * Verify task exists, belongs to the same project as the sprint,
+   * and requester has access to it.
    */
   private async verifyTaskBelongsToSprint(
     taskId: number,
@@ -103,7 +146,6 @@ export class SprintsService {
 
     const task = result.rows[0];
 
-    // Cross-org task access — never confirm existence to another tenant
     if (
       user.role_id !== Role.SUPER_ADMIN &&
       task.organization_id !== user.organization_id
@@ -111,15 +153,12 @@ export class SprintsService {
       throw new NotFoundException('Task not found');
     }
 
-    // Layer 3 — Task and sprint must belong to the same project
-    // This prevents cross-project task assignments which break sprint integrity
     if (task.project_id !== sprintProjectId) {
       throw new BadRequestException(
         'Task does not belong to the same project as this sprint',
       );
     }
 
-    // When unlinking, verify the task is actually linked to this specific sprint
     if (requireLinkedToSprint !== undefined) {
       if (task.sprint_id !== requireLinkedToSprint) {
         throw new BadRequestException(
@@ -132,13 +171,237 @@ export class SprintsService {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // PUBLIC METHODS
+  // PUBLIC CRUD METHODS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * GET /sprints
+   * List sprints accessible to the authenticated user.
+   */
+  async findAll(
+    user: AuthenticatedUser,
+    queryParams?: { projectId?: number; status?: string },
+  ) {
+    let query = `
+      SELECT
+        s.id,
+        s.project_id  AS "projectId",
+        s.name,
+        s.goal,
+        s.start_date  AS "startDate",
+        s.end_date    AS "endDate",
+        s.status,
+        s.created_at  AS "createdAt",
+        s.updated_at  AS "updatedAt"
+      FROM sprints s
+      JOIN projects p ON s.project_id = p.id
+    `;
+
+    const params: any[] = [];
+    const conditions: string[] = ['p.is_active = TRUE'];
+
+    if (user.role_id === Role.SUPER_ADMIN) {
+      // Super Admin sees all
+    } else if (user.role_id === Role.ORG_ADMIN) {
+      params.push(user.organization_id);
+      conditions.push(`p.organization_id = $${params.length}`);
+    } else {
+      params.push(user.organization_id);
+      conditions.push(`p.organization_id = $${params.length}`);
+
+      params.push(user.id);
+      conditions.push(`EXISTS (
+        SELECT 1 FROM project_members pm
+        WHERE pm.project_id = s.project_id AND pm.user_id = $${params.length}
+      )`);
+    }
+
+    if (queryParams?.projectId) {
+      params.push(queryParams.projectId);
+      conditions.push(`s.project_id = $${params.length}`);
+    }
+
+    if (queryParams?.status) {
+      params.push(queryParams.status);
+      conditions.push(`s.status = $${params.length}`);
+    }
+
+    query += ` WHERE ${conditions.join(' AND ')} ORDER BY s.created_at DESC`;
+
+    const result = await this.db.query(query, params);
+    return result.rows;
+  }
+
+  /**
+   * GET /sprints/:id
+   */
+  async findOne(id: number, user: AuthenticatedUser) {
+    await this.verifySprintAccess(id, user);
+
+    const result = await this.db.query(
+      `SELECT
+         s.id,
+         s.project_id  AS "projectId",
+         s.name,
+         s.goal,
+         s.start_date  AS "startDate",
+         s.end_date    AS "endDate",
+         s.status,
+         s.created_at  AS "createdAt",
+         s.updated_at  AS "updatedAt"
+       FROM sprints s
+       WHERE s.id = $1`,
+      [id],
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Sprint not found');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * POST /sprints
+   */
+  async create(dto: CreateSprintDto, user: AuthenticatedUser) {
+    if (user.role_id === Role.CLIENT || user.role_id === Role.VIEWER) {
+      throw new ForbiddenException(
+        'Your role does not have permission to create sprints',
+      );
+    }
+
+    let targetProjectId = dto.projectId;
+
+    if (!targetProjectId) {
+      if (user.role_id === Role.SUPER_ADMIN || user.role_id === Role.ORG_ADMIN) {
+        const defaultProj = await this.db.query(
+          `SELECT id FROM projects WHERE organization_id = $1 AND is_active = TRUE ORDER BY id LIMIT 1`,
+          [user.organization_id || 1],
+        );
+        if (defaultProj.rows.length > 0) targetProjectId = defaultProj.rows[0].id;
+      } else {
+        const memberProj = await this.db.query(
+          `SELECT project_id FROM project_members WHERE user_id = $1 LIMIT 1`,
+          [user.id],
+        );
+        if (memberProj.rows.length > 0) targetProjectId = memberProj.rows[0].project_id;
+      }
+    }
+
+    if (!targetProjectId) {
+      throw new BadRequestException('Project ID is required to create a sprint');
+    }
+
+    await this.verifyProjectAccess(targetProjectId, user);
+
+    const result = await this.db.query(
+      `INSERT INTO sprints (
+         project_id,
+         name,
+         goal,
+         start_date,
+         end_date,
+         status
+       )
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING
+         id,
+         project_id  AS "projectId",
+         name,
+         goal,
+         start_date  AS "startDate",
+         end_date    AS "endDate",
+         status,
+         created_at  AS "createdAt",
+         updated_at  AS "updatedAt"`,
+      [
+        targetProjectId,
+        dto.name,
+        dto.goal ?? null,
+        dto.startDate ?? null,
+        dto.endDate ?? null,
+        dto.status ?? 'planned',
+      ],
+    );
+
+    return result.rows[0];
+  }
+
+  /**
+   * PATCH /sprints/:id
+   */
+  async update(id: number, dto: UpdateSprintDto, user: AuthenticatedUser) {
+    if (user.role_id === Role.CLIENT || user.role_id === Role.VIEWER) {
+      throw new ForbiddenException(
+        'Your role does not have permission to update sprints',
+      );
+    }
+
+    await this.verifySprintAccess(id, user);
+
+    const result = await this.db.query(
+      `UPDATE sprints
+       SET
+         name = COALESCE($1, name),
+         goal = COALESCE($2, goal),
+         start_date = COALESCE($3, start_date),
+         end_date = COALESCE($4, end_date),
+         status = COALESCE($5, status),
+         updated_at = NOW()
+       WHERE id = $6
+       RETURNING
+         id,
+         project_id  AS "projectId",
+         name,
+         goal,
+         start_date  AS "startDate",
+         end_date    AS "endDate",
+         status,
+         created_at  AS "createdAt",
+         updated_at  AS "updatedAt"`,
+      [
+        dto.name ?? null,
+        dto.goal ?? null,
+        dto.startDate ?? null,
+        dto.endDate ?? null,
+        dto.status ?? null,
+        id,
+      ],
+    );
+
+    return result.rows[0];
+  }
+
+  /**
+   * DELETE /sprints/:id
+   */
+  async delete(id: number, user: AuthenticatedUser) {
+    if (user.role_id === Role.CLIENT || user.role_id === Role.VIEWER) {
+      throw new ForbiddenException(
+        'Your role does not have permission to delete sprints',
+      );
+    }
+
+    await this.verifySprintAccess(id, user);
+
+    // Unlink any tasks linked to this sprint
+    await this.db.query(
+      `UPDATE tasks SET sprint_id = NULL, updated_at = NOW() WHERE sprint_id = $1`,
+      [id],
+    );
+
+    await this.db.query(`DELETE FROM sprints WHERE id = $1`, [id]);
+
+    return { message: 'Sprint deleted successfully' };
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // SPRINT-TASK LINKAGE METHODS
   // ─────────────────────────────────────────────────────────────
 
   /**
    * GET /sprints/:sprintId/tasks
-   * List all tasks linked to the sprint.
-   * All authenticated project members can read (including Client and Viewer).
    */
   async getSprintTasks(sprintId: number, user: AuthenticatedUser) {
     const sprint = await this.verifySprintAccess(sprintId, user);
@@ -173,28 +436,17 @@ export class SprintsService {
 
   /**
    * POST /sprints/:sprintId/tasks
-   * Assign a task to the sprint by updating tasks.sprint_id.
-   * Blocked for Client (8) and Viewer (9).
    */
-  async linkTask(
-    sprintId: number,
-    taskId: number,
-    user: AuthenticatedUser,
-  ) {
-    // Layer 4 — Write gate: Client and Viewer are read-only
+  async linkTask(sprintId: number, taskId: number, user: AuthenticatedUser) {
     if (user.role_id === Role.CLIENT || user.role_id === Role.VIEWER) {
       throw new ForbiddenException(
         'Your role does not have permission to assign tasks to sprints',
       );
     }
 
-    // Layer 1 + 2 — IDOR + membership check on sprint
     const sprint = await this.verifySprintAccess(sprintId, user);
-
-    // Layer 3 — Task must belong to the same project as the sprint
     await this.verifyTaskBelongsToSprint(taskId, sprint.project_id, user);
 
-    // Write: assign task to sprint (atomically enforced by id AND project_id)
     const result = await this.db.query(
       `UPDATE tasks
        SET sprint_id = $1, updated_at = NOW()
@@ -224,33 +476,22 @@ export class SprintsService {
 
   /**
    * DELETE /sprints/:sprintId/tasks/:taskId
-   * Unlink a task from the sprint (set tasks.sprint_id = NULL).
-   * Blocked for Client (8) and Viewer (9).
    */
-  async unlinkTask(
-    sprintId: number,
-    taskId: number,
-    user: AuthenticatedUser,
-  ) {
-    // Layer 4 — Write gate: Client and Viewer are read-only
+  async unlinkTask(sprintId: number, taskId: number, user: AuthenticatedUser) {
     if (user.role_id === Role.CLIENT || user.role_id === Role.VIEWER) {
       throw new ForbiddenException(
         'Your role does not have permission to remove tasks from sprints',
       );
     }
 
-    // Layer 1 + 2 — IDOR + membership check on sprint
     const sprint = await this.verifySprintAccess(sprintId, user);
-
-    // Layer 3 — Task must be in same project AND currently linked to this sprint
     await this.verifyTaskBelongsToSprint(
       taskId,
       sprint.project_id,
       user,
-      sprintId, // requireLinkedToSprint
+      sprintId,
     );
 
-    // Write: remove task from sprint (return to backlog) — atomically enforced
     const result = await this.db.query(
       `UPDATE tasks
        SET sprint_id = NULL, updated_at = NOW()

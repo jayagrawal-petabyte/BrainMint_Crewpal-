@@ -89,12 +89,15 @@ CREATE TABLE IF NOT EXISTS sprints (
   id SERIAL PRIMARY KEY,
   project_id INTEGER NOT NULL REFERENCES projects(id),
   name VARCHAR(255) NOT NULL,
+  goal TEXT,
   start_date DATE,
   end_date DATE,
   status VARCHAR(20) DEFAULT 'planned' CHECK (status IN ('planned', 'active', 'completed')),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE sprints ADD COLUMN IF NOT EXISTS goal TEXT;
 
 CREATE TABLE IF NOT EXISTS tasks (
   id SERIAL PRIMARY KEY,
