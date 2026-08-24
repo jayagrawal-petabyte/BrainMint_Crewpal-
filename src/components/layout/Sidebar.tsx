@@ -69,19 +69,19 @@ export const Sidebar = () => {
       label: t.organization,
       path: "/organization",
       icon: Building2,
-      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+      roles: [UserRole.ADMIN, UserRole.MANAGER],
     },
     {
       label: t.teams,
       path: "/teams",
       icon: Users,
-      roles: [UserRole.ADMIN, UserRole.MANAGER],
+      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
     },
     {
       label: t.reports,
       path: "/reports",
       icon: BarChart3,
-      roles: [UserRole.ADMIN],
+      roles: [UserRole.ADMIN, UserRole.MANAGER],
     },
     {
       label: t.notifications,
@@ -99,7 +99,7 @@ export const Sidebar = () => {
       label: t.settings,
       path: "/settings",
       icon: Settings,
-      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+      roles: [UserRole.ADMIN, UserRole.MANAGER],
     },
   ];
 
