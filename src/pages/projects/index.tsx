@@ -28,22 +28,7 @@ export const Projects = () => {
   const [actionMenuProjectId, setActionMenuProjectId] = useState<string | null>(null);
 
   // Pending approval state
-  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([
-    {
-      id: 'pending-1',
-      name: 'Marketing Campaign',
-      owner: 'Aastha Sharma',
-      requestedAt: '2026-08-01',
-      description: 'A multi-channel digital marketing campaign for Q3 product launches.',
-    },
-    {
-      id: 'pending-2',
-      name: 'Q4 Planning',
-      owner: 'Rahul Verma',
-      requestedAt: '2026-08-01',
-      description: 'Strategic planning and resource allocation for Q4 initiatives.',
-    },
-  ]);
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
   const [reviewApproval, setReviewApproval] = useState<PendingApproval | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
@@ -172,17 +157,25 @@ export const Projects = () => {
       </div>
 
       {/* Pending Approval Section */}
-      {pendingApprovals.length > 0 && (
-        <Card className="border-rose-200 bg-rose-50/40 p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-7 h-7 rounded-full bg-rose-200 flex items-center justify-center">
-              <Clock className="w-3.5 h-3.5 text-rose-700" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-forest-900">Pending Approvals</h3>
-              <p className="text-xs text-forest-500">{pendingApprovals.length} project{pendingApprovals.length !== 1 ? 's' : ''} awaiting approval</p>
-            </div>
+      <Card className="border-rose-200 bg-rose-50/40 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-7 h-7 rounded-full bg-rose-200 flex items-center justify-center">
+            <Clock className="w-3.5 h-3.5 text-rose-700" />
           </div>
+          <div>
+            <h3 className="text-sm font-bold text-forest-900">Pending Approvals</h3>
+            <p className="text-xs text-forest-500">
+              {pendingApprovals.length > 0
+                ? `${pendingApprovals.length} project${pendingApprovals.length !== 1 ? 's' : ''} awaiting approval`
+                : 'No projects awaiting approval'}
+            </p>
+          </div>
+        </div>
+        {pendingApprovals.length === 0 ? (
+          <p className="text-xs text-forest-650 font-medium py-1">
+            No pending approvals at this time.
+          </p>
+        ) : (
           <div className="space-y-2">
             {pendingApprovals.map((approval) => (
               <div
@@ -209,8 +202,8 @@ export const Projects = () => {
               </div>
             ))}
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
 
       {/* Advanced Filters & Sorting Bar */}
       <div className="flex flex-wrap items-center gap-2.5 bg-cream-50 p-3 rounded-xl border border-cream-200">
