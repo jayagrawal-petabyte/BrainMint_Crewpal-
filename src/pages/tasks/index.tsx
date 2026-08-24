@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Plus, Calendar, Pin, Flag, MoreHorizontal, Search, Filter,
   LayoutGrid, MessageSquare, CheckSquare, Trash2, LayoutList, Send,
@@ -136,8 +137,12 @@ const AssigneeAvatars = ({ assignees }: { assignees: Task['assignees'] }) => (
 // ─── Main Tasks Page (Exact match for Project -_ Task.jpg & Task-1.jpg) ──
 
 export const Tasks = () => {
+  const [searchParams] = useSearchParams();
+  const initialTaskId = searchParams.get('task');
+  const initialView = searchParams.get('view') as 'list' | 'kanban' | 'calendar' | null;
+
   const [activeTab, setActiveTab] = useState<'tasks' | 'meetings'>('tasks');
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(initialTaskId);
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -185,6 +190,15 @@ export const Tasks = () => {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    if (initialTaskId) {
+      setSelectedTaskId(initialTaskId);
+    }
+    if (initialView && (initialView === 'list' || initialView === 'kanban' || initialView === 'calendar')) {
+      setViewMode(initialView);
+    }
+  }, [initialTaskId, initialView, setViewMode]);
 
   // Local state for attachment preview
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);

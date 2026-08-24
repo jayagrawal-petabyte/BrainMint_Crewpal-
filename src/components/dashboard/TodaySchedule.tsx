@@ -8,8 +8,9 @@ interface TodayScheduleProps {
   onViewAll?: () => void;
 }
 
-export const TodaySchedule = memo(({ items, title, onViewAll }: TodayScheduleProps) => {
-  if (items.length === 0) {
+export const TodaySchedule = memo(({ items = [], title, onViewAll }: TodayScheduleProps) => {
+  const list = Array.isArray(items) ? items : [];
+  if (list.length === 0) {
     return null;
   }
 

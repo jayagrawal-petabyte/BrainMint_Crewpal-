@@ -11,12 +11,15 @@ interface StatCardProps {
 
 export const StatCard = memo(
   ({ title, value, icon, className = '', delay = '0ms' }: StatCardProps) => {
+    const numericValue = typeof value === 'number' && !isNaN(value) ? value : 0;
     const spring = useSpring(0, { bounce: 0, duration: 1500 });
-    const displayValue = useTransform(spring, (current) => Math.floor(current));
+    const displayValue = useTransform(spring, (current) => 
+      typeof current === 'number' && !isNaN(current) ? Math.floor(current) : 0
+    );
 
     useEffect(() => {
-      spring.set(value);
-    }, [spring, value]);
+      spring.set(numericValue);
+    }, [spring, numericValue]);
 
     return (
       <div

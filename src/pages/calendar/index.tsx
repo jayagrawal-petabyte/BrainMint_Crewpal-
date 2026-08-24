@@ -1,10 +1,17 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarView } from '../../components/views/CalendarView';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useTaskStore } from '../../store/tasks';
 
 export const Calendar = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const fetchTasks = useTaskStore((state) => state.fetchTasks);
+
+  useEffect(() => {
+    void fetchTasks();
+  }, [fetchTasks]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -20,7 +27,7 @@ export const Calendar = () => {
 
       {/* ─── CALENDAR ─── */}
       <div className="animate-in fade-in duration-200">
-        <CalendarView onSelectTask={() => navigate('/tasks')} />
+        <CalendarView onSelectTask={(id) => navigate(`/tasks?task=${id}`)} />
       </div>
     </div>
   );

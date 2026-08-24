@@ -13,12 +13,14 @@ interface UpcomingDeadlinesProps {
 }
 
 export const UpcomingDeadlines = memo(
-  ({ deadlines, title, emptyTitle, emptyDescription, onViewAll }: UpcomingDeadlinesProps) => {
+  ({ deadlines = [], title, emptyTitle, emptyDescription, onViewAll }: UpcomingDeadlinesProps) => {
+    const list = Array.isArray(deadlines) ? deadlines : [];
+
     const getDeadlineLabel = (item: DeadlineItem): string => {
       if (item.overdue) return 'Overdue';
       if (item.daysLeft === 0) return 'Due today';
       if (item.daysLeft === 1) return 'Due tomorrow';
-      return `${item.daysLeft} days left`;
+      return `${item.daysLeft || 0} days left`;
     };
 
     return (
@@ -38,13 +40,13 @@ export const UpcomingDeadlines = memo(
           </div>
         </div>
 
-        {deadlines.length === 0 ? (
+        {list.length === 0 ? (
           <div className="bg-[#fdf8e8] rounded-2xl border border-forest-900/10">
             <EmptyState type="status" title={emptyTitle} description={emptyDescription} />
           </div>
         ) : (
           <div className="space-y-2">
-            {deadlines.map((item) => {
+            {list.map((item) => {
               const label = getDeadlineLabel(item);
 
               return (
@@ -54,7 +56,7 @@ export const UpcomingDeadlines = memo(
                 >
                   <div className="min-w-0">
                     <p className="text-[10px] text-forest-900/60 font-bold mb-0.5">
-                      {item.projectName}
+                      {item.projectName || 'General'}
                     </p>
                     <h4 className="text-xs font-bold text-forest-900 line-clamp-1">
                       {item.title}

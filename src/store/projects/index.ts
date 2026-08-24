@@ -117,7 +117,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const { projects, filter } = get();
     
     // Filter
-    let result = projects.filter((proj) => {
+    const result = projects.filter((proj) => {
       const matchesSearch =
         filter.search === '' ||
         proj.name.toLowerCase().includes(filter.search.toLowerCase()) ||
