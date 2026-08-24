@@ -82,24 +82,11 @@ export default function LoginPage() {
        * UserRole format used by AuthContext/RBAC.
        */
       let role: UserRole = UserRole.EMPLOYEE;
-      const rawRole = String(backendUser.role || "").trim().toLowerCase();
-
-      if (
-        rawRole.includes("admin") ||
-        rawRole === "1" ||
-        rawRole === "2" ||
-        rawRole === "3"
-      ) {
+      
+      if (backendUser.role === "admin") {
         role = UserRole.ADMIN;
-      } else if (
-        rawRole.includes("manager") ||
-        rawRole.includes("lead") ||
-        rawRole === "4" ||
-        rawRole === "5"
-      ) {
+      } else if (backendUser.role === "manager") {
         role = UserRole.MANAGER;
-      } else {
-        role = UserRole.EMPLOYEE;
       }
 
       /*
