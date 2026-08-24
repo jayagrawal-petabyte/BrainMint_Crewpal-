@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type {
   Organization,
@@ -20,6 +20,7 @@ export const OrganizationManagement: React.FC = () => {
     organizations,
     selectedOrg,
     filters,
+    fetchOrganizations,
     setSelectedOrg,
     setFilters,
     resetFilters,
@@ -27,6 +28,10 @@ export const OrganizationManagement: React.FC = () => {
     toggleOrganizationStatus,
     inviteMember,
   } = useOrganizationStore();
+
+  useEffect(() => {
+    void fetchOrganizations();
+  }, [fetchOrganizations]);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2,
@@ -95,12 +95,19 @@ export const OrganizationSettings: React.FC = () => {
   const {
     organizations,
     selectedOrg,
+    fetchOrganizations,
     updateOrganization,
     toggleOrganizationStatus,
     removeOrganization,
   } = useOrganizationStore();
 
-  const defaultOrg: Organization = selectedOrg || organizations[0];
+  useEffect(() => {
+    if (organizations.length === 0) {
+      void fetchOrganizations();
+    }
+  }, [organizations.length, fetchOrganizations]);
+
+  const defaultOrg: Organization | undefined = selectedOrg || organizations[0];
 
   const [activeTab, setActiveTab] = useState<TabKey>('general');
 
@@ -112,6 +119,20 @@ export const OrganizationSettings: React.FC = () => {
   const [industry, setIndustry] = useState(defaultOrg?.industry ?? '');
   const [contactEmail, setContactEmail] = useState(defaultOrg?.owner?.email ?? '');
   const [logoInitials, setLogoInitials] = useState(defaultOrg?.logoInitials ?? 'CP');
+
+  useEffect(() => {
+    if (defaultOrg) {
+      setName(defaultOrg.name || '');
+      setSlug(defaultOrg.slug || '');
+      setDomain(defaultOrg.domain || '');
+      setDescription(defaultOrg.description || '');
+      setIndustry(defaultOrg.industry || '');
+      setContactEmail(defaultOrg.owner?.email || '');
+      setLogoInitials(defaultOrg.logoInitials || 'CP');
+      setPlanTier(defaultOrg.planTier || 'Enterprise');
+      setIsOrgActive(defaultOrg.is_active ?? true);
+    }
+  }, [defaultOrg]);
 
   // Security Settings State
   const [allowedDomains, setAllowedDomains] = useState('brainmint.io, crewpal.app');
@@ -230,6 +251,23 @@ export const OrganizationSettings: React.FC = () => {
     { label: 'Organization', path: '/organization' },
     { label: 'Organization Settings' },
   ];
+
+  if (!defaultOrg) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-300 pb-16">
+        <div className="bg-cream-50 rounded-2xl border border-cream-200 p-8 text-center space-y-4">
+          <p className="text-xl font-bold text-forest-900">No Organization Found</p>
+          <p className="text-sm text-forest-600">Please create or select an organization from the Organization Management page.</p>
+          <div>
+            <Button variant="primary" size="sm" onClick={() => navigate('/organization')}>
+              Go to Organization Management
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-16">
       {/* Page Header Bar */}

@@ -7,6 +7,7 @@ interface ReportFiltersProps {
   setProject: (value: string) => void;
   status: string;
   setStatus: (value: string) => void;
+  availableProjects?: string[];
 }
 
 const ReportFilters = ({
@@ -16,6 +17,7 @@ const ReportFilters = ({
   setProject,
   status,
   setStatus,
+  availableProjects = [],
 }: ReportFiltersProps) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
@@ -41,10 +43,11 @@ const ReportFilters = ({
           className="rounded-xl border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#355E3B]"
         >
           <option value="All">All Projects</option>
-          <option value="CrewPal">CrewPal</option>
-          <option value="School ERP">School ERP</option>
-          <option value="School App">School App</option>
-          <option value="Management Portal">Management Portal</option>
+          {availableProjects.map((pName) => (
+            <option key={pName} value={pName}>
+              {pName}
+            </option>
+          ))}
         </select>
 
         <select

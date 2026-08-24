@@ -3,29 +3,33 @@ import ReportCard from "./ReportCard";
 import ReportFilters from "./ReportFilters";
 import ReportCharts from "./ReportCharts";
 import ExportButtons from "./ExportButtons";
-import reportService, { ReportData } from "../../services/reportService";
+import { generateReportData, ReportData } from "../../services/reportService";
+import { useProjectStore } from "../../store/projects";
+import { useTaskStore } from "../../store/tasks";
 import { exportReportPDF } from "../../utils/exportPDF";
 import { exportReportExcel } from "../../utils/exportExcel";
 
 const Reports = () => {
-  const [reports, setReports] = useState<ReportData | null>(null);
+  const { projects, fetchProjects } = useProjectStore();
+  const { tasks, fetchTasks } = useTaskStore();
 
   const [search, setSearch] = useState("");
   const [project, setProject] = useState("All");
   const [status, setStatus] = useState("All");
 
   useEffect(() => {
-    void loadReports();
-  }, []);
+    void fetchProjects();
+    void fetchTasks();
+  }, [fetchProjects, fetchTasks]);
 
-  const loadReports = async () => {
-    try {
-      const data = await reportService.getReports();
-      setReports(data);
-    } catch (error) {
-      console.error("Failed to load reports:", error);
-    }
-  };
+  // Compute reports dynamically from real projects and tasks
+  const reports: ReportData = useMemo(() => {
+    return generateReportData(projects, tasks);
+  }, [projects, tasks]);
+
+  const availableProjects = useMemo(() => {
+    return Array.from(new Set(projects.map((p) => p.name).filter(Boolean)));
+  }, [projects]);
 
   const exportPDF = async () => {
     try {
@@ -36,14 +40,14 @@ const Reports = () => {
     }
   };
 
-const exportExcel = () => {
-  try {
-    exportReportExcel(filteredProjects);
-  } catch (error) {
-    console.error("Excel export failed:", error);
-    alert("Unable to export the report as Excel.");
-  }
-};
+  const exportExcel = () => {
+    try {
+      exportReportExcel(filteredProjects);
+    } catch (error) {
+      console.error("Excel export failed:", error);
+      alert("Unable to export the report as Excel.");
+    }
+  };
 
   /*
    * Filter project progress based on:
@@ -52,10 +56,6 @@ const exportExcel = () => {
    * 3. Status
    */
   const filteredProjects = useMemo(() => {
-    if (!reports) {
-      return [];
-    }
-
     return reports.projectProgress.filter((item) => {
       // Search filter
       const matchesSearch = item.name
@@ -85,22 +85,12 @@ const exportExcel = () => {
         matchesStatus
       );
     });
-  }, [reports, search, project, status]);
-
-  if (!reports) {
-    return (
-      <div className="min-h-screen bg-[#F7F3D7] flex items-center justify-center">
-        <div className="text-lg font-semibold text-[#355E3B]">
-          Loading Reports...
-        </div>
-      </div>
-    );
-  }
+  }, [reports.projectProgress, search, project, status]);
 
   return (
     <div
       id="reports-content"
-      className="min-h-screen bg-[#F7F3D7] p-6"
+      className="min-h-screen bg-[#F7F3D7] p-6 animate-in fade-in duration-300"
     >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
@@ -110,7 +100,7 @@ const exportExcel = () => {
           </h1>
 
           <p className="text-gray-500 mt-1">
-            View project insights and generate reports.
+            View real-time project insights and generate reports.
           </p>
         </div>
 
@@ -129,6 +119,7 @@ const exportExcel = () => {
           setProject={setProject}
           status={status}
           setStatus={setStatus}
+          availableProjects={availableProjects}
         />
       </div>
 
