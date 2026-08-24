@@ -273,11 +273,11 @@ export default function LandingPage() {
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
           BrainMint's own{" "}
-          <span className="inline-flex items-center gap-1"><span>📕</span><span className="underline decoration-2 underline-offset-2">Interns</span></span>{" "}
-          <span className="inline-flex items-center gap-1"><span>📋</span><span className="underline decoration-2 underline-offset-2">Tasks</span></span>
+          <span className="inline-flex items-center gap-1"><span className="underline decoration-2 underline-offset-2">Interns</span></span>{" "}
+          <span className="inline-flex items-center gap-1"><span className="underline decoration-2 underline-offset-2">Tasks</span></span>
           <br />
           <span>&amp;</span>{" "}
-          <span className="inline-flex items-center gap-1"><span>🎯</span><span className="underline decoration-2 underline-offset-2">projects</span></span>{" "}
+          <span className="inline-flex items-center gap-1"><span className="underline decoration-2 underline-offset-2">projects</span></span>{" "}
           <span className="underline decoration-2 underline-offset-2">managing portal</span>
         </motion.p>
 
