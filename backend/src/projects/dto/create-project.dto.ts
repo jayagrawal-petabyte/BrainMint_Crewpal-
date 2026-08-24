@@ -18,8 +18,9 @@ export enum ProjectStatus {
 }
 
 export class CreateProjectDto {
+  @IsOptional()
   @IsInt()
-  organizationId: number;
+  organizationId?: number;
 
   @IsString()
   @IsNotEmpty()

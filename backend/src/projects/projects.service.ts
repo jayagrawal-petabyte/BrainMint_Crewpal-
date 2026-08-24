@@ -95,10 +95,11 @@ export class ProjectsService {
   ) {
     const userRole = Number(user?.role_id);
     const userOrg = Number(user?.organization_id);
+    const targetOrgId = Number(dto.organizationId ?? userOrg ?? 1);
 
     if (
       userRole !== Role.SUPER_ADMIN &&
-      userOrg !== Number(dto.organizationId)
+      userOrg !== targetOrgId
     ) {
       throw new ForbiddenException(
         'You cannot create a project for another organization',
@@ -110,12 +111,12 @@ export class ProjectsService {
        FROM organizations
        WHERE id = $1
        AND is_active = TRUE`,
-      [dto.organizationId],
+      [targetOrgId],
     );
 
     if (organization.rows.length === 0) {
       throw new NotFoundException(
-        `Organization ${dto.organizationId} not found`,
+        `Organization ${targetOrgId} not found`,
       );
     }
 
@@ -125,7 +126,7 @@ export class ProjectsService {
        WHERE organization_id = $1
        AND LOWER(name) = LOWER($2)
        AND is_active = TRUE`,
-      [dto.organizationId, dto.name],
+      [targetOrgId, dto.name],
     );
 
     if (existing.rows.length > 0) {
@@ -147,7 +148,7 @@ export class ProjectsService {
       VALUES ($1, $2, $3, $4, $5)
       RETURNING ${COLUMNS}`,
       [
-        dto.organizationId,
+        targetOrgId,
         dto.name,
         dto.description ?? null,
         initialStatus,
