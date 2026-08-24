@@ -166,18 +166,15 @@ const SprintCard = ({
 
 // ─── Sprint Backlog ────────────────────────────────────────────────────────
 
-const DEMO_BACKLOG = [
-  { id: 'b1', title: 'Design system tokens',           priority: 'high',   points: 5,  assignee: 'JA' },
-  { id: 'b2', title: 'Build global search (Ctrl+K)',   priority: 'high',   points: 8,  assignee: 'DG' },
-  { id: 'b3', title: 'Activity timeline component',    priority: 'medium', points: 5,  assignee: 'DG' },
-  { id: 'b4', title: 'File upload & attachment UI',    priority: 'medium', points: 3,  assignee: 'DG' },
-  { id: 'b5', title: 'Sprint burndown chart',          priority: 'medium', points: 5,  assignee: 'DG' },
-  { id: 'b6', title: 'RBAC route protection',          priority: 'low',    points: 3,  assignee: 'RP' },
-  { id: 'b7', title: 'Kanban board view',              priority: 'high',   points: 8,  assignee: 'GM' },
-  { id: 'b8', title: 'Error boundary component',       priority: 'low',    points: 2,  assignee: 'NA' },
-  { id: 'b9', title: 'Notification preferences UI',    priority: 'medium', points: 3,  assignee: 'DG' },
-  { id: 'b10', title: 'Organization member invite',    priority: 'medium', points: 5,  assignee: 'SK' },
-];
+type BacklogItemType = {
+  id: string;
+  title: string;
+  priority: string;
+  points: number;
+  assignee: string;
+};
+
+const DEMO_BACKLOG: BacklogItemType[] = [];
 
 const PRIORITY_COLORS: Record<string, string> = {
   high:   'bg-rose-100 text-rose-700',
@@ -265,7 +262,7 @@ export const Scrum = () => {
 
   const [activeTab, setActiveTab] = useState<Tab>('board');
   const [selectedSprintId, setSelectedSprintId] = useState<string>(sprints[0]?.id ?? '');
-  const [assignedItems, setAssignedItems] = useState<Set<string>>(new Set(['b2', 'b3', 'b4', 'b5', 'b9']));
+  const [assignedItems, setAssignedItems] = useState<Set<string>>(new Set());
 
   // Stats for selected sprint
   const activeSprint = sprints.find((s) => s.status === 'active');
