@@ -19,40 +19,7 @@ interface Notification {
   read: boolean;
 }
 
-const initialNotifications: Notification[] = [
-  {
-    id: 1,
-    title: "Task Completed",
-    message: "CrewPal UI implementation has been completed.",
-    time: "10 minutes ago",
-    type: "success",
-    read: false,
-  },
-  {
-    id: 2,
-    title: "Project Update",
-    message: "School ERP project has been updated.",
-    time: "1 hour ago",
-    type: "info",
-    read: false,
-  },
-  {
-    id: 3,
-    title: "Task Delayed",
-    message: "A task in Management Portal is delayed.",
-    time: "2 hours ago",
-    type: "warning",
-    read: true,
-  },
-  {
-    id: 4,
-    title: "New Assignment",
-    message: "You have been assigned a new task.",
-    time: "Today",
-    type: "info",
-    read: true,
-  },
-];
+const initialNotifications: Notification[] = [];
 
 const notificationConfig = {
   success: {
