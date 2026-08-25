@@ -7,9 +7,15 @@ import {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 
+import { Role } from '../common/constants/roles.constant';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { Role } from '../common/constants/roles.constant';
+
+interface AuthUser {
+  id: number;
+  organization_id: number;
+  role_id: number;
+}
 
 const COLUMNS = `
   id,
@@ -23,12 +29,6 @@ const COLUMNS = `
   updated_at
 `;
 
-interface AuthUser {
-  id: number;
-  organization_id: number;
-  role_id: Role;
-}
-
 @Injectable()
 export class ProjectsService {
   constructor(
@@ -38,14 +38,17 @@ export class ProjectsService {
 
   private formatProject(row: any) {
     if (!row) return row;
-    let status = row.status ?? 'on_track';
-    if (
-      status === 'active' ||
-      status === 'in_progress' ||
-      status === 'planning'
-    ) {
-      status = 'on_track';
-    }
+    const statusMap: Record<string, string> = {
+      active: 'on_track',
+      in_progress: 'on_track',
+      on_track: 'on_track',
+      delayed: 'delayed',
+      completed: 'completed',
+      archived: 'completed',
+    };
+    const rawStatus = (row.status || '').toLowerCase().trim();
+    const status = statusMap[rawStatus] || 'on_track';
+
     return {
       ...row,
       id: String(row.id),
@@ -94,6 +97,12 @@ export class ProjectsService {
     user: AuthUser,
   ) {
     const userRole = Number(user?.role_id);
+    if (userRole === Role.CLIENT || userRole === Role.VIEWER) {
+      throw new ForbiddenException(
+        'Your role does not have permission to create projects',
+      );
+    }
+
     const userOrg = Number(user?.organization_id);
     const targetOrgId = Number(dto.organizationId ?? userOrg ?? 1);
 
@@ -143,9 +152,12 @@ export class ProjectsService {
         name,
         description,
         status,
-        created_by
+        created_by,
+        is_active,
+        created_at,
+        updated_at
       )
-      VALUES ($1, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5, TRUE, NOW(), NOW())
       RETURNING ${COLUMNS}`,
       [
         targetOrgId,
@@ -156,7 +168,24 @@ export class ProjectsService {
       ],
     );
 
-    return this.formatProject(result.rows[0]);
+    const project = result.rows[0];
+
+    await this.pool.query(
+      `INSERT INTO project_members (
+        project_id,
+        user_id,
+        role_id,
+        created_at
+      )
+      VALUES ($1, $2, $3, NOW())`,
+      [
+        project.id,
+        user.id,
+        user.role_id,
+      ],
+    );
+
+    return this.formatProject(project);
   }
 
   async findAll(user: AuthUser) {
@@ -167,7 +196,6 @@ export class ProjectsService {
          WHERE is_active = TRUE
          ORDER BY id`,
       );
-
       return result.rows.map((row) => this.formatProject(row));
     }
 
@@ -180,19 +208,26 @@ export class ProjectsService {
          ORDER BY id`,
         [user.organization_id],
       );
-
       return result.rows.map((row) => this.formatProject(row));
     }
 
     const result = await this.pool.query(
-      `SELECT ${COLUMNS}
-       FROM projects p
-       INNER JOIN project_members pm
-         ON pm.project_id = p.id
-       WHERE p.is_active = TRUE
-       AND p.organization_id = $1
-       AND pm.user_id = $2
-       ORDER BY p.id`,
+      `SELECT p.id,
+              p.organization_id,
+              p.name,
+              p.description,
+              p.status,
+              p.created_by,
+              p.is_active,
+              p.created_at,
+              p.updated_at
+        FROM projects p
+        INNER JOIN project_members pm
+          ON pm.project_id = p.id
+        WHERE p.is_active = TRUE
+        AND p.organization_id = $1
+        AND pm.user_id = $2
+        ORDER BY p.id`,
       [user.organization_id, user.id],
     );
 
@@ -278,6 +313,13 @@ export class ProjectsService {
     dto: UpdateProjectDto,
     user: AuthUser,
   ) {
+    const userRole = Number(user?.role_id);
+    if (userRole === Role.CLIENT || userRole === Role.VIEWER) {
+      throw new ForbiddenException(
+        'Your role does not have permission to modify projects',
+      );
+    }
+
     await this.findOne(id, user);
 
     const result = await this.pool.query(
@@ -304,6 +346,13 @@ export class ProjectsService {
     id: number,
     user: AuthUser,
   ) {
+    const userRole = Number(user?.role_id);
+    if (userRole === Role.CLIENT || userRole === Role.VIEWER) {
+      throw new ForbiddenException(
+        'Your role does not have permission to delete projects',
+      );
+    }
+
     await this.findOne(id, user);
 
     const result = await this.pool.query(
