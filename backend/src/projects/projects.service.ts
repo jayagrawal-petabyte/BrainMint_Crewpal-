@@ -175,9 +175,10 @@ export class ProjectsService {
         project_id,
         user_id,
         role_id,
-        created_at
+        added_at
       )
-      VALUES ($1, $2, $3, NOW())`,
+      VALUES ($1, $2, $3, NOW())
+      ON CONFLICT (project_id, user_id) DO NOTHING`,
       [
         project.id,
         user.id,
