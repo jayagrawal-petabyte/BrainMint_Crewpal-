@@ -10,6 +10,7 @@ import {
 import { Pool } from 'pg';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const PRIVILEGED_ROLES = new Set<Role>([
   Role.SUPER_ADMIN,
@@ -20,7 +21,10 @@ const PRIVILEGED_ROLES = new Set<Role>([
 
 @Injectable()
 export class CommentsService {
-  constructor(@Inject('PG_CONNECTION') private readonly db: Pool) {}
+  constructor(
+    @Inject('PG_CONNECTION') private readonly db: Pool,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   /**
    * Helper method to verify task existence and validate user access (IDOR check).
@@ -51,23 +55,18 @@ export class CommentsService {
     const taskInfo = result.rows[0];
 
     // Role-based scope verification
-    // Role 1: Super Admin (all access across orgs)
     if (user.role_id === Role.SUPER_ADMIN) {
       return taskInfo;
     }
 
-    // Organization-level check: NotFoundException (not ForbiddenException) to avoid
-    // confirming resource existence to users outside this tenant
     if (taskInfo.organization_id !== user.organization_id) {
       throw new NotFoundException('Resource not found');
     }
 
-    // Role 2: Org Admin (all projects within their org)
     if (user.role_id === Role.ORG_ADMIN) {
       return taskInfo;
     }
 
-    // Roles 3-9: Must be an active member of the project
     if (!taskInfo.is_member) {
       throw new ForbiddenException(
         'Access denied: You are not a member of this project',
@@ -108,6 +107,33 @@ export class CommentsService {
     ]);
 
     const newComment = insertResult.rows[0];
+
+    // Generate in-app notification for assignee or task creator
+    try {
+      const taskRes = await this.db.query(
+        `SELECT title, assignee_id, created_by FROM tasks WHERE id = $1`,
+        [taskId],
+      );
+      if (taskRes.rows.length > 0) {
+        const task = taskRes.rows[0];
+        const notifyTarget =
+          task.assignee_id && Number(task.assignee_id) !== Number(user.id)
+            ? Number(task.assignee_id)
+            : task.created_by && Number(task.created_by) !== Number(user.id)
+            ? Number(task.created_by)
+            : null;
+
+        if (notifyTarget) {
+          await this.notificationsService.createInAppNotification(
+            notifyTarget,
+            'New Comment on Task',
+            `A new comment was added to task "${task.title}".`,
+          );
+        }
+      }
+    } catch (notifErr) {
+      // Non-blocking notification delivery
+    }
 
     return {
       message: 'Comment added successfully',

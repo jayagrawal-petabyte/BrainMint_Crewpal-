@@ -1,28 +1,56 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/constants/roles.constant';
 import { NotificationsService } from './notifications.service';
+import { CreateNotificationDto } from './dto/create-notification.dto';
 
 interface AuthenticatedRequest {
   user: {
     id: number;
+    organization_id: number;
+    role_id: Role;
   };
 }
 
 @Controller('notifications')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class NotificationsController {
   constructor(
     private readonly notificationsService: NotificationsService,
   ) {}
+
+  /**
+   * POST /notifications
+   *
+   * Creates a direct in-app or email notification.
+   */
+  @Post()
+  @Roles(
+    Role.SUPER_ADMIN,
+    Role.ORG_ADMIN,
+    Role.PROJECT_ADMIN,
+    Role.PROJECT_MANAGER,
+    Role.TEAM_LEAD,
+  )
+  async createNotification(
+    @Body() dto: CreateNotificationDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.notificationsService.createNotification(dto, req.user);
+  }
 
   /**
    * GET /notifications

@@ -46,10 +46,13 @@ export class NotificationsService {
    * Create an in-app or email notification.
    *
    * This method is intended to be called by other backend modules
-   * when a notification needs to be generated.
+   * or direct POST /notifications endpoint.
    */
-  async createNotification(dto: CreateNotificationDto) {
-    await this.ensureUserExists(dto.userId);
+  async createNotification(
+    dto: CreateNotificationDto,
+    requesterUser?: any,
+  ) {
+    await this.ensureUserExists(dto.userId, requesterUser);
 
     if (dto.type === NotificationType.EMAIL) {
       const email = dto.email ?? (await this.getUserEmail(dto.userId));
@@ -131,9 +134,6 @@ export class NotificationsService {
 
   /**
    * Mark one notification as read.
-   *
-   * The user_id condition ensures that a user cannot mark
-   * another user's notification as read.
    */
   async markAsRead(
     notificationId: number,
@@ -219,20 +219,33 @@ export class NotificationsService {
     });
   }
 
-  private async ensureUserExists(userId: number): Promise<void> {
-    const result = await this.db.query(
-      `
-        SELECT id
-        FROM users
-        WHERE id = $1
-          AND is_active = TRUE
-      `,
-      [userId],
-    );
+  private async ensureUserExists(
+    userId: number,
+    requesterUser?: any,
+  ): Promise<void> {
+    const isSuperAdmin =
+      Number(requesterUser?.role_id) === 1 ||
+      requesterUser?.role === 'SUPER_ADMIN';
+    const orgId = requesterUser?.organization_id;
+
+    let query = `
+      SELECT id
+      FROM users
+      WHERE id = $1
+        AND is_active = TRUE
+    `;
+    const params: any[] = [userId];
+
+    if (!isSuperAdmin && orgId) {
+      params.push(orgId);
+      query += ` AND organization_id = $2`;
+    }
+
+    const result = await this.db.query(query, params);
 
     if (result.rows.length === 0) {
       throw new NotFoundException(
-        `Active user ${userId} not found`,
+        `Active user ${userId} not found in your organization`,
       );
     }
   }

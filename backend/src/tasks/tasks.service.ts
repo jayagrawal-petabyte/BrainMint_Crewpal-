@@ -12,11 +12,15 @@ import { CreateTaskDto, UpdateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { AssignTaskDto } from './dto/assign-task.dto';
 import { Role } from '../common/constants/roles.constant';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
-  constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
+  constructor(
+    @Inject('PG_CONNECTION') private readonly pool: Pool,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   private formatTask(row: any) {
     if (!row) return row;
@@ -116,7 +120,23 @@ export class TasksService {
         ],
       );
 
-      return this.findOne(result.rows[0].id, user);
+      const createdTask = await this.findOne(result.rows[0].id, user);
+
+      if (assigneeId && Number(assigneeId) !== Number(userId)) {
+        try {
+          await this.notificationsService.createInAppNotification(
+            Number(assigneeId),
+            'Task Assigned',
+            `You have been assigned to task: "${title}".`,
+          );
+        } catch (notifErr: any) {
+          this.logger.warn(
+            `Failed to create task assignment notification: ${notifErr.message}`,
+          );
+        }
+      }
+
+      return createdTask;
     } catch (error: any) {
       this.logger.error(
         `Failed to create task: ${error.message}`,
@@ -272,6 +292,23 @@ export class TasksService {
       values,
     );
 
+    if (
+      updateTaskDto.assigneeId !== undefined &&
+      Number(updateTaskDto.assigneeId) !== Number(user?.id)
+    ) {
+      try {
+        await this.notificationsService.createInAppNotification(
+          Number(updateTaskDto.assigneeId),
+          'Task Assigned',
+          `You have been assigned to task: "${task.title}".`,
+        );
+      } catch (notifErr: any) {
+        this.logger.warn(
+          `Failed to create task assignment notification: ${notifErr.message}`,
+        );
+      }
+    }
+
     return this.findOne(id, user);
   }
 
@@ -311,6 +348,23 @@ export class TasksService {
       `UPDATE tasks SET assignee_id = $1, updated_at = NOW() WHERE id = $2`,
       [assignTaskDto.assigneeId, task.id],
     );
+
+    if (
+      assignTaskDto.assigneeId &&
+      Number(assignTaskDto.assigneeId) !== Number(user?.id)
+    ) {
+      try {
+        await this.notificationsService.createInAppNotification(
+          Number(assignTaskDto.assigneeId),
+          'Task Assigned',
+          `You have been assigned to task: "${task.title}".`,
+        );
+      } catch (notifErr: any) {
+        this.logger.warn(
+          `Failed to create task assignment notification: ${notifErr.message}`,
+        );
+      }
+    }
 
     return this.findOne(id, user);
   }
