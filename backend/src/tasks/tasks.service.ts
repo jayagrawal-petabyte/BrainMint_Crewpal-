@@ -343,6 +343,8 @@ export class TasksService {
     }
 
     const task = await this.findOne(id, user);
+    const userId = user?.id ?? user?.sub;
+    const previousAssigneeId = task.assignee_id ?? task.assigneeId;
 
     await this.pool.query(
       `UPDATE tasks SET assignee_id = $1, updated_at = NOW() WHERE id = $2`,
@@ -351,7 +353,8 @@ export class TasksService {
 
     if (
       assignTaskDto.assigneeId &&
-      Number(assignTaskDto.assigneeId) !== Number(user?.id)
+      Number(assignTaskDto.assigneeId) !== Number(userId) &&
+      Number(assignTaskDto.assigneeId) !== Number(previousAssigneeId)
     ) {
       try {
         await this.notificationsService.createInAppNotification(
