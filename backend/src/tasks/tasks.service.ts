@@ -343,7 +343,7 @@ export class TasksService {
     }
 
     const task = await this.findOne(id, user);
-    const userId = user?.id ?? user?.sub;
+    const userId = user?.id;
     const previousAssigneeId = task.assignee_id ?? task.assigneeId;
 
     await this.pool.query(
