@@ -1,58 +1,60 @@
 import {
   Bell,
-  CheckCircle2,
-  Info,
-  AlertTriangle,
+  Mail,
   Trash2,
   CheckCheck,
 } from "lucide-react";
-import { useState } from "react";
-
-type NotificationType = "success" | "info" | "warning";
-
-interface Notification {
-  id: number;
-  title: string;
-  message: string;
-  time: string;
-  type: NotificationType;
-  read: boolean;
-}
-
-const initialNotifications: Notification[] = [];
+import { useEffect, useState } from "react";
+import { notificationService } from "../../services/notificationService";
+import { getErrorMessage } from "../../services/apiErrors";
+import { ErrorState } from "../../components/errors/ErrorState";
+import type { Notification } from "../../types/notification";
 
 const notificationConfig = {
-  success: {
-    icon: CheckCircle2,
+  in_app: {
+    icon: Bell,
     iconClass: "text-green-600",
     bgClass: "bg-green-100",
   },
-  info: {
-    icon: Info,
+  email: {
+    icon: Mail,
     iconClass: "text-blue-600",
     bgClass: "bg-blue-100",
-  },
-  warning: {
-    icon: AlertTriangle,
-    iconClass: "text-yellow-600",
-    bgClass: "bg-yellow-100",
   },
 };
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState(
-    initialNotifications
-  );
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchNotifications = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const data = await notificationService.getNotifications();
+      setNotifications(data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const unreadCount = notifications.filter(
-    (notification) => !notification.read
+    (notification) => !notification.is_read
   ).length;
 
   const markAsRead = (id: number) => {
     setNotifications((current) =>
       current.map((notification) =>
         notification.id === id
-          ? { ...notification, read: true }
+          ? { ...notification, is_read: true }
           : notification
       )
     );
@@ -62,7 +64,7 @@ const Notifications = () => {
     setNotifications((current) =>
       current.map((notification) => ({
         ...notification,
-        read: true,
+        is_read: true,
       }))
     );
   };
@@ -113,7 +115,20 @@ const Notifications = () => {
 
       {/* Notifications */}
       <div className="max-w-4xl space-y-3">
-        {notifications.length > 0 ? (
+        {isLoading ? (
+          <div className="rounded-2xl bg-white border border-gray-200 p-12 text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-[#355E3B] border-t-transparent" />
+            <p className="text-sm font-medium text-gray-500">
+              Loading notifications...
+            </p>
+          </div>
+        ) : error ? (
+          <ErrorState
+            title="Couldn't load notifications"
+            message={error}
+            onRetry={fetchNotifications}
+          />
+        ) : notifications.length > 0 ? (
           notifications.map((notification) => {
             const config =
               notificationConfig[notification.type];
@@ -124,7 +139,7 @@ const Notifications = () => {
               <div
                 key={notification.id}
                 className={`flex gap-4 rounded-2xl border p-5 shadow-sm transition ${
-                  notification.read
+                  notification.is_read
                     ? "bg-white border-gray-200"
                     : "bg-[#fdf8e8] border-[#b8c094]"
                 }`}
@@ -150,17 +165,17 @@ const Notifications = () => {
                       </p>
 
                       <p className="text-xs text-gray-400 mt-2">
-                        {notification.time}
+                        {notification.created_at}
                       </p>
                     </div>
 
-                    {!notification.read && (
+                    {!notification.is_read && (
                       <span className="h-2.5 w-2.5 rounded-full bg-[#355E3B] shrink-0 mt-2" />
                     )}
                   </div>
 
                   <div className="flex gap-2 mt-4">
-                    {!notification.read && (
+                    {!notification.is_read && (
                       <button
                         type="button"
                         onClick={() =>
