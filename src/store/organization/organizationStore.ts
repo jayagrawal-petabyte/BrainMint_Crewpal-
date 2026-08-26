@@ -16,9 +16,7 @@ export interface OrganizationState {
   // Store Actions
   fetchOrganizations: () => Promise<void>;
   setOrganizations: (organizations: Organization[]) => void;
-  addOrganization: (
-    newOrgData: Omit<Organization, 'id' | 'createdAt' | 'memberCount' | 'projectCount'>
-  ) => void;
+  addOrganization: ( newOrgData: Omit<Organization, 'id' | 'createdAt' | 'memberCount' | 'projectCount'> ) => Promise<Organization>;
   updateOrganization: (id: string, updates: Partial<Organization>) => void;
   removeOrganization: (id: string) => void;
   deleteOrganization: (id: string) => void;
@@ -77,33 +75,39 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
 
   setOrganizations: (organizations) => set({ organizations }),
 
-  addOrganization: (newOrgData) => {
-    const initials = newOrgData.name
-      .split(' ')
-      .filter(Boolean)
-      .map((w) => w[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || 'OR';
+  addOrganization: async (newOrgData) => {
+  set({
+    loading: true,
+    status: 'loading',
+    error: null,
+  });
 
-    const newOrg: Organization = {
-      ...newOrgData,
-      id: `org-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      memberCount: 1,
-      projectCount: 0,
-      logoInitials: newOrgData.logoInitials || initials,
-      accentBg: newOrgData.accentBg || 'bg-forest-800',
-      accentText: newOrgData.accentText || 'text-cream-50',
-    };
+  try {
+    const createdOrganization =
+      await organizationService.createOrganization(newOrgData);
 
     set((state) => ({
-      organizations: [newOrg, ...state.organizations],
+      organizations: [createdOrganization, ...state.organizations],
+      loading: false,
       status: 'success',
+      error: null,
+      selectedOrg: createdOrganization,
     }));
 
-    void organizationService.createOrganization(newOrgData);
-  },
+    return createdOrganization;
+  } catch (err: any) {
+    const message =
+      err?.message || 'Failed to create organization. Please try again.';
+
+    set({
+      loading: false,
+      status: 'error',
+      error: message,
+    });
+
+    throw err;
+  }
+},
 
   updateOrganization: (id, updates) => {
     set((state) => {
