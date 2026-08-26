@@ -7,43 +7,13 @@ import type {
   QuickAction,
   ScheduleItem,
 } from '../types/dashboard';
+import { api } from '../lib/axios';
 import { statisticsService } from './statisticsService';
 import { activityService } from './activityService';
 import { taskService } from './taskService';
 import { projectService } from './projectService';
 
-const SCHEDULE: ScheduleItem[] = [
-  {
-    id: 'sch-1',
-    time: '10:30 AM',
-    title: 'Peer review and design discussion',
-    completed: false,
-  },
-  {
-    id: 'sch-2',
-    time: '11:00 AM - 12:30 PM',
-    title: 'Read the case study and user interview report',
-    completed: false,
-  },
-  {
-    id: 'sch-3',
-    time: '1:30 PM',
-    title: 'Stand-up and get ready for the designs',
-    completed: false,
-  },
-  {
-    id: 'sch-4',
-    time: '2:30 PM',
-    title: 'Stakeholder meeting with PM',
-    completed: false,
-  },
-  {
-    id: 'sch-5',
-    time: '3:15 PM',
-    title: 'User flow presentation',
-    completed: false,
-  },
-];
+const EMPTY_SCHEDULE: ScheduleItem[] = [];
 
 const QUICK_ACTIONS: QuickAction[] = [
   { id: 'qa-1', label: 'New Task', path: '/tasks', icon: 'plus' },
@@ -61,7 +31,20 @@ export interface DashboardQuery {
 
 class DashboardService {
   async getSchedule(): Promise<ScheduleItem[]> {
-    return SCHEDULE;
+    try {
+      const response = await api.get('/dashboard/schedule');
+      const payload = response.data as unknown;
+
+      const schedule = Array.isArray(payload)
+        ? payload
+        : typeof payload === 'object' && payload !== null && 'schedule' in payload
+          ? (payload as { schedule?: unknown }).schedule
+          : undefined;
+
+      return Array.isArray(schedule) ? schedule as ScheduleItem[] : EMPTY_SCHEDULE;
+    } catch {
+      return EMPTY_SCHEDULE;
+    }
   }
 
   async getQuickActions(): Promise<QuickAction[]> {

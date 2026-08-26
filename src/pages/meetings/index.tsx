@@ -110,18 +110,25 @@ export const Meetings: React.FC = () => {
     setShowAddMeetingModal(false);
   };
 
-  const filteredSprints = sprints.filter((sprint) => {
+  const safeSprints = Array.isArray(sprints)
+    ? sprints.map((sprint) => ({
+        ...sprint,
+        meetings: Array.isArray(sprint?.meetings) ? sprint.meetings : [],
+      }))
+    : [];
+
+  const filteredSprints = safeSprints.filter((sprint) => {
     const matchesSearch =
       sprint.name.toLowerCase().includes(search.toLowerCase()) ||
       sprint.goal.toLowerCase().includes(search.toLowerCase()) ||
-      sprint.meetings.some((m) => m.title.toLowerCase().includes(search.toLowerCase()));
+      sprint.meetings.some((m) => (m?.title ?? '').toLowerCase().includes(search.toLowerCase()));
 
     const matchesStatus = filterStatus === 'all' || sprint.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  const activeSprint = sprints.find((s) => s.status === 'active');
-  const plannedSprints = sprints.filter((s) => s.status === 'planned');
+  const activeSprint = safeSprints.find((s) => s.status === 'active');
+  const plannedSprints = safeSprints.filter((s) => s.status === 'planned');
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">

@@ -13,6 +13,18 @@ interface SprintState {
   deleteSprint: (sprintId: string) => void;
 }
 
+const normalizeSprint = (sprint?: Partial<Sprint> | null): Sprint => ({
+  id: sprint?.id ?? `sprint-${Date.now()}`,
+  name: sprint?.name ?? 'Untitled Sprint',
+  goal: sprint?.goal ?? 'No sprint goal provided.',
+  startDate: sprint?.startDate ?? new Date().toISOString().split('T')[0],
+  endDate: sprint?.endDate ?? new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+  status: sprint?.status ?? 'planned',
+  meetings: Array.isArray(sprint?.meetings) ? sprint.meetings : [],
+  createdAt: sprint?.createdAt ?? new Date().toISOString(),
+  updatedAt: sprint?.updatedAt ?? new Date().toISOString(),
+});
+
 const INITIAL_SPRINTS: Sprint[] = [
   {
     id: 'sprint-1',
@@ -108,7 +120,7 @@ const INITIAL_SPRINTS: Sprint[] = [
 ];
 
 export const useSprintStore = create<SprintState>((set) => ({
-  sprints: INITIAL_SPRINTS,
+  sprints: INITIAL_SPRINTS.map(normalizeSprint),
   activeSprintId: 'sprint-2',
 
   createSprint: (data) => {
@@ -119,7 +131,7 @@ export const useSprintStore = create<SprintState>((set) => ({
       startDate: data.startDate,
       endDate: data.endDate,
       status: 'planned',
-      meetings: data.meetings || [],
+      meetings: Array.isArray(data.meetings) ? data.meetings : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

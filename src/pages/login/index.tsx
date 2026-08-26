@@ -4,18 +4,18 @@ import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types/roles";
 
 const Login = () => {
-const { login, user } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
-  
-  if (user) {
-  return <Navigate to="/dashboard" replace />;
-}
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const validate = () => {
     let valid = true;
