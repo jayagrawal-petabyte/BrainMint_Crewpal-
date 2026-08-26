@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { MoreHorizontal, Plus, Calendar, Pin, Flag, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '../../store/tasks';
@@ -19,13 +19,46 @@ interface KanbanBoardProps {
 }
 
 export const KanbanBoard = ({ onSelectTask, onClickMore }: KanbanBoardProps) => {
-  const tasks = useTaskStore((s) => s.getFilteredTasks());
+  const tasks = useTaskStore((s) => s.tasks);
+  const filter = useTaskStore((s) => ({
+    search: s.filter.search,
+    status: s.filter.status,
+    priority: s.filter.priority,
+    sortBy: s.sortBy,
+    sortOrder: s.sortOrder,
+  }));
   const updateStatus = useTaskStore((s) => s.updateStatus);
   const logEvent = useActivityStore((s) => s.logEvent);
 
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null);
   const isDraggingRef = useRef(false);
+
+  const visibleTasks = useMemo(() => {
+    let filtered = tasks.filter((task) => {
+      const matchesSearch =
+        filter.search.trim() === '' ||
+        task.title.toLowerCase().includes(filter.search.toLowerCase()) ||
+        task.techTag.toLowerCase().includes(filter.search.toLowerCase()) ||
+        task.description.toLowerCase().includes(filter.search.toLowerCase());
+      const matchesStatus = filter.status === 'all' || task.status === filter.status;
+      const matchesPriority = filter.priority === 'all' || task.priority === filter.priority;
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+
+    filtered = [...filtered].sort((a, b) => {
+      const priorityRank = { high: 3, medium: 2, low: 1 };
+      let comparison = 0;
+      switch (filter.sortBy) {
+        case 'name': comparison = a.title.localeCompare(b.title); break;
+        case 'dueDate': comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(); break;
+        case 'priority': comparison = priorityRank[b.priority] - priorityRank[a.priority]; break;
+        case 'createdAt': comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(); break;
+      }
+      return filter.sortOrder === 'asc' ? comparison : -comparison;
+    });
+    return filtered;
+  }, [tasks, filter]);
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     isDraggingRef.current = true;
@@ -78,7 +111,7 @@ export const KanbanBoard = ({ onSelectTask, onClickMore }: KanbanBoardProps) => 
   };
 
   const getColumnTasks = (status: TaskStatus) =>
-    tasks.filter((t) => t.status === status);
+    visibleTasks.filter((t) => t.status === status);
 
   return (
     <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar min-h-[600px]">

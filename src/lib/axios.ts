@@ -18,6 +18,7 @@ api.interceptors.request.use((config) => {
     localStorage.getItem("crewpal_token") ||
     sessionStorage.getItem("crewpal_token");
   if (token) {
+    config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;

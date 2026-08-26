@@ -17,6 +17,18 @@ interface SprintState {
   deleteSprint: (sprintId: string) => void;
 }
 
+const normalizeSprint = (sprint?: Partial<Sprint> | null): Sprint => ({
+  id: sprint?.id ?? `sprint-${Date.now()}`,
+  name: sprint?.name ?? 'Untitled Sprint',
+  goal: sprint?.goal ?? 'No sprint goal provided.',
+  startDate: sprint?.startDate ?? new Date().toISOString().split('T')[0],
+  endDate: sprint?.endDate ?? new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+  status: sprint?.status ?? 'planned',
+  meetings: Array.isArray(sprint?.meetings) ? sprint.meetings : [],
+  createdAt: sprint?.createdAt ?? new Date().toISOString(),
+  updatedAt: sprint?.updatedAt ?? new Date().toISOString(),
+});
+
 export const useSprintStore = create<SprintState>((set) => ({
   sprints: [],
   activeSprintId: null,
@@ -27,7 +39,7 @@ export const useSprintStore = create<SprintState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const sprints = await sprintService.getSprints();
-      const list = Array.isArray(sprints) ? sprints : [];
+      const list = Array.isArray(sprints) ? sprints.map(normalizeSprint) : [];
       const active = list.find((s) => s.status === 'active')?.id ?? list[0]?.id ?? null;
       set({ sprints: list, activeSprintId: active, isLoading: false });
     } catch (err: any) {
@@ -46,7 +58,7 @@ export const useSprintStore = create<SprintState>((set) => ({
       startDate: data.startDate,
       endDate: data.endDate,
       status: 'planned',
-      meetings: data.meetings || [],
+      meetings: Array.isArray(data.meetings) ? data.meetings : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
