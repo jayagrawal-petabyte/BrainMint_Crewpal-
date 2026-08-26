@@ -7,7 +7,7 @@ import { Input } from '../common/Input';
 interface CreateOrganizationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (org: Omit<Organization, 'id' | 'createdAt' | 'memberCount' | 'projectCount'>) => void;
+  onCreate: (org: Omit<Organization, 'id' | 'createdAt' | 'memberCount' | 'projectCount'>) => Promise<Organization>;
 }
 
 export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = ({
@@ -22,6 +22,8 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
   const [ownerName, setOwnerName] = useState('Shivam Kumar');
   const [ownerEmail, setOwnerEmail] = useState('shivam@crewpal.io');
   const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -36,9 +38,11 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    setError('');
+    setIsSubmitting(true);
 
     const initials = name
       .split(' ')
@@ -54,29 +58,35 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
       .substring(0, 2)
       .toUpperCase() || 'SK';
 
-    onCreate({
-      name: name.trim(),
-      slug: slug.trim() || 'my-organization',
-      domain: `${slug.trim() || 'org'}.crewpal.com`,
-      is_active: true,
-      planTier,
-      owner: {
-        name: ownerName,
-        email: ownerEmail,
-        avatarInitials: ownerInitials,
-      },
-      description: description.trim() || 'Enterprise workplace for project management.',
-      industry,
-      logoInitials: initials,
-      accentBg: 'bg-forest-800',
-      accentText: 'text-cream-50',
-    });
+    try {
+      await onCreate({
+        name: name.trim(),
+        slug: slug.trim() || 'my-organization',
+        domain: `${slug.trim() || 'org'}.crewpal.com`,
+        is_active: true,
+        planTier,
+        owner: {
+          name: ownerName,
+          email: ownerEmail,
+          avatarInitials: ownerInitials,
+        },
+        description: description.trim() || 'Enterprise workplace for project management.',
+        industry,
+        logoInitials: initials,
+        accentBg: 'bg-forest-800',
+        accentText: 'text-cream-50',
+      });
 
-    // Reset Form
-    setName('');
-    setSlug('');
-    setDescription('');
-    onClose();
+      setName('');
+      setSlug('');
+      setDescription('');
+      setError('');
+      onClose();
+    } catch (err: any) {
+      setError(err?.message || 'You do not have permission to create an organization.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -103,6 +113,12 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {error && (
+          <div role="alert" className="mx-5 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+            {error}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
@@ -192,8 +208,8 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="sm">
-              Create Organization
+            <Button type="submit" variant="primary" size="sm" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create Organization'}
             </Button>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, FolderKanban, Plus } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { LinkTasksToProjectModal } from '../../components/projects/LinkTasksToProjectModal';
@@ -13,6 +13,7 @@ import { MOCK_TEAM_MEMBERS, useTaskStore } from '../../store/tasks';
 
 export const ProjectDetails = () => {
   const { projectId } = useParams();
+  const navigate = useNavigate();
   const [isManageMembersOpen, setIsManageMembersOpen] = useState(false);
   const [isLinkTasksOpen, setIsLinkTasksOpen] = useState(false);
   const projects = useProjectStore((state) => state.projects);
@@ -25,7 +26,7 @@ export const ProjectDetails = () => {
     return (
       <div className="space-y-6 p-6">
         <div className="flex items-center">
-          <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+          <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />} onClick={() => navigate('/projects')}>
             Back to Projects
           </Button>
         </div>
@@ -53,7 +54,7 @@ export const ProjectDetails = () => {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center">
-        <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+        <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />} onClick={() => navigate('/projects')}>
           Back to Projects
         </Button>
       </div>

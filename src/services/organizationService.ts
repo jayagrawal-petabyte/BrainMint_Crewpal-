@@ -68,33 +68,12 @@ class OrganizationService {
   }
 
   async createOrganization(
-    newOrgData: Omit<Organization, 'id' | 'createdAt' | 'memberCount' | 'projectCount'>
+  newOrgData: Omit<Organization, 'id' | 'createdAt' | 'memberCount' | 'projectCount'>
   ): Promise<Organization> {
-    try {
-      const result = await api.post<BackendOrganization>('/organizations', {
-        name: newOrgData.name,
-      });
-      return mapBackendToOrganization(result);
-    } catch {
-      // Fallback to locally created organization structure if backend unavailable
-      const now = new Date().toISOString();
-      const initials = newOrgData.name
-        .split(' ')
-        .filter(Boolean)
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase() || 'OR';
-
-      return {
-        ...newOrgData,
-        id: `org-${Date.now()}`,
-        createdAt: now,
-        memberCount: 1,
-        projectCount: 0,
-        logoInitials: newOrgData.logoInitials || initials,
-      };
-    }
+    const result = await api.post<BackendOrganization>('/organizations', {
+      name: newOrgData.name,
+    });
+    return mapBackendToOrganization(result);
   }
 
   async updateOrganization(id: string, updates: Partial<Organization>): Promise<void> {

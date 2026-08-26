@@ -11,8 +11,8 @@ interface SprintState {
   // Actions
   fetchSprints: () => Promise<void>;
   createSprint: (data: { name: string; goal: string; startDate: string; endDate: string; meetings?: MeetingItem[] }) => void;
-  startSprint: (sprintId: string) => void;
-  completeSprint: (sprintId: string) => void;
+  startSprint: (sprintId: string) => Promise<void>;
+  completeSprint: (sprintId: string) => Promise<void>;
   addMeetingToSprint: (sprintId: string, meeting: Omit<MeetingItem, 'id'>) => void;
   deleteSprint: (sprintId: string) => void;
 }
@@ -56,29 +56,60 @@ export const useSprintStore = create<SprintState>((set) => ({
     }));
   },
 
-  startSprint: (sprintId) => {
-    set((state) => ({
-      sprints: state.sprints.map((s) => {
-        if (s.id === sprintId) {
-          return { ...s, status: 'active', updatedAt: new Date().toISOString() };
-        }
-        return s;
-      }),
-      activeSprintId: sprintId,
-    }));
-  },
+  startSprint: async (sprintId) => {
+  set({ isLoading: true, error: null });
 
-  completeSprint: (sprintId) => {
+  try {
+    const updatedSprint = await sprintService.updateSprint(sprintId, {
+      status: 'active',
+    });
+
     set((state) => ({
-      sprints: state.sprints.map((s) => {
-        if (s.id === sprintId) {
-          return { ...s, status: 'completed', updatedAt: new Date().toISOString() };
-        }
-        return s;
-      }),
-      activeSprintId: state.activeSprintId === sprintId ? null : state.activeSprintId,
+      sprints: state.sprints.map((sprint) =>
+        sprint.id === sprintId ? updatedSprint : sprint
+      ),
+      activeSprintId: sprintId,
+      isLoading: false,
+      error: null,
     }));
-  },
+  } catch (err: any) {
+    set({
+      isLoading: false,
+      error: err?.message || 'Failed to start sprint.',
+    });
+
+    throw err;
+  }
+},
+
+  completeSprint: async (sprintId) => {
+  set({ isLoading: true, error: null });
+
+  try {
+    const updatedSprint = await sprintService.updateSprint(sprintId, {
+      status: 'completed',
+    });
+
+    set((state) => ({
+      sprints: state.sprints.map((sprint) =>
+        sprint.id === sprintId ? updatedSprint : sprint
+      ),
+      activeSprintId:
+        state.activeSprintId === sprintId
+          ? null
+          : state.activeSprintId,
+      isLoading: false,
+      error: null,
+    }));
+  } catch (err: any) {
+    set({
+      isLoading: false,
+      error: err?.message || 'Failed to complete sprint.',
+    });
+
+    throw err;
+  }
+},
 
   addMeetingToSprint: (sprintId, meetingData) => {
     const newMeeting: MeetingItem = {

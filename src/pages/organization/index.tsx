@@ -71,7 +71,7 @@ export const OrganizationManagement: React.FC = () => {
   const handleCreateOrganization = (
     newOrgData: Omit<Organization, 'id' | 'createdAt' | 'memberCount' | 'projectCount'>
   ) => {
-    addOrganization(newOrgData);
+    return addOrganization(newOrgData);
   };
 
   // Filter & Sort logic derived from store state
