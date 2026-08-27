@@ -35,15 +35,16 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: localStorage.getItem("crewpal_token"),
+  token:
+    localStorage.getItem("crewpal_token") ||
+    sessionStorage.getItem("crewpal_token"),
   status: "idle",
   error: null,
 
   login: async (payload: LoginPayload) => {
     set({ status: "loading", error: null });
     try {
-
-            const { rememberMe, ...loginCredentials } = payload;
+      const { rememberMe, ...loginCredentials } = payload;
       const { data } = await api.post<AuthResponse>(
         "/auth/login",
         loginCredentials
@@ -58,7 +59,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         role: roleFromRoleId(data.user.role_id),
       };
 
-
       if (payload.rememberMe) {
         localStorage.setItem("crewpal_token", authToken);
       } else {
@@ -67,9 +67,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({ user, token: authToken, status: "success", error: null });
     } catch (err) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        "We couldn't log you in. Check your credentials and try again.";
+      const rawMessage = (err as { response?: { data?: { message?: unknown } } })?.response?.data?.message;
+      const message = Array.isArray(rawMessage)
+        ? rawMessage.join(", ")
+        : typeof rawMessage === "string"
+          ? rawMessage
+          : (err as { message?: string })?.message ??
+            "We couldn't log you in. Check your credentials and try again.";
       set({ status: "error", error: message });
       throw err;
     }
@@ -77,6 +81,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     localStorage.removeItem("crewpal_token");
+    localStorage.removeItem("crewpal_user");
+    localStorage.removeItem("crewpal_access_token");
     sessionStorage.removeItem("crewpal_token");
     set({ user: null, token: null, status: "idle", error: null });
   },

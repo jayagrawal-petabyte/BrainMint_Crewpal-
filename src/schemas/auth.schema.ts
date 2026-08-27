@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // SRM institutional email addresses, CrewPal emails, or BrainMint demo accounts
-const ALLOWED_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(srmist\.edu\.in|brainmint\.com|crewpal\.com)$/;
+const ALLOWED_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(srmist\.edu\.in|brainmint\.com|crewpal\.com)$/i;
 
 export const forgotPasswordSchema = z.object({
   email: z
@@ -22,7 +22,7 @@ export const loginSchema = z.object({
   password: z
     .string()
     .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
+    .min(6, "Password must be at least 6 characters"),
   rememberMe: z.boolean().optional(),
 });
 

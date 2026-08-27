@@ -95,7 +95,7 @@ export const apiRequest = async <T>(
       signal: controller.signal,
     });
 
-    if (response.status === 401 && path.includes('/auth/')) {
+    if (response.status === 401 && !path.includes('/auth/login')) {
       window.localStorage.removeItem('crewpal_token');
       window.localStorage.removeItem('crewpal_access_token');
       emitUnauthorized();

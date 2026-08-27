@@ -67,7 +67,12 @@ export default function LoginPage() {
        * backend response. We never determine the role
        * from the email address.
        */
-      await login(values);
+      const sanitizedValues: LoginFormValues = {
+        ...values,
+        email: values.email.trim(),
+      };
+
+      await login(sanitizedValues);
 
       const backendUser = useAuthStore.getState().user;
 
@@ -81,12 +86,27 @@ export default function LoginPage() {
        * Convert the backend role to the frontend
        * UserRole format used by AuthContext/RBAC.
        */
+      const rawRole = String((backendUser as any).role || "").trim().toLowerCase();
       let role: UserRole = UserRole.EMPLOYEE;
-      
-      if (backendUser.role === "admin") {
+
+      if (
+        rawRole === "admin" ||
+        rawRole.includes("admin") ||
+        rawRole === "1" ||
+        rawRole === "2" ||
+        rawRole === "3"
+      ) {
         role = UserRole.ADMIN;
-      } else if (backendUser.role === "manager") {
+      } else if (
+        rawRole === "manager" ||
+        rawRole.includes("manager") ||
+        rawRole.includes("lead") ||
+        rawRole === "4" ||
+        rawRole === "5"
+      ) {
         role = UserRole.MANAGER;
+      } else {
+        role = UserRole.EMPLOYEE;
       }
 
       /*
@@ -95,7 +115,7 @@ export default function LoginPage() {
       contextLogin({
         id: String(backendUser.id),
         name: backendUser.name || "User",
-        email: backendUser.email || values.email,
+        email: backendUser.email || sanitizedValues.email,
         role,
       });
 
@@ -105,7 +125,7 @@ export default function LoginPage() {
         navigate("/dashboard");
       }, 400);
     } catch (err) {
-      console.error("Login navigation error:", err);
+      console.error("Login error:", err);
     }
   };
 
