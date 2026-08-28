@@ -10,10 +10,10 @@ interface ProjectState {
 
   // Actions
   fetchProjects: () => Promise<void>;
-  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'isStarred'>) => void;
+  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'isStarred'>) => Promise<void>;
   toggleStarProject: (id: string) => void;
-  deleteProject: (id: string) => void;
-  updateProject: (id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>) => void;
+  deleteProject: (id: string) => Promise<void>;
+  updateProject: (id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>) => Promise<void>;
   updateProjectMembers: (projectId: string, memberIds: string[]) => void;
 
   // Filters & Sorting
@@ -51,16 +51,21 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  addProject: (projData) => {
-    const newProj: Project = {
-      ...projData,
-      id: `proj-${Date.now()}`,
-      isStarred: false,
-      createdAt: new Date().toISOString(),
-      techStack: projData.techStack || 'React + Node',
-      progress: projData.progress || 0,
-    };
-    set((state) => ({ projects: [newProj, ...state.projects] }));
+  addProject: async (projData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const createdProject = await projectService.createProject(projData);
+      set((state) => ({
+        projects: [createdProject, ...state.projects],
+        isLoading: false,
+      }));
+    } catch (err: any) {
+      set({
+        error: err.message || 'Failed to create project on backend API.',
+        isLoading: false,
+      });
+      throw err;
+    }
   },
 
   toggleStarProject: (id) => {
@@ -71,16 +76,28 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }));
   },
 
-  deleteProject: (id) => {
-    set((state) => ({ projects: state.projects.filter((p) => p.id !== id) }));
+  deleteProject: async (id) => {
+    try {
+      await projectService.deleteProject(id);
+      set((state) => ({ projects: state.projects.filter((p) => p.id !== id) }));
+    } catch (err: any) {
+      set({ error: err.message || 'Failed to delete project.' });
+      throw err;
+    }
   },
 
-  updateProject: (id, updates) => {
-    set((state) => ({
-      projects: state.projects.map((p) =>
-        p.id === id ? { ...p, ...updates } : p
-      ),
-    }));
+  updateProject: async (id, updates) => {
+    try {
+      const updated = await projectService.updateProject(id, updates);
+      set((state) => ({
+        projects: state.projects.map((p) =>
+          p.id === id ? { ...p, ...updated } : p
+        ),
+      }));
+    } catch (err: any) {
+      set({ error: err.message || 'Failed to update project.' });
+      throw err;
+    }
   },
 
   updateProjectMembers: (projectId, memberIds) => {

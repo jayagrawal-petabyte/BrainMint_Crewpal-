@@ -42,6 +42,7 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
   // UI-only fields (not persisted in store)
   const [supervisor, setSupervisor] = useState('');
   const [submitForApproval, setSubmitForApproval] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetForm = () => {
     setName('');
@@ -60,30 +61,37 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
     onClose();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) {
       setNameError('Project name is required');
       return;
     }
 
-    addProject({
-      name: name.trim(),
-      owner: supervisor.trim() || 'Jay Agarwal',
-      description: description.trim() || undefined,
-      category,
-      status,
-      techStack: techStack.trim() || 'React + Node',
-      progress,
-      memberIds: [],
-    });
+    try {
+      setIsSubmitting(true);
+      await addProject({
+        name: name.trim(),
+        owner: supervisor.trim() || 'Jay Agarwal',
+        description: description.trim() || undefined,
+        category,
+        status,
+        techStack: techStack.trim() || 'React + Node',
+        progress,
+        memberIds: [],
+      });
 
-    resetForm();
-    onClose();
-    toast.success(
-      submitForApproval
-        ? 'Project submitted for approval'
-        : 'Project created successfully'
-    );
+      resetForm();
+      onClose();
+      toast.success(
+        submitForApproval
+          ? 'Project submitted for approval'
+          : 'Project created successfully'
+      );
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create project');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -282,9 +290,14 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
           </button>
           <button
             onClick={handleSubmit}
-            className="px-5 py-2 text-sm font-semibold text-white bg-forest-900 hover:bg-forest-800 rounded-full transition-colors shadow-sm"
+            disabled={isSubmitting}
+            className="px-5 py-2 text-sm font-semibold text-white bg-forest-900 hover:bg-forest-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-colors shadow-sm"
           >
-            {submitForApproval ? 'Submit for Approval' : 'Create Project'}
+            {isSubmitting
+              ? 'Creating...'
+              : submitForApproval
+              ? 'Submit for Approval'
+              : 'Create Project'}
           </button>
         </div>
       </div>
