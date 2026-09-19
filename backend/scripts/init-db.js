@@ -16,6 +16,7 @@ connectionString = connectionString.replace(/@([a-z0-9-]+)(\/|:|\?|$)/i, (match,
   }
   return match;
 });
+connectionString = connectionString.replace(/sslmode=require/i, 'sslmode=no-verify');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isRender = !!process.env.RENDER || !!process.env.RENDER_SERVICE_ID;
@@ -248,6 +249,20 @@ SELECT setval(pg_get_serial_sequence('attachments', 'id'), COALESCE((SELECT MAX(
 SELECT setval(pg_get_serial_sequence('notifications', 'id'), COALESCE((SELECT MAX(id) FROM notifications), 1), true);
 SELECT setval(pg_get_serial_sequence('audit_logs', 'id'), COALESCE((SELECT MAX(id) FROM audit_logs), 1), true);
 SELECT setval(pg_get_serial_sequence('organization_settings', 'id'), COALESCE((SELECT MAX(id) FROM organization_settings), 1), true);
+
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE boards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sprints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE attachments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_settings ENABLE ROW LEVEL SECURITY;
 `;
 
 async function initDB(retries = 5, delay = 3000) {

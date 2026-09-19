@@ -17,6 +17,7 @@ import { Pool } from 'pg';
             }
             return match;
           });
+          connectionString = connectionString.replace(/sslmode=require/i, 'sslmode=no-verify');
         }
 
         const isProduction = process.env.NODE_ENV === 'production';
