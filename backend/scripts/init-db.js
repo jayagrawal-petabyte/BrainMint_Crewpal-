@@ -203,7 +203,17 @@ INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VAL
   (6, 1, 6, 'Designer User', 'designer@crewpal.com', '$2b$10$th/GwvSgiwZuYTrOnMCgmu6OY86fA2pDrvi1/nCrbktuTWHzszKkK'),
   (7, 1, 7, 'QA Tester User', 'qa@crewpal.com', '$2b$10$AdY7bqsa3NNrXLA2jHS75.7d2hLslqup2TlnPMEwoPk2qxfqyI/Ji'),
   (8, 1, 8, 'Client User', 'client@crewpal.com', '$2b$10$R2KOYzT01fFdzQOFnKxskeDP.yQps4FTMFF/vHLqqplRyocbzpBh2'),
-  (9, 1, 9, 'Viewer User', 'viewer@crewpal.com', '$2b$10$FQ8rIQ56cN5TBfyvgl8Mn.Nl3/dByccwouaztwsxOIKEpC89LIR66')
+  (9, 1, 9, 'Viewer User', 'viewer@crewpal.com', '$2b$10$FQ8rIQ56cN5TBfyvgl8Mn.Nl3/dByccwouaztwsxOIKEpC89LIR66'),
+  -- Additional test users with @gmail.com (Password: Password123!)
+  (10, 1, 1, 'Super Admin User (Gmail)', 'superadmin@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (11, 1, 2, 'Org Admin User (Gmail)', 'orgadmin@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (12, 1, 3, 'Project Admin User (Gmail)', 'projectadmin@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (13, 1, 4, 'Project Manager User (Gmail)', 'manager@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (14, 1, 5, 'Team Lead User (Gmail)', 'teamlead@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (15, 1, 6, 'Designer User (Gmail)', 'designer@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (16, 1, 7, 'QA Tester User (Gmail)', 'qa@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (17, 1, 8, 'Client User (Gmail)', 'client@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
+  (18, 1, 9, 'Viewer User (Gmail)', 'viewer@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC')
 ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_active = TRUE;
 
 -- Seed default project, board, sprint, and task
@@ -220,7 +230,16 @@ INSERT INTO project_members (id, project_id, user_id, role_id) VALUES
   (6, 1, 6, 6),
   (7, 1, 7, 7),
   (8, 1, 8, 8),
-  (9, 1, 9, 9)
+  (9, 1, 9, 9),
+  (10, 1, 10, 1),
+  (11, 1, 11, 2),
+  (12, 1, 12, 3),
+  (13, 1, 13, 4),
+  (14, 1, 14, 5),
+  (15, 1, 15, 6),
+  (16, 1, 16, 7),
+  (17, 1, 17, 8),
+  (18, 1, 18, 9)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO boards (id, project_id, name, type) VALUES

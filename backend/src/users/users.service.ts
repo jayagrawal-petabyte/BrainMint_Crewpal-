@@ -26,7 +26,7 @@ export class UsersService {
     const rawAllowed =
       process.env.ALLOWED_EMAIL_DOMAINS ||
       process.env.ALLOWED_EMAIL_DOMAIN ||
-      'crewpal.com,srmist.edu.in';
+      'crewpal.com,srmist.edu.in,gmail.com';
 
     const allowedDomains = rawAllowed
       .split(',')
@@ -65,9 +65,7 @@ export class UsersService {
 
     // A non-superadmin cannot modify a Super Admin account
     if (target.role_id === Role.SUPER_ADMIN) {
-      throw new ForbiddenException(
-        `Cannot ${action} a Super Admin account`,
-      );
+      throw new ForbiddenException(`Cannot ${action} a Super Admin account`);
     }
 
     // A non-superadmin cannot modify users with equal or higher role privilege unless updating own profile
@@ -117,10 +115,7 @@ export class UsersService {
       );
       return result.rows[0];
     } catch (error: any) {
-      this.logger.error(
-        `Failed to create user: ${error.message}`,
-        error.stack,
-      );
+      this.logger.error(`Failed to create user: ${error.message}`, error.stack);
       if (error.code === '23505') {
         throw new ConflictException('Email already in use');
       }

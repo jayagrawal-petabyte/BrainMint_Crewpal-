@@ -24,7 +24,7 @@ services:
       - key: CORS_ORIGIN
         value: "https://brain-mint-crewpal.vercel.app,https://brainmintcrewpal.vercel.app"
       - key: ALLOWED_EMAIL_DOMAINS
-        value: "crewpal.com,srmist.edu.in"
+        value: "crewpal.com,srmist.edu.in,gmail.com"
 
 databases:
   - name: crewpal-db
