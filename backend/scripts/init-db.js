@@ -204,16 +204,16 @@ INSERT INTO users (id, organization_id, role_id, name, email, password_hash) VAL
   (7, 1, 7, 'QA Tester User', 'qa@crewpal.com', '$2b$10$AdY7bqsa3NNrXLA2jHS75.7d2hLslqup2TlnPMEwoPk2qxfqyI/Ji'),
   (8, 1, 8, 'Client User', 'client@crewpal.com', '$2b$10$R2KOYzT01fFdzQOFnKxskeDP.yQps4FTMFF/vHLqqplRyocbzpBh2'),
   (9, 1, 9, 'Viewer User', 'viewer@crewpal.com', '$2b$10$FQ8rIQ56cN5TBfyvgl8Mn.Nl3/dByccwouaztwsxOIKEpC89LIR66'),
-  -- Additional test users with @gmail.com (Password: Password123!)
-  (10, 1, 1, 'Super Admin User (Gmail)', 'superadmin@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (11, 1, 2, 'Org Admin User (Gmail)', 'orgadmin@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (12, 1, 3, 'Project Admin User (Gmail)', 'projectadmin@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (13, 1, 4, 'Project Manager User (Gmail)', 'manager@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (14, 1, 5, 'Team Lead User (Gmail)', 'teamlead@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (15, 1, 6, 'Designer User (Gmail)', 'designer@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (16, 1, 7, 'QA Tester User (Gmail)', 'qa@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (17, 1, 8, 'Client User (Gmail)', 'client@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC'),
-  (18, 1, 9, 'Viewer User (Gmail)', 'viewer@gmail.com', '$2b$10$glMnXSIWy5Yvbaf5BnuEwehEZJ6/EfVs.o39B6Ry4d9whSnENAGdC')
+  -- Additional test users with @gmail.com (Role-specific distinct passwords, e.g., SuperAdmin@123!, OrgAdmin@123!, etc.)
+  (10, 1, 1, 'Super Admin User (Gmail)', 'superadmin@gmail.com', '$2b$10$/YT4yRw.GID6xp1piO3zIu35F2lnfPBIYm.WkagOpooAblsQChVoO'),
+  (11, 1, 2, 'Org Admin User (Gmail)', 'orgadmin@gmail.com', '$2b$10$pl.rUJzyuujoHJpqQVMh9.NK.ys08Etj8oEskiXrtzI2az6.oRw8i'),
+  (12, 1, 3, 'Project Admin User (Gmail)', 'projectadmin@gmail.com', '$2b$10$4Th55EwhnVE9pfzUzCtubumj8Lzw.scL3KV9v1gbQ3ZGQPGSgKFAG'),
+  (13, 1, 4, 'Project Manager User (Gmail)', 'manager@gmail.com', '$2b$10$aR/jRtM7kdgXorl8u2UVWe0Cu/WbRmPcSXej3cEbx3WhV3jQWgenS'),
+  (14, 1, 5, 'Team Lead User (Gmail)', 'teamlead@gmail.com', '$2b$10$RAp1Bib2ew67tUGWDRy3OenhDus46GXcnhdbrk2cwOu0GIc6zHNq.'),
+  (15, 1, 6, 'Designer User (Gmail)', 'designer@gmail.com', '$2b$10$UlmqaLgDBDZ0GQZvLcxhZuokj3/0ianr0Djnf5Qg2M2YTaACSD6zu'),
+  (16, 1, 7, 'QA Tester User (Gmail)', 'qa@gmail.com', '$2b$10$ivbwb9WJvGhoBAYZt1vIx.2KmEb2DjXo03wOPh9sb6vYW8OjYnZzK'),
+  (17, 1, 8, 'Client User (Gmail)', 'client@gmail.com', '$2b$10$7d1Frlv7JDLT8/XZvqOFK.TSGjxvB0Z7CwgWzX.5RivEz7CLdWBdK'),
+  (18, 1, 9, 'Viewer User (Gmail)', 'viewer@gmail.com', '$2b$10$zjRx8SkLqW0dR.ColB6oSuq1ekw5sLerH/oM4ttZ0r76.bMeHmf2m')
 ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_active = TRUE;
 
 -- Seed default project, board, sprint, and task
