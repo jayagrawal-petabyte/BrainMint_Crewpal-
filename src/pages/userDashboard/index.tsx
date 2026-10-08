@@ -119,7 +119,7 @@ export const UserDashboard = () => {
                   {user.department || "Not Assigned"}
                 </p>
                 <p className="text-sm mt-3">
-                  <span className="font-semibold">SRM Mail:</span> {user.email}
+                  <span className="font-semibold">Email:</span> {user.email}
                 </p>
                 <p className="text-sm mt-3">
                   <span className="font-semibold">Github Link:</span>{" "}
