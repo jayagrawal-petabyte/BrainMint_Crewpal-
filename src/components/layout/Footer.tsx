@@ -14,7 +14,7 @@ export function Footer() {
           <Logo size="sm" />
 
           <p className="text-xs font-medium tracking-wide text-forest-500">
-            BrainMint WorkTrack
+            Crewpal WorkTrack
           </p>
         </div>
 
