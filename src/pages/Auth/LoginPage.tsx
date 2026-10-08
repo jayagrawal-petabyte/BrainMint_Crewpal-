@@ -86,7 +86,7 @@ export default function LoginPage() {
        * Convert the backend role to the frontend
        * UserRole format used by AuthContext/RBAC.
        */
-      const rawRole = String((backendUser as any).role || "").trim().toLowerCase();
+      const rawRole = String((backendUser as Record<string, unknown>).role || "").trim().toLowerCase();
       let role: UserRole = UserRole.EMPLOYEE;
 
       if (
