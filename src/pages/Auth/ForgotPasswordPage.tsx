@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
                 Forgot Password
               </h1>
               <p className="mt-2 text-sm text-forest/60">
-                Enter your SRM Mail ID and we&apos;ll send you a reset link.
+                Enter your Email address and we&apos;ll send you a reset link.
               </p>
             </div>
 
@@ -126,9 +126,9 @@ export default function ForgotPasswordPage() {
               )}
 
               <Input
-                label="SRM Mail ID"
+                label="Email"
                 type="email"
-                placeholder="yourname@srmist.edu.in"
+                placeholder="name@example.com"
                 autoComplete="email"
                 icon={<Mail className="h-4 w-4" />}
                 error={errors.email?.message}
