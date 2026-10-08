@@ -144,7 +144,7 @@ export const Sidebar = () => {
                 </h1>
 
                 <p className="text-[10px] text-olive-300 font-medium tracking-wider uppercase mt-0.5">
-                  BrainMint WorkTrack
+                  Crewpal WorkTrack
                 </p>
               </motion.div>
             )}
