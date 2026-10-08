@@ -135,7 +135,7 @@ export const OrganizationSettings: React.FC = () => {
   }, [defaultOrg]);
 
   // Security Settings State
-  const [allowedDomains, setAllowedDomains] = useState('brainmint.io, crewpal.app');
+  const [allowedDomains, setAllowedDomains] = useState('acme.io, crewpal.app');
   const [defaultRole, setDefaultRole] = useState('EMPLOYEE');
   const [require2FA, setRequire2FA] = useState(true);
   const [enforceSSO, setEnforceSSO] = useState(false);
@@ -144,7 +144,7 @@ export const OrganizationSettings: React.FC = () => {
 
   // Billing Settings State
   const [planTier, setPlanTier] = useState<OrganizationPlanTier>(defaultOrg?.planTier ?? 'Enterprise');
-  const [billingEmail, setBillingEmail] = useState('billing@brainmint.io');
+  const [billingEmail, setBillingEmail] = useState('billing@acme.io');
 
   // UI Feedback States
   const [errors, setErrors] = useState<FormErrors>({});
@@ -227,14 +227,14 @@ export const OrganizationSettings: React.FC = () => {
     setIndustry(defaultOrg.industry);
     setContactEmail(defaultOrg.owner.email);
     setLogoInitials(defaultOrg.logoInitials);
-    setAllowedDomains('brainmint.io, crewpal.app');
+    setAllowedDomains('acme.io, crewpal.app');
     setDefaultRole('EMPLOYEE');
     setRequire2FA(true);
     setEnforceSSO(false);
     setSessionTimeout('60');
     setRestrictProjectCreation(false);
     setPlanTier(defaultOrg.planTier);
-    setBillingEmail('billing@brainmint.io');
+    setBillingEmail('billing@acme.io');
     setIsOrgActive(defaultOrg.is_active);
     setErrors({});
   };
@@ -437,7 +437,7 @@ export const OrganizationSettings: React.FC = () => {
                         id="org-name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. BrainMint Technologies"
+                        placeholder="e.g. Acme Technologies"
                         error={errors.name}
                       />
                     </FormGroup>
@@ -448,7 +448,7 @@ export const OrganizationSettings: React.FC = () => {
                           id="org-slug"
                           value={slug}
                           onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-                          placeholder="brainmint"
+                          placeholder="acme"
                           error={errors.slug}
                         />
                       </div>
@@ -459,7 +459,7 @@ export const OrganizationSettings: React.FC = () => {
                         id="org-domain"
                         value={domain}
                         onChange={(e) => setDomain(e.target.value)}
-                        placeholder="brainmint.crewpal.com"
+                        placeholder="acme.crewpal.com"
                         leftIcon={<Globe className="w-4 h-4 text-forest-400" />}
                         error={errors.domain}
                       />
@@ -481,7 +481,7 @@ export const OrganizationSettings: React.FC = () => {
                       type="email"
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
-                      placeholder="admin@brainmint.io"
+                      placeholder="admin@acme.io"
                       leftIcon={<Mail className="w-4 h-4 text-forest-400" />}
                       error={errors.contactEmail}
                     />
@@ -519,7 +519,7 @@ export const OrganizationSettings: React.FC = () => {
                       id="allowed-domains"
                       value={allowedDomains}
                       onChange={(e) => setAllowedDomains(e.target.value)}
-                      placeholder="e.g. brainmint.io, crewpal.app"
+                      placeholder="e.g. acme.io, crewpal.app"
                       leftIcon={<Globe className="w-4 h-4 text-forest-400" />}
                     />
                     <p className="text-[11px] text-forest-500 mt-1">
@@ -630,7 +630,7 @@ export const OrganizationSettings: React.FC = () => {
                           Active License
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold">BrainMint Enterprise Workplace</h3>
+                      <h3 className="text-xl font-bold">Crewpal Enterprise Workplace</h3>
                       <p className="text-xs text-cream-300">
                         Full access to automated scrum boards, unlimited projects, priority support, and analytics.
                       </p>
@@ -683,7 +683,7 @@ export const OrganizationSettings: React.FC = () => {
                       type="email"
                       value={billingEmail}
                       onChange={(e) => setBillingEmail(e.target.value)}
-                      placeholder="billing@brainmint.io"
+                      placeholder="billing@acme.io"
                       leftIcon={<Mail className="w-4 h-4 text-forest-400" />}
                       error={errors.billingEmail}
                     />
