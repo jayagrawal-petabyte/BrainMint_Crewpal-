@@ -1,14 +1,12 @@
 import { z } from "zod";
 
-// SRM institutional email addresses or CrewPal emails
-const ALLOWED_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(srmist\.edu\.in|brainmint\.com|crewpal\.com)$/i;
+// Any valid email address
 
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
     .min(1, "Mail ID is required")
-    .email("Enter a valid email address")
-    .regex(ALLOWED_EMAIL_REGEX, "Use your valid CrewPal or SRM email"),
+    .email("Enter a valid email address"),
 });
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
@@ -17,8 +15,7 @@ export const loginSchema = z.object({
   email: z
     .string()
     .min(1, "Mail ID is required")
-    .email("Enter a valid email address")
-    .regex(ALLOWED_EMAIL_REGEX, "Use your valid CrewPal or SRM email"),
+    .email("Enter a valid email address"),
   password: z
     .string()
     .min(1, "Password is required")
