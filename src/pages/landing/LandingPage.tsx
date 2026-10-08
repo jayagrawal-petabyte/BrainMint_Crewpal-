@@ -80,14 +80,14 @@ export default function LandingPage() {
                 {/* Body */}
                 <div className="px-6 py-6 flex flex-col gap-4">
                   <p className="text-forest-600 text-sm leading-relaxed">
-                    Have questions about Crewpal? Reach out to the BrainMint team — we're happy to help interns and managers get started.
+                    Have questions about Crewpal? Reach out to the Crewpal team — we're happy to help interns and managers get started.
                   </p>
 
                   {/* Contact rows */}
                   <div className="flex flex-col gap-3">
                     {/* Email */}
                     <a
-                      href="mailto:brainmintacademy@gmail.com"
+                      href="mailto:hello@crewpal.com"
                       className="flex items-center gap-4 p-4 rounded-2xl bg-cream-100 hover:bg-cream-200 border border-cream-200 transition-colors group"
                     >
                       <span className="w-10 h-10 rounded-xl bg-forest-800 flex items-center justify-center shrink-0">
@@ -95,7 +95,7 @@ export default function LandingPage() {
                       </span>
                       <div className="min-w-0">
                         <p className="text-xs text-forest-500 font-medium uppercase tracking-widest">Email</p>
-                        <p className="text-forest-800 text-sm font-semibold truncate">brainmintacademy@gmail.com</p>
+                        <p className="text-forest-800 text-sm font-semibold truncate">hello@crewpal.com</p>
                       </div>
                       <span className="ml-auto text-forest-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
                     </a>
@@ -112,7 +112,7 @@ export default function LandingPage() {
                       </span>
                       <div className="min-w-0">
                         <p className="text-xs text-forest-500 font-medium uppercase tracking-widest">LinkedIn</p>
-                        <p className="text-forest-800 text-sm font-semibold">BrainMint</p>
+                        <p className="text-forest-800 text-sm font-semibold">Crewpal</p>
                       </div>
                       <span className="ml-auto text-forest-400 group-hover:translate-x-1 transition-transform shrink-0">→</span>
                     </a>
@@ -131,7 +131,7 @@ export default function LandingPage() {
 
                   {/* CTA */}
                   <a
-                    href="mailto:brainmintacademy@gmail.com"
+                    href="mailto:hello@crewpal.com"
                     className="mt-1 w-full flex items-center justify-center gap-2 bg-forest-800 text-cream-100 rounded-full py-3.5 text-sm font-semibold hover:bg-forest-700 transition-colors shadow-sm"
                   >
                     <Mail className="w-4 h-4" />
@@ -181,7 +181,7 @@ export default function LandingPage() {
               </div>
               <div className="flex flex-col justify-center items-start leading-tight">
                 <span className="text-forest-800 text-xl font-bold font-['Roboto'] leading-6 tracking-widest">CREWPAL</span>
-                <span className="text-forest-500 text-xs font-normal font-['Roboto'] leading-4">for BrainMint Intern</span>
+                <span className="text-forest-500 text-xs font-normal font-['Roboto'] leading-4">for Crewpal Intern</span>
               </div>
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function LandingPage() {
           className="mt-6 text-2xl sm:text-3xl font-black text-forest-900 leading-snug max-w-lg"
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
-          BrainMint's own{" "}
+          Crewpal's own{" "}
           <span className="inline-flex items-center gap-1"><span className="underline decoration-2 underline-offset-2">Interns</span></span>{" "}
           <span className="inline-flex items-center gap-1"><span className="underline decoration-2 underline-offset-2">Tasks</span></span>
           <br />
