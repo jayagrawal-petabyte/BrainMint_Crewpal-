@@ -320,7 +320,7 @@ export const MeetingsView: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Sprint 4 - BrainMint Core"
+                  placeholder="e.g. Sprint 4 - Crewpal Core"
                   value={sprintName}
                   onChange={(e) => setSprintName(e.target.value)}
                   className="w-full px-3.5 py-2 bg-white border border-[#0b170e]/30 rounded-xl text-xs text-[#0b170e] outline-none"
