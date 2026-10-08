@@ -196,9 +196,9 @@ export default function LoginPage() {
             )}
 
             <Input
-              label="SRM Mail ID"
+              label="Email"
               type="email"
-              placeholder="yourname@srmist.edu.in"
+              placeholder="name@example.com"
               autoComplete="email"
               icon={<Mail className="h-4 w-4" />}
               error={errors.email?.message}
