@@ -24,7 +24,7 @@ export const Header = () => {
           <div className="w-8 h-8 rounded-full bg-forest-700 text-white flex items-center justify-center">
             <User className="w-4 h-4" />
           </div>
-          <span className="text-xs font-semibold text-forest-800">BrainMint Workspace</span>
+          <span className="text-xs font-semibold text-forest-800">Crewpal Workspace</span>
         </div>
       </div>
     </header>
