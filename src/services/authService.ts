@@ -29,21 +29,6 @@ const DEMO_ACCOUNTS: Record<string, { password: string; role: UserRole; name: st
     role: UserRole.EMPLOYEE,
     name: 'Employee User',
   },
-  'admin@brainmint.com': {
-    password: 'admin123',
-    role: UserRole.ADMIN,
-    name: 'Admin User',
-  },
-  'manager@brainmint.com': {
-    password: 'manager123',
-    role: UserRole.MANAGER,
-    name: 'Manager User',
-  },
-  'employee@brainmint.com': {
-    password: 'employee123',
-    role: UserRole.EMPLOYEE,
-    name: 'Employee User',
-  },
 };
 
 class AuthService {
@@ -85,7 +70,7 @@ class AuthService {
           user: {
             id: `demo-${demo.role.toLowerCase()}`,
             name: demo.name,
-            email: emailLower.endsWith('@brainmint.com') ? emailLower.replace('@brainmint.com', '@crewpal.com') : credentials.email.trim(),
+            email: credentials.email.trim(),
             role: demo.role,
           },
         };

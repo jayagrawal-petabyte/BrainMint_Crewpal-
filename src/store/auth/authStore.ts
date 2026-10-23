@@ -32,18 +32,6 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
     password: "employee123",
     user: { id: "demo-employee", name: "Employee User", email: "employee@crewpal.com", role: "intern" },
   },
-  "admin@brainmint.com": {
-    password: "admin123",
-    user: { id: "demo-admin", name: "Admin User", email: "admin@crewpal.com", role: "admin" },
-  },
-  "manager@brainmint.com": {
-    password: "manager123",
-    user: { id: "demo-manager", name: "Manager User", email: "manager@crewpal.com", role: "manager" },
-  },
-  "employee@brainmint.com": {
-    password: "employee123",
-    user: { id: "demo-employee", name: "Employee User", email: "employee@crewpal.com", role: "intern" },
-  },
 };
 
 interface AuthState {
