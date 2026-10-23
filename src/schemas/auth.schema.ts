@@ -5,7 +5,7 @@ import { z } from "zod";
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, "Mail ID is required")
+    .min(1, "Email is required")
     .email("Enter a valid email address"),
 });
 
@@ -14,7 +14,7 @@ export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export const loginSchema = z.object({
   email: z
     .string()
-    .min(1, "Mail ID is required")
+    .min(1, "Email is required")
     .email("Enter a valid email address"),
   password: z
     .string()

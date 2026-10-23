@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
                 Forgot Password
               </h1>
               <p className="mt-2 text-sm text-forest/60">
-                Enter your Email address and we&apos;ll send you a reset link.
+                Enter your email address and we&apos;ll send you a reset link.
               </p>
             </div>
 
@@ -128,7 +128,8 @@ export default function ForgotPasswordPage() {
               <Input
                 label="Email"
                 type="email"
-                placeholder="name@example.com"
+                placeholder="user@example.com"
+                helperText="Enter your email address"
                 autoComplete="email"
                 icon={<Mail className="h-4 w-4" />}
                 error={errors.email?.message}

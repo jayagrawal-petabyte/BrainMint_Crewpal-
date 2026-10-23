@@ -254,7 +254,7 @@ export const Settings = () => {
           {/* System Info Box */}
           <div className="bg-cream-50/80 rounded-2xl border border-cream-200 p-5 text-center space-y-1">
             <p className="text-xs font-bold text-forest-900">CrewPal Platform</p>
-            <p className="text-[11px] text-forest-500">v1.0.0 · BrainMint Production Build</p>
+            <p className="text-[11px] text-forest-500">v1.0.0 · CrewPal Production Build</p>
             <p className="text-[10px] text-forest-400 pt-1">All preferences auto-saved to browser local storage.</p>
           </div>
         </div>

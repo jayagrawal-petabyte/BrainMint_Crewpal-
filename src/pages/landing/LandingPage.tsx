@@ -102,7 +102,7 @@ export default function LandingPage() {
 
                     {/* LinkedIn */}
                     <a
-                      href="https://www.linkedin.com/company/braimint-chennai/"
+                      href="https://www.linkedin.com/company/crewpal/"
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center gap-4 p-4 rounded-2xl bg-cream-100 hover:bg-cream-200 border border-cream-200 transition-colors group"

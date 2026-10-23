@@ -5,12 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  helperText?: string;
   icon?: React.ReactNode;
   trailingAction?: React.ReactNode;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, icon, trailingAction, id, ...props }, ref) => {
+  ({ className, label, error, helperText, icon, trailingAction, id, ...props }, ref) => {
     const generatedId = React.useId();
     const inputId = id ?? generatedId;
     const errorId = `${inputId}-error`;
@@ -68,6 +69,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </motion.p>
           )}
         </AnimatePresence>
+        {!error && helperText && (
+          <p className="mt-1.5 text-xs text-forest/50">
+            {helperText}
+          </p>
+        )}
       </div>
     );
   }

@@ -86,7 +86,7 @@ export default function LoginPage() {
        * Convert the backend role to the frontend
        * UserRole format used by AuthContext/RBAC.
        */
-      const rawRole = String((backendUser as Record<string, unknown>).role || "").trim().toLowerCase();
+      const rawRole = String((backendUser as unknown as Record<string, unknown>).role || "").trim().toLowerCase();
       let role: UserRole = UserRole.EMPLOYEE;
 
       if (
@@ -133,11 +133,11 @@ export default function LoginPage() {
     <AuthLayout>
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-semibold text-forest md:text-3xl">
-          Welcome Back
+          Login
         </h1>
 
         <p className="mt-2 text-sm text-forest/60">
-          Please log in to continue.
+          Enter your email address to continue.
         </p>
       </div>
 
@@ -198,7 +198,8 @@ export default function LoginPage() {
             <Input
               label="Email"
               type="email"
-              placeholder="name@example.com"
+              placeholder="user@example.com"
+              helperText="Enter your email address"
               autoComplete="email"
               icon={<Mail className="h-4 w-4" />}
               error={errors.email?.message}

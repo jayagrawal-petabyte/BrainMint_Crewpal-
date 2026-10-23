@@ -14,6 +14,21 @@ export interface LoginResponse {
 }
 
 const DEMO_ACCOUNTS: Record<string, { password: string; role: UserRole; name: string }> = {
+  'admin@crewpal.com': {
+    password: 'admin123',
+    role: UserRole.ADMIN,
+    name: 'Admin User',
+  },
+  'manager@crewpal.com': {
+    password: 'manager123',
+    role: UserRole.MANAGER,
+    name: 'Manager User',
+  },
+  'employee@crewpal.com': {
+    password: 'employee123',
+    role: UserRole.EMPLOYEE,
+    name: 'Employee User',
+  },
   'admin@brainmint.com': {
     password: 'admin123',
     role: UserRole.ADMIN,
@@ -70,7 +85,7 @@ class AuthService {
           user: {
             id: `demo-${demo.role.toLowerCase()}`,
             name: demo.name,
-            email: credentials.email.trim(),
+            email: emailLower.endsWith('@brainmint.com') ? emailLower.replace('@brainmint.com', '@crewpal.com') : credentials.email.trim(),
             role: demo.role,
           },
         };

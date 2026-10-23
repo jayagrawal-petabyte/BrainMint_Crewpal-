@@ -59,7 +59,7 @@ export const AddMember = () => {
       valid = false;
     }
     if (!/^RA\d{11,13}$/.test(registration)) {
-      newErrors.registration = "Registration number must be in SRM format.";
+      newErrors.registration = "Invalid registration number format.";
       valid = false;
     }
     if (!duration.trim()) {

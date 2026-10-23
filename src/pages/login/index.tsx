@@ -58,14 +58,14 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#F3F4E8] px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-center mb-8">
-          WorkTrack Login
+          Login
         </h1>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Enter your email address"
               className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
