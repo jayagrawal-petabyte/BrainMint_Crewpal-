@@ -181,7 +181,7 @@ export default function LandingPage() {
               </div>
               <div className="flex flex-col justify-center items-start leading-tight">
                 <span className="text-forest-800 text-xl font-bold font-['Roboto'] leading-6 tracking-widest">CREWPAL</span>
-                <span className="text-forest-500 text-xs font-normal font-['Roboto'] leading-4">for Crewpal Intern</span>
+                <span className="text-forest-500 text-xs font-normal font-['Roboto'] leading-4">for BrainMint</span>
               </div>
             </div>
           </div>

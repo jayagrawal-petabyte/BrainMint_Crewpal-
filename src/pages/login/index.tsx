@@ -63,9 +63,10 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
             <input
               type="email"
-              placeholder="Enter your email address"
+              placeholder="yourname@gmail.com"
               className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

@@ -196,9 +196,9 @@ export default function LoginPage() {
             )}
 
             <Input
-              label="Email"
+              label="Email ID"
               type="email"
-              placeholder="user@example.com"
+              placeholder="yourname@gmail.com"
               helperText="Enter your email address"
               autoComplete="email"
               icon={<Mail className="h-4 w-4" />}
