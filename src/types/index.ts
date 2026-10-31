@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "intern" | "manager" | "admin";
+  role: "employee" | "manager" | "admin";
 }
 
 export interface LoginPayload {

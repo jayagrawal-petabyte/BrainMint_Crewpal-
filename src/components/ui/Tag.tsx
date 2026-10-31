@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const tagStyles = {
-  interns: "bg-tag-interns-bg text-tag-interns-text",
+  team: "bg-tag-team-bg text-tag-team-text",
   tasks: "bg-tag-tasks-bg text-tag-tasks-text",
   projects: "bg-tag-projects-bg text-tag-projects-text",
 } as const;

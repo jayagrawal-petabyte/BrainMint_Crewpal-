@@ -58,8 +58,8 @@ export const AddMember = () => {
       newErrors.lastName = "Last name is required.";
       valid = false;
     }
-    if (!/^RA\d{11,13}$/.test(registration)) {
-      newErrors.registration = "Invalid registration number format.";
+    if (!registration.trim()) {
+      newErrors.registration = "Registration number is required.";
       valid = false;
     }
     if (!duration.trim()) {
@@ -248,7 +248,7 @@ export const AddMember = () => {
                     });
                   }
                 }}
-                placeholder="RA..."
+                placeholder="Enter Registration Number"
                 className="
                   w-full
                   bg-[#F9E8DE]

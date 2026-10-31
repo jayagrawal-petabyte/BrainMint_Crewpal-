@@ -65,7 +65,7 @@ export const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-forest-900 tracking-tight">{t.overview}</h1>
-          <p className="text-sm text-forest-500 mt-1">Welcome back, {user?.name || 'Intern'} — here's your daily overview.</p>
+          <p className="text-sm text-forest-500 mt-1">Welcome back, {user?.name || 'User'} — here's your daily overview.</p>
         </div>
 
         <div className="flex items-center gap-3">

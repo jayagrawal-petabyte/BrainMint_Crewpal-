@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { X, Users, ListChecks, FolderKanban, Mail, Linkedin, MapPin } from "lucide-react";
-import { InternsIllustration } from "@/components/illustrations/InternsIllustration";
+import { X, ListChecks, FolderKanban, Mail, Linkedin, MapPin } from "lucide-react";
+import { HeroIllustration } from "@/components/illustrations/HeroIllustration";
 
 const MENU_ITEMS = [
-  { label: "Interns",    icon: Users,        href: "#interns",  action: null },
   { label: "Tasks",      icon: ListChecks,   href: "#tasks",    action: null },
   { label: "Projects",   icon: FolderKanban, href: "#projects", action: null },
   { label: "Contact Us", icon: Mail,         href: null,        action: "contact" },
@@ -80,7 +79,7 @@ export default function LandingPage() {
                 {/* Body */}
                 <div className="px-6 py-6 flex flex-col gap-4">
                   <p className="text-forest-600 text-sm leading-relaxed">
-                    Have questions about Crewpal? Reach out to the Crewpal team — we're happy to help interns and managers get started.
+                    Have questions about Crewpal? Reach out to the Crewpal team — we're happy to help you get started.
                   </p>
 
                   {/* Contact rows */}
@@ -264,7 +263,7 @@ export default function LandingPage() {
         </motion.h1>
 
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.16} className="w-full max-w-sm sm:max-w-md mt-4">
-          <InternsIllustration className="w-full" />
+          <HeroIllustration className="w-full" />
         </motion.div>
 
         <motion.p
@@ -273,7 +272,6 @@ export default function LandingPage() {
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
           Crewpal's own{" "}
-          <span className="inline-flex items-center gap-1"><span className="underline decoration-2 underline-offset-2">Interns</span></span>{" "}
           <span className="inline-flex items-center gap-1"><span className="underline decoration-2 underline-offset-2">Tasks</span></span>
           <br />
           <span>&amp;</span>{" "}
@@ -282,7 +280,7 @@ export default function LandingPage() {
         </motion.p>
 
         <motion.p variants={fadeUp} initial="hidden" animate="visible" custom={0.34} className="mt-3 text-sm sm:text-base text-forest-600 max-w-sm">
-          Helping Interns &amp; Managers connect together
+          Helping Teams &amp; Managers connect together
         </motion.p>
 
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.42} className="mt-8">

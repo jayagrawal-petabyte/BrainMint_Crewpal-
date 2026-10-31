@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
  * Hand-authored flat-style SVG scene: three collaborators around a shared
  * task board, rendered entirely in the Crewpal palette. No external assets.
  */
-export function InternsIllustration({ className }: { className?: string }) {
+export function HeroIllustration({ className }: { className?: string }) {
   return (
     <motion.svg
       viewBox="0 0 480 320"
@@ -75,7 +75,7 @@ export function InternsIllustration({ className }: { className?: string }) {
       >
         <rect x="60" y="70" width="56" height="20" rx="10" fill="#FDE9C8" />
         <text x="70" y="84" fontSize="10" fontFamily="Inter, sans-serif" fill="#8A5A11" fontWeight="600">
-          Intern
+          Team
         </text>
       </motion.g>
       <motion.g

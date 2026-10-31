@@ -26,7 +26,7 @@ export function AuthDecoration() {
       </svg>
 
       <svg
-        className="absolute bottom-16 left-10 h-24 w-24 text-tag-interns-bg/25"
+        className="absolute bottom-16 left-10 h-24 w-24 text-tag-team-bg/25"
         viewBox="0 0 200 200"
         fill="currentColor"
       >

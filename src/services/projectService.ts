@@ -9,7 +9,7 @@ const DEFAULT_PROGRESS: Record<
   'School Mobile App': { frontend: 80, backend: 60, cyberChecks: 30 },
   'Management Project': { frontend: 80, backend: 60, cyberChecks: 30 },
   'School ERP Project': { frontend: 80, backend: 60, cyberChecks: 30 },
-  'Intern Management Project': { frontend: 80, backend: 60, cyberChecks: 30 },
+  'Team Management Project': { frontend: 80, backend: 60, cyberChecks: 30 },
 };
 
 class ProjectService {

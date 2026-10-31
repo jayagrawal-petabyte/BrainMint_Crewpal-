@@ -9,14 +9,14 @@ const roleFromRoleId = (roleId: number): User["role"] => {
     3: "admin",
     4: "manager",
     5: "manager",
-    6: "intern",
-    7: "intern",
-    8: "intern",
-    9: "intern",
+    6: "employee",
+    7: "employee",
+    8: "employee",
+    9: "employee",
   };
 
   const role = roleMap[roleId];
-  return role || "intern";
+  return role || "employee";
 };
 
 const DEMO_USERS: Record<string, { password: string; user: User }> = {
@@ -30,7 +30,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
   },
   "employee@crewpal.com": {
     password: "employee123",
-    user: { id: "demo-employee", name: "Employee User", email: "employee@crewpal.com", role: "intern" },
+    user: { id: "demo-employee", name: "Employee User", email: "employee@crewpal.com", role: "employee" },
   },
 };
 

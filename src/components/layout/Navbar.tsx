@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/layout/Logo";
 
 const NAV_LINKS = [
-  { label: "Interns", href: "#interns" },
   { label: "Tasks", href: "#tasks" },
   { label: "Projects", href: "#projects" },
 ];
